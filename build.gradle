@@ -1,0 +1,28 @@
+plugins {
+    id 'java'
+    id 'dev.nokee.jni-library'
+    id 'dev.nokee.c-language'
+}
+
+group 'one.jasyncfio'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+tasks.withType(CCompile).configureEach {
+    compilerArgs.add("-O3")
+//    compilerArgs.add("-ggdb")
+}
+
+tasks.test.dependsOn("sharedLibrary")
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+}
+
+test {
+    useJUnitPlatform()
+}
