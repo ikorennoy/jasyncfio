@@ -150,13 +150,13 @@ public class SubmissionQueue {
                 opId);
     }
 
-    public void addOpenAt(int dirFd, long pathAddress, int openFlags, int opId) {
+    public void addOpenAt(int dirFd, long pathAddress, int openFlags, int mode, int opId) {
         enqueueSqe(Native.IORING_OP_OPENAT,
                 0,
                 openFlags,
                 dirFd,
                 pathAddress,
-                0,
+                mode,
                 0,
                 opId
         );
