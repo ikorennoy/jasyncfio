@@ -14,21 +14,20 @@ public class EventExecutor {
     private static final boolean AWAKE = true;
     private static final boolean WAIT = false;
 
-    private static final AtomicBoolean state = new AtomicBoolean(WAIT);
-    private static final Queue<Runnable> tasks = new ConcurrentLinkedDeque<>();
-    private static final Map<Integer, CompletableFuture<Integer>> pendings = new HashMap<>();
-    private static final int entries = Integer.parseInt(System.getProperty("JASYNCFIO_RING_ENTRIES", "4096"));
-    private static final long eventfdReadBuf = MemoryUtils.allocateMemory(8);
-    private static final CompletionCallback callback = EventExecutor::handle;
+    private final AtomicBoolean state = new AtomicBoolean(WAIT);
+    private final Queue<Runnable> tasks = new ConcurrentLinkedDeque<>();
+    private final Map<Integer, CompletableFuture<Integer>> pendings = new HashMap<>();
+    private final int entries = Integer.parseInt(System.getProperty("JASYNCFIO_RING_ENTRIES", "4096"));
+    private final long eventfdReadBuf = MemoryUtils.allocateMemory(8);
+    private final CompletionCallback callback = this::handle;
 
 
-    private static final int eventFd;
-    private static final Uring ring;
-    private static final IntSupplier sequencer;
-    private static final Thread t;
+    private final int eventFd;
+    private final Uring ring;
+    private final IntSupplier sequencer;
+    private final Thread t;
 
-
-    static {
+    EventExecutor() {
         sequencer = new IntSupplier() {
             private int i = 0;
 
@@ -39,11 +38,11 @@ public class EventExecutor {
         };
         ring = Native.setupIoUring(entries, 0);
         eventFd = Native.getEventFd();
-        t = new Thread(EventExecutor::run);
+        t = new Thread(this::run);
         t.start();
     }
 
-    private static void run() {
+    private void run() {
         CompletionQueue completionQueue = ring.getCompletionQueue();
         SubmissionQueue submissionQueue = ring.getSubmissionQueue();
 
@@ -74,14 +73,14 @@ public class EventExecutor {
     }
 
 
-    private static void handle(int fd, int res, int flags, byte op, int data) {
+    private void handle(int fd, int res, int flags, byte op, int data) {
         if (op == Native.IORING_OP_READ && fd == eventFd) {
             addEventFdRead(ring.getSubmissionQueue());
         } else {
             CompletableFuture<Integer> userCallback = pendings.remove(data);
             if (userCallback != null) {
                 if (res < 0) {
-                    userCallback.completeExceptionally(new RuntimeException("errno: " + res));
+                    userCallback.completeExceptionally(ErrnoDecoder.decodeError(res));
                 } else {
                     userCallback.complete(res);
                 }
@@ -89,7 +88,7 @@ public class EventExecutor {
         }
     }
 
-    private static void addEventFdRead(SubmissionQueue submissionQueue) {
+    private void addEventFdRead(SubmissionQueue submissionQueue) {
         submissionQueue.addEventFdRead(eventFd, eventfdReadBuf, 0, 8, 0);
     }
 
@@ -110,11 +109,11 @@ public class EventExecutor {
         }
     }
 
-    private static boolean hasTasks() {
+    private boolean hasTasks() {
         return !tasks.isEmpty();
     }
 
-    private static boolean runAllTasks() {
+    private boolean runAllTasks() {
         Runnable t = tasks.poll();
         if (t == null) {
             return false;
@@ -150,11 +149,21 @@ public class EventExecutor {
     }
 
     public void scheduleRead(int fd, long bufferAddress, int pos, int limit) {
-        CompletableFuture<Integer> f = new CompletableFuture<Integer>();
+        CompletableFuture<Integer> f = new CompletableFuture<>();
         execute(() -> {
             int opId = sequencer.getAsInt();
             pendings.put(opId, f);
             ring.getSubmissionQueue().addRead(fd, bufferAddress, pos, limit, opId);
         });
+    }
+
+    public CompletableFuture<Integer> scheduleOpenBuffered(int dirFd, long pathAddress, int openFlags) {
+        CompletableFuture<Integer> f = new CompletableFuture<>();
+        execute(() -> {
+            int opId = sequencer.getAsInt();
+            pendings.put(opId, f);
+            ring.getSubmissionQueue().addOpenAt(dirFd, pathAddress, openFlags, opId);
+        });
+        return f;
     }
 }

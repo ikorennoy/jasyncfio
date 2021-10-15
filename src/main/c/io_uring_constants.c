@@ -1,7 +1,7 @@
 #include "io_uring.h"
 #include "io_uring_constants.h"
 
-#define IO_URING_CONSTANTS_CLASS_NAME "one/jasyncfio/natives/Constants"
+#define IO_URING_CONSTANTS_CLASS_NAME "one/jasyncfio/natives/UringConstants"
 
 static jbyte get_ioring_op_read() {
     return IORING_OP_READ;

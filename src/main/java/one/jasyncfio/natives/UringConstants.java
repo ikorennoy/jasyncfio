@@ -1,6 +1,6 @@
 package one.jasyncfio.natives;
 
-public class Constants {
+public class UringConstants {
 
     static native int ioRingEnterGetEvents();
 

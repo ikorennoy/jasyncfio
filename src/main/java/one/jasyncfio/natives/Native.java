@@ -68,14 +68,31 @@ public class Native {
     public static native int getEventFd();
     public static native int eventFdWrite(int fd, long value);
 
-    public static byte IORING_OP_READ = Constants.ioRingOpRead();
-    public static byte IORING_OP_WRITE = Constants.ioRingOpWrite();
-    public static byte IORING_OP_CLOSE = Constants.ioRingOpClose();
-    public static byte IORING_OP_OPENAT = Constants.ioRingOpenAt();
-    public static byte IORING_OP_NOP = Constants.ioRingOpNop();
+    static native long getDirectBufferAddress(java.nio.Buffer buffer);
 
-    public static int IORING_ENTER_GETEVENTS = Constants.ioRingEnterGetEvents();
-    public static int IORING_ENTER_SQ_WAKEUP = Constants.ioRingEnterSqWakeup();
-    public static int IORING_SQ_NEED_WAKEUP = Constants.ioRingSqNeedWakeup();
+    public static native long getStringPointer(String str);
 
+    public static native void releaseString(String str, long ptr);
+
+    public static int EAGAIN = ErrnoConstants.getEagain();
+    public static int EBUSY = ErrnoConstants.getEbusy();
+    public static int EBADF = ErrnoConstants.getEbadf();
+    public static int EFAULT = ErrnoConstants.getEfault();
+    public static int EINVAL = ErrnoConstants.getEinval();
+    public static int ENXIO = ErrnoConstants.getEnxio();
+    public static int EOPNOTSUPP = ErrnoConstants.getEopnotsupp();
+    public static int EINTR = ErrnoConstants.getIntr();
+    public static int ENOENT = ErrnoConstants.getEnoent();
+
+    public static byte IORING_OP_READ = UringConstants.ioRingOpRead();
+    public static byte IORING_OP_WRITE = UringConstants.ioRingOpWrite();
+    public static byte IORING_OP_CLOSE = UringConstants.ioRingOpClose();
+    public static byte IORING_OP_OPENAT = UringConstants.ioRingOpenAt();
+    public static byte IORING_OP_NOP = UringConstants.ioRingOpNop();
+
+    public static int IORING_ENTER_GETEVENTS = UringConstants.ioRingEnterGetEvents();
+    public static int IORING_ENTER_SQ_WAKEUP = UringConstants.ioRingEnterSqWakeup();
+    public static int IORING_SQ_NEED_WAKEUP = UringConstants.ioRingSqNeedWakeup();
+
+    public static int O_RDONLY = OpenConstants.oRdOnly();
 }

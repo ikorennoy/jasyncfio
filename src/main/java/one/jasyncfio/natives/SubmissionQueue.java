@@ -36,16 +36,16 @@ public class SubmissionQueue {
     private final int ringFd;
 
     public SubmissionQueue(long kHead,
-                                  long kTail,
-                                  long kRingMask,
-                                  long kRingEntries,
-                                  long kFlags,
-                                  long kDropped,
-                                  long kArray,
-                                  long submissionArrayQueueAddress,
-                                  int ringSize,
-                                  long kRingPointer,
-                                  int ringFd) {
+                           long kTail,
+                           long kRingMask,
+                           long kRingEntries,
+                           long kFlags,
+                           long kDropped,
+                           long kArray,
+                           long submissionArrayQueueAddress,
+                           int ringSize,
+                           long kRingPointer,
+                           int ringFd) {
         this.kHead = kHead;
         this.kTail = kTail;
         this.kRingEntries = kRingEntries;
@@ -139,7 +139,7 @@ public class SubmissionQueue {
     }
 
 
-    public boolean addEventFdRead(int eventFd, long eventfdReadBuf, int position, int limit, int extraData) {
+    public boolean addEventFdRead(int eventFd, long eventfdReadBuf, int position, int limit, int opId) {
         return enqueueSqe(Native.IORING_OP_READ,
                 0,
                 0,
@@ -147,6 +147,18 @@ public class SubmissionQueue {
                 eventfdReadBuf + position,
                 limit - position,
                 0,
-                extraData);
+                opId);
+    }
+
+    public void addOpenAt(int dirFd, long pathAddress, int openFlags, int opId) {
+        enqueueSqe(Native.IORING_OP_OPENAT,
+                0,
+                openFlags,
+                dirFd,
+                pathAddress,
+                0,
+                0,
+                opId
+        );
     }
 }
