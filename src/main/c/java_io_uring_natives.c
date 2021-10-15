@@ -7,7 +7,7 @@
 #include "syscall.h"
 #include "java_io_uring_natives.h"
 #include "io_uring_constants.h"
-//#include "memory_utils.h"
+#include "open_constants.h"
 
 
 #define IOURING_NATIVE_CLASS_NAME "one/jasyncfio/natives/Native"
@@ -173,7 +173,25 @@ static jint jasyncfio_event_fd_write(JNIEnv *env, jclass clazz, jint fd, jlong v
     return (jint) -err;
 }
 
+static jlong get_string_ptr(JNIEnv *env, jclass clazz, jstring str) {
+    jboolean b;
+    const char *str_ptr;
+    str_ptr = (*env)->GetStringUTFChars(env, str, &b);
+    return (jlong) str_ptr;
+}
+
+static void release_string(JNIEnv *env, jclass clazz, jstring str, jlong str_ptr) {
+    (*env)->ReleaseStringUTFChars(env, str, (char *) str_ptr);
+}
+
+static jlong get_direct_buffer_address(JNIEnv *env, jobject self, jobject buffer) {
+    return (jlong) ((*env)->GetDirectBufferAddress(env, buffer));
+}
+
 static JNINativeMethod method_table[] = {
+    {"getStringPointer", "(Ljava/lang/String;)J", (void *) &get_string_ptr},
+    {"releaseString", "(Ljava/lang/String;J)V", (void *) &release_string},
+    {"getDirectBufferAddress", "(Ljava/nio/Buffer;)J", (void *) &get_direct_buffer_address},
     {"getEventFd", "()I", (void *) &jasyncfio_get_event_fd},
     {"eventFdWrite", "(IJ)I", (void *) &jasyncfio_event_fd_write},
     {"setupIouring0", "(IIII)[[J", (void *) &java_io_uring_setup_iouring},
@@ -198,6 +216,15 @@ JNIEXPORT jint JNI_OnLoad(JavaVM *vm, void *reserved) {
         return JNI_ERR;
     }
 
+    if (jni_open_constants_on_load(env) == JNI_ERR) {
+        return JNI_ERR;
+    }
+
+    if (jni_errno_constants_on_load(env) == JNI_ERR) {
+        return JNI_ERR;
+    }
+
+//
 //    if (jni_memory_utils_on_load(env) == JNI_ERR) {
 //        return JNI_ERR;
 //    }
