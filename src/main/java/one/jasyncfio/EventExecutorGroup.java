@@ -6,7 +6,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class EventExecutorGroup {
 
     private static final AtomicInteger sequencer = new AtomicInteger();
-    private static final EventExecutor[] executors = new EventExecutor[Runtime.getRuntime().availableProcessors()];
+    private static final EventExecutor[] executors =
+            new EventExecutor[Integer.parseInt(
+                    System.getProperty("JASYNCFIO_EXECUTORS", String.valueOf(Runtime.getRuntime().availableProcessors())))];
 
 
     static {
