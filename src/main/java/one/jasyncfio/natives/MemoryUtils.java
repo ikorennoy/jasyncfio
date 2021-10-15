@@ -54,18 +54,18 @@ public class MemoryUtils {
         return unsafe.getInt(address);
     }
 
-//    public static long getDirectBufferAddress(Buffer buffer) {
-//        if (!buffer.isDirect()) {
-//            throw new IllegalArgumentException("buffer is not direct");
-//        }
-//        return MemoryInternal.getDirectBufferAddress(buffer);
-//    }
+    public static long getDirectBufferAddress(Buffer buffer) {
+        if (!buffer.isDirect()) {
+            throw new IllegalArgumentException("buffer is not direct");
+        }
+        return Native.getDirectBufferAddress(buffer);
+    }
 
-//    public static long getStringPtr(String str) {
-//        return Native.getStringPointer(str);
-//    }
+    public static long getStringPtr(String str) {
+        return Native.getStringPointer(str);
+    }
 
-//    public static void releaseString(String str, long ptr) {
-//        Native.releaseString(str, ptr);
-//    }
+    public static void releaseString(String str, long ptr) {
+        Native.releaseString(str, ptr);
+    }
 }
