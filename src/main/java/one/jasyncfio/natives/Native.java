@@ -95,4 +95,8 @@ public class Native {
     public static int IORING_SQ_NEED_WAKEUP = UringConstants.ioRingSqNeedWakeup();
 
     public static int O_RDONLY = OpenConstants.oRdOnly();
+    public static int O_WRONLY = OpenConstants.oWrOnly();
+    public static int O_RDWR = OpenConstants.oRdWr();
+    public static int O_TRUNC = OpenConstants.oTrunc();
+    public static int O_CREAT = OpenConstants.oCreat();
 }

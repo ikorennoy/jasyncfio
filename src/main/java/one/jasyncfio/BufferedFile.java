@@ -3,7 +3,7 @@ package one.jasyncfio;
 import one.jasyncfio.natives.MemoryUtils;
 import one.jasyncfio.natives.Native;
 
-import java.nio.file.Paths;
+import javax.print.attribute.standard.MediaSize;
 import java.util.concurrent.CompletableFuture;
 
 public class BufferedFile {
@@ -15,16 +15,43 @@ public class BufferedFile {
         this.fd = fd;
     }
 
-    public int getFd() {
+    public int getRawFd() {
         return fd;
     }
 
+    public String getPath() {
+        return path;
+    }
+
+    /**
+     * Attempts to open a file in read-only mode
+     *
+     * @param path path to file
+     * @return {@link CompletableFuture} contains opened file or exception
+     */
     public static CompletableFuture<BufferedFile> open(String path) {
-        long stringPtr = MemoryUtils.getStringPtr(path);
+        long pathPtr = MemoryUtils.getStringPtr(path);
         CompletableFuture<Integer> futureFd =
-                EventExecutorGroup.get().scheduleOpenBuffered(-1, stringPtr, Native.O_RDONLY);
+                EventExecutorGroup.get().scheduleOpen(-1, pathPtr, Native.O_RDONLY, 0);
         return futureFd
-                .whenComplete(((integer, throwable) -> MemoryUtils.releaseString(path, stringPtr)))
+                .whenComplete(((fd, throwable) -> MemoryUtils.releaseString(path, pathPtr)))
+                .thenApply((fd) -> new BufferedFile(path, fd));
+    }
+
+    /**
+     * Opens a file in read write mode.
+     * This function will create a file if it does not exist, and will truncate it if it does.
+     *
+     * @param path path to file
+     * @return {@link CompletableFuture} contains opened file or exception
+     */
+    public static CompletableFuture<BufferedFile> create(String path) {
+        long pathPtr = MemoryUtils.getStringPtr(path);
+        int flags = Native.O_RDWR | Native.O_CREAT | Native.O_TRUNC;
+        CompletableFuture<Integer> futureFd =
+                EventExecutorGroup.get().scheduleOpen(-1, pathPtr, flags, 0666);
+        return futureFd
+                .whenComplete(((fd, ex) -> MemoryUtils.releaseString(path, pathPtr)))
                 .thenApply((fd) -> new BufferedFile(path, fd));
     }
 }
