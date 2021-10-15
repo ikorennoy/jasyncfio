@@ -8,4 +8,12 @@ public class Uring {
         this.completionQueue = completionQueue;
         this.submissionQueue = submissionQueue;
     }
+
+    public CompletionQueue getCompletionQueue() {
+        return completionQueue;
+    }
+
+    public SubmissionQueue getSubmissionQueue() {
+        return submissionQueue;
+    }
 }
