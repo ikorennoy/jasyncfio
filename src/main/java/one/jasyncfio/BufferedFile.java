@@ -3,7 +3,10 @@ package one.jasyncfio;
 import one.jasyncfio.natives.MemoryUtils;
 import one.jasyncfio.natives.Native;
 
-import javax.print.attribute.standard.MediaSize;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.concurrent.CompletableFuture;
 
 public class BufferedFile {
@@ -53,5 +56,17 @@ public class BufferedFile {
         return futureFd
                 .whenComplete(((fd, ex) -> MemoryUtils.releaseString(path, pathPtr)))
                 .thenApply((fd) -> new BufferedFile(path, fd));
+    }
+
+    /**
+     * Reads data at the specified position into a buffer.
+     *
+     * @param position start position
+     * @param buffer The buffer into which bytes are to be transferred
+     * @return {@link CompletableFuture} contains read bytes
+     */
+    public CompletableFuture<Integer> read(long position, ByteBuffer buffer) {
+        return EventExecutorGroup.get()
+                .scheduleRead(fd, MemoryUtils.getDirectBufferAddress(buffer), position, buffer.limit());
     }
 }

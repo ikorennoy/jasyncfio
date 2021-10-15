@@ -148,13 +148,14 @@ public class EventExecutor {
         }
     }
 
-    public void scheduleRead(int fd, long bufferAddress, int pos, int limit) {
+    public CompletableFuture<Integer> scheduleRead(int fd, long bufferAddress, long offset, int length) {
         CompletableFuture<Integer> f = new CompletableFuture<>();
         execute(() -> {
             int opId = sequencer.getAsInt();
             pendings.put(opId, f);
-            ring.getSubmissionQueue().addRead(fd, bufferAddress, pos, limit, opId);
+            ring.getSubmissionQueue().addRead(fd, bufferAddress, offset, length, opId);
         });
+        return f;
     }
 
     public CompletableFuture<Integer> scheduleOpen(int dirFd, long pathAddress, int openFlags, int mode) {
