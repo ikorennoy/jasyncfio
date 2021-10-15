@@ -65,6 +65,9 @@ public class Native {
 
     private static native long[][] setupIouring0(int entries, int flags, int sqThreadCpu, int cqEntries);
 
+    public static native int getEventFd();
+    public static native int eventFdWrite(int fd, long value);
+
     public static byte IORING_OP_READ = Constants.ioRingOpRead();
     public static byte IORING_OP_WRITE = Constants.ioRingOpWrite();
     public static byte IORING_OP_CLOSE = Constants.ioRingOpClose();
