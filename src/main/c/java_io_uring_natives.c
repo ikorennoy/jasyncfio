@@ -152,7 +152,29 @@ static jint asyncfio_io_uring_enter(JNIEnv *env, jclass clazz, jint ring_fd, jin
     return -err;
 }
 
+static jint jasyncfio_get_event_fd(JNIEnv *env, jclass clazz) {
+    jint eventFd = eventfd(0, EFD_CLOEXEC);
+    if (eventFd < 0) {
+        return (jint) -errno;
+    }
+    return eventFd;
+}
+
+static jint jasyncfio_event_fd_write(JNIEnv *env, jclass clazz, jint fd, jlong value) {
+    int result;
+    int err;
+    do {
+        result = eventfd_write(fd, (eventfd_t) value);
+        if (result >= 0) {
+            return 0;
+        }
+    } while ((err = errno) == EINTR);
+    return (jint) -err;
+}
+
 static JNINativeMethod method_table[] = {
+    {"getEventFd", "()I", (void *) &jasyncfio_get_event_fd},
+    {"eventFdWrite", "(IJ)I", (void *) &jasyncfio_event_fd_write},
     {"setupIouring0", "(IIII)[[J", (void *) &java_io_uring_setup_iouring},
     {"ioUringEnter0", "(IIII)I", (void *) &asyncfio_io_uring_enter},
 };
