@@ -133,4 +133,20 @@ public class SubmissionQueue {
         head = MemoryUtils.getIntVolatile(kHead);
         return ret;
     }
+
+    public boolean addRead(int fd, long bufferAddress, int pos, int limit, int extraData) {
+        return enqueueSqe(Native.IORING_OP_READ, 0, 0, fd, bufferAddress + pos, limit - pos, 0, extraData);
+    }
+
+
+    public boolean addEventFdRead(int eventFd, long eventfdReadBuf, int position, int limit, int extraData) {
+        return enqueueSqe(Native.IORING_OP_READ,
+                0,
+                0,
+                eventFd,
+                eventfdReadBuf + position,
+                limit - position,
+                0,
+                extraData);
+    }
 }
