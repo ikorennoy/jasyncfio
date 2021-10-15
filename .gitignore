@@ -1,3 +1,7 @@
 .idea
 .gradle
 build
+out
+jasyncfio.iml
+jasyncfio.ipr
+jasyncfio.iws

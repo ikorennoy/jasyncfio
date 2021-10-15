@@ -157,12 +157,12 @@ public class EventExecutor {
         });
     }
 
-    public CompletableFuture<Integer> scheduleOpenBuffered(int dirFd, long pathAddress, int openFlags) {
+    public CompletableFuture<Integer> scheduleOpen(int dirFd, long pathAddress, int openFlags, int mode) {
         CompletableFuture<Integer> f = new CompletableFuture<>();
         execute(() -> {
             int opId = sequencer.getAsInt();
             pendings.put(opId, f);
-            ring.getSubmissionQueue().addOpenAt(dirFd, pathAddress, openFlags, opId);
+            ring.getSubmissionQueue().addOpenAt(dirFd, pathAddress, openFlags, mode, opId);
         });
         return f;
     }
