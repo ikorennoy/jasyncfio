@@ -134,8 +134,17 @@ public class SubmissionQueue {
         return ret;
     }
 
-    public boolean addRead(int fd, long bufferAddress, int pos, int limit, int extraData) {
-        return enqueueSqe(Native.IORING_OP_READ, 0, 0, fd, bufferAddress + pos, limit - pos, 0, extraData);
+    public boolean addRead(int fd, long bufferAddress, long offset, int length, int opId) {
+        return enqueueSqe(
+                Native.IORING_OP_READ,
+                0,
+                0,
+                fd,
+                bufferAddress,
+                length,
+                offset,
+                opId
+        );
     }
 
 
