@@ -20,19 +20,11 @@ public class BufferedFile {
     }
 
     public static CompletableFuture<BufferedFile> open(String path) {
-        String str = Paths.get(path).toAbsolutePath().toString();
-        long stringPtr = MemoryUtils.getStringPtr(str);
-        CompletableFuture<Integer> integerCompletableFuture =
+        long stringPtr = MemoryUtils.getStringPtr(path);
+        CompletableFuture<Integer> futureFd =
                 EventExecutorGroup.get().scheduleOpenBuffered(-1, stringPtr, Native.O_RDONLY);
-        return integerCompletableFuture.handle((i, e) -> {
-            MemoryUtils.releaseString(str, stringPtr);
-            if (e == null) {
-                return new BufferedFile(path, i);
-            } else {
-                e.printStackTrace();
-                return null;
-            }
-        });
+        return futureFd
+                .whenComplete(((integer, throwable) -> MemoryUtils.releaseString(path, stringPtr)))
+                .thenApply((fd) -> new BufferedFile(path, fd));
     }
-
 }
