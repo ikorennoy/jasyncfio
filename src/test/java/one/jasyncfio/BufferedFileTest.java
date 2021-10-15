@@ -5,6 +5,9 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -74,6 +77,46 @@ public class BufferedFileTest {
         waitCompletion(create);
         assertTrue(create.isCompletedExceptionally());
     }
+
+    @Test
+    void read() throws InterruptedException, IOException, ExecutionException {
+        File tempFile = File.createTempFile("temp-", "-file");
+        tempFile.deleteOnExit();
+        FileWriter fw = new FileWriter(tempFile);
+        StringBuilder sb = new StringBuilder();
+        String s = "String number ";
+        for (int i = 0; i < 100; i++) {
+            sb.append(s).append(i);
+        }
+        String resultString = sb.toString();
+        fw.write(resultString);
+        fw.flush();
+        fw.close();
+        assertTrue(tempFile.length() > 0);
+        ByteBuffer bb = ByteBuffer.allocateDirect((int) tempFile.length());
+        CompletableFuture<BufferedFile> open = BufferedFile.open(tempFile.getPath());
+        waitCompletion(open);
+        BufferedFile bufferedFile = open.get();
+        CompletableFuture<Integer> read = bufferedFile.read(0, bb);
+        waitCompletion(read);
+        assertEquals((int) tempFile.length(), read.get());
+        assertEquals(resultString, StandardCharsets.UTF_8.decode(bb).toString());
+    }
+
+    @Test
+    void read_wrongBuffer() throws InterruptedException, ExecutionException, IOException {
+        File tempFile = File.createTempFile("temp-", "-file");
+        tempFile.deleteOnExit();
+        CompletableFuture<BufferedFile> open = BufferedFile.open(tempFile.getPath());
+        waitCompletion(open);
+        BufferedFile bufferedFile = open.get();
+        assertThrows(IllegalArgumentException.class, () -> bufferedFile.read(0, ByteBuffer.allocate(10)));
+    }
+
+
+    // read buffer > file size
+    // read file > buffer size
+    // read offset > file size
 
 
     private void waitCompletion(CompletableFuture<?> future) throws InterruptedException {
