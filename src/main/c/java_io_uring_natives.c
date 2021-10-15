@@ -2,6 +2,7 @@
 #include <sys/mman.h>
 #include <jni.h>
 #include <errno.h>
+#include <sys/eventfd.h>
 
 #include "syscall.h"
 #include "java_io_uring_natives.h"
