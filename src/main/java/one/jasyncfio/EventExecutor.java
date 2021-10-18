@@ -167,4 +167,14 @@ public class EventExecutor {
         });
         return f;
     }
+
+    public CompletableFuture<Integer> scheduleClose(int fd) {
+        CompletableFuture<Integer> f = new CompletableFuture<>();
+        execute(() -> {
+            int opId = sequencer.getAsInt();
+            pendings.put(opId, f);
+            ring.getSubmissionQueue().addClose(fd, opId);
+        });
+        return f;
+    }
 }
