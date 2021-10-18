@@ -147,6 +147,18 @@ public class SubmissionQueue {
         );
     }
 
+    public void addWrite(int fd, long bufferAddress, long offset, int length, int opId) {
+        enqueueSqe(Native.IORING_OP_WRITE,
+                0,
+                0,
+                fd,
+                bufferAddress,
+                length,
+                offset,
+                opId
+        );
+    }
+
 
     public boolean addEventFdRead(int eventFd, long eventfdReadBuf, int position, int limit, int opId) {
         return enqueueSqe(Native.IORING_OP_READ,

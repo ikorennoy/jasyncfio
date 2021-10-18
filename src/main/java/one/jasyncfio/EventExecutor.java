@@ -158,6 +158,16 @@ public class EventExecutor {
         return f;
     }
 
+    public CompletableFuture<Integer> scheduleWrite(int fd, long bufferAddress, long offset, int length) {
+        CompletableFuture<Integer> f = new CompletableFuture<>();
+        execute(() -> {
+            int opId = sequencer.getAsInt();
+            pendings.put(opId, f);
+            ring.getSubmissionQueue().addWrite(fd, bufferAddress, offset, length, opId);
+        });
+        return f;
+    }
+
     public CompletableFuture<Integer> scheduleOpen(int dirFd, long pathAddress, int openFlags, int mode) {
         CompletableFuture<Integer> f = new CompletableFuture<>();
         execute(() -> {

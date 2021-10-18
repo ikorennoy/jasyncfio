@@ -2,16 +2,17 @@ package one.jasyncfio;
 
 import org.junit.jupiter.api.Test;
 
-import java.io.File;
-import java.io.FileWriter;
+import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class BufferedFileTest {
+    private final String TEMP_FILE_NAME = "/tmp/" + UUID.randomUUID();
 
     @Test
     void open() throws Exception {
@@ -56,7 +57,7 @@ public class BufferedFileTest {
 
     @Test
     void create_fileDoesNotExist() throws Exception {
-        BufferedFile bufferedFile = waitCompletionAndGet(BufferedFile.create("/tmp/temp-jasyncfio-file"));;
+        BufferedFile bufferedFile = waitCompletionAndGet(BufferedFile.create(TEMP_FILE_NAME));
         assertTrue(bufferedFile.getRawFd() > 0);
         File file = new File(bufferedFile.getPath());
         assertTrue(file.exists());
@@ -101,7 +102,7 @@ public class BufferedFileTest {
     }
 
     @Test
-    void read_bufferLargerThanFile() throws Exception {
+    void read_bufferGreaterThanFile() throws Exception {
         File tempFile = File.createTempFile("temp-", "-file");
         tempFile.deleteOnExit();
         FileWriter fw = new FileWriter(tempFile);
@@ -143,7 +144,7 @@ public class BufferedFileTest {
     }
 
     @Test
-    void read_offsetLargerThanFileSize() throws Exception {
+    void read_offsetGreaterThanFileSize() throws Exception {
         File tempFile = File.createTempFile("temp-", "-file");
         tempFile.deleteOnExit();
         FileWriter fw = new FileWriter(tempFile);
@@ -161,6 +162,56 @@ public class BufferedFileTest {
         BufferedFile bufferedFile = waitCompletionAndGet(BufferedFile.open(tempFile.getPath()));
         Integer bytes = waitCompletionAndGet(bufferedFile.read(stringLength * 2, byteBuffer));
         assertEquals(0, bytes);
+    }
+
+    // read len 0
+
+    @Test
+    void write_emptyFile() throws Exception {
+        System.out.println(TEMP_FILE_NAME);
+        File tempFile = File.createTempFile("temp-", "-file");
+        tempFile.deleteOnExit();
+        BufferedFile bufferedFile = waitCompletionAndGet(BufferedFile.create(tempFile.getPath()));
+        assertEquals(0, tempFile.length());
+        String str = prepareString(100);
+        byte[] bytes = str.getBytes(StandardCharsets.UTF_8);
+        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(bytes.length);
+        byteBuffer.put(bytes);
+        Integer wrote = waitCompletionAndGet(bufferedFile.write(0, bytes.length, byteBuffer));
+        assertEquals((int) tempFile.length(), wrote);
+        assertEquals(str, readFileToString(tempFile));
+    }
+
+    @Test
+    void write_positionGreaterThanFileSize() throws Exception {
+        System.out.println(TEMP_FILE_NAME);
+        BufferedFile bufferedFile = waitCompletionAndGet(BufferedFile.create(TEMP_FILE_NAME));
+        File file = new File(bufferedFile.getPath());
+        file.deleteOnExit();
+        assertEquals(0, file.length());
+        String str = prepareString(100);
+        byte[] bytes = str.getBytes(StandardCharsets.UTF_8);
+        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(bytes.length);
+        byteBuffer.put(bytes);
+        Integer wrote = waitCompletionAndGet(bufferedFile.write(100, bytes.length, byteBuffer));
+        assertEquals(file.length(), wrote + 100);
+        assertEquals(bytes.length, wrote);
+    }
+
+    @Test
+    void write_lengthZero() throws Exception {
+        System.out.println(TEMP_FILE_NAME);
+        BufferedFile bufferedFile = waitCompletionAndGet(BufferedFile.create(TEMP_FILE_NAME));
+        File file = new File(bufferedFile.getPath());
+        file.deleteOnExit();
+        assertEquals(0, file.length());
+        String str = prepareString(100);
+        byte[] bytes = str.getBytes(StandardCharsets.UTF_8);
+        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(bytes.length);
+        byteBuffer.put(bytes);
+        Integer wrote = waitCompletionAndGet(bufferedFile.write(0, 0, byteBuffer));
+        assertEquals(0, wrote);
+        assertEquals(0, file.length());
     }
 
     @Test
@@ -190,5 +241,25 @@ public class BufferedFileTest {
     private <T> T waitCompletionAndGet(CompletableFuture<T> future) throws Exception {
         waitCompletion(future);
         return future.get();
+    }
+
+    private String readFileToString(File f) throws IOException {
+        BufferedReader br = new BufferedReader(new FileReader(f));
+        StringBuilder sb = new StringBuilder();
+        String line = br.readLine();
+        while (line != null) {
+            sb.append(line).append("\n");
+            line = br.readLine();
+        }
+        return sb.toString();
+    }
+
+    private String prepareString(int iters) {
+        StringBuilder sb = new StringBuilder();
+        String s = "String number ";
+        for (int i = 0; i < iters; i++) {
+            sb.append(s).append(i).append("\n");
+        }
+        return sb.toString();
     }
 }
