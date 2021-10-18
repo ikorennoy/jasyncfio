@@ -168,7 +168,6 @@ public class BufferedFileTest {
 
     @Test
     void write_emptyFile() throws Exception {
-        System.out.println(TEMP_FILE_NAME);
         File tempFile = File.createTempFile("temp-", "-file");
         tempFile.deleteOnExit();
         BufferedFile bufferedFile = waitCompletionAndGet(BufferedFile.create(tempFile.getPath()));
@@ -184,7 +183,6 @@ public class BufferedFileTest {
 
     @Test
     void write_positionGreaterThanFileSize() throws Exception {
-        System.out.println(TEMP_FILE_NAME);
         BufferedFile bufferedFile = waitCompletionAndGet(BufferedFile.create(TEMP_FILE_NAME));
         File file = new File(bufferedFile.getPath());
         file.deleteOnExit();
@@ -200,7 +198,6 @@ public class BufferedFileTest {
 
     @Test
     void write_lengthZero() throws Exception {
-        System.out.println(TEMP_FILE_NAME);
         BufferedFile bufferedFile = waitCompletionAndGet(BufferedFile.create(TEMP_FILE_NAME));
         File file = new File(bufferedFile.getPath());
         file.deleteOnExit();
