@@ -4,10 +4,8 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -16,12 +14,10 @@ import static org.junit.jupiter.api.Assertions.*;
 public class BufferedFileTest {
 
     @Test
-    void open() throws ExecutionException, InterruptedException, IOException {
+    void open() throws Exception {
         File file = File.createTempFile("temp-", "-file");
         file.deleteOnExit();
-        CompletableFuture<BufferedFile> open = BufferedFile.open(file.getPath());
-        waitCompletion(open);
-        BufferedFile bufferedFile = open.get();
+        BufferedFile bufferedFile = waitCompletionAndGet(BufferedFile.open(file.getPath()));
         assertTrue(bufferedFile.getRawFd() > 0);
     }
 
@@ -34,7 +30,7 @@ public class BufferedFileTest {
     }
 
     @Test
-    void open_insufficientPrivileges() throws InterruptedException, ExecutionException {
+    void open_insufficientPrivileges() throws InterruptedException {
         CompletableFuture<BufferedFile> open = BufferedFile.open("/proc/1/auxv");
         waitCompletion(open);
         assertTrue(open.isCompletedExceptionally());
@@ -42,7 +38,7 @@ public class BufferedFileTest {
     }
 
     @Test
-    void create_fileExist() throws IOException, InterruptedException, ExecutionException {
+    void create_fileExist() throws Exception {
         File file = File.createTempFile("temp-", "-file");
         file.deleteOnExit();
         assertTrue(file.exists());
@@ -51,9 +47,7 @@ public class BufferedFileTest {
         writer.flush();
         writer.close();
         assertTrue(file.length() > 0);
-        CompletableFuture<BufferedFile> create = BufferedFile.create(file.getPath());
-        waitCompletion(create);
-        BufferedFile bufferedFile = create.get();
+        BufferedFile bufferedFile = waitCompletionAndGet(BufferedFile.create(file.getPath()));
         // file was actually open
         assertTrue(bufferedFile.getRawFd() > 0);
         // file was truncated
@@ -61,10 +55,8 @@ public class BufferedFileTest {
     }
 
     @Test
-    void create_fileDoesNotExist() throws InterruptedException, ExecutionException {
-        CompletableFuture<BufferedFile> create = BufferedFile.create("/tmp/temp-jasyncfio-file");
-        waitCompletion(create);
-        BufferedFile bufferedFile = create.get();
+    void create_fileDoesNotExist() throws Exception {
+        BufferedFile bufferedFile = waitCompletionAndGet(BufferedFile.create("/tmp/temp-jasyncfio-file"));;
         assertTrue(bufferedFile.getRawFd() > 0);
         File file = new File(bufferedFile.getPath());
         assertTrue(file.exists());
@@ -79,7 +71,7 @@ public class BufferedFileTest {
     }
 
     @Test
-    void read() throws InterruptedException, IOException, ExecutionException {
+    void read() throws Exception {
         File tempFile = File.createTempFile("temp-", "-file");
         tempFile.deleteOnExit();
         FileWriter fw = new FileWriter(tempFile);
@@ -94,30 +86,82 @@ public class BufferedFileTest {
         fw.close();
         assertTrue(tempFile.length() > 0);
         ByteBuffer bb = ByteBuffer.allocateDirect((int) tempFile.length());
-        CompletableFuture<BufferedFile> open = BufferedFile.open(tempFile.getPath());
-        waitCompletion(open);
-        BufferedFile bufferedFile = open.get();
-        CompletableFuture<Integer> read = bufferedFile.read(0, bb);
-        waitCompletion(read);
-        assertEquals((int) tempFile.length(), read.get());
+        BufferedFile bufferedFile = waitCompletionAndGet(BufferedFile.open(tempFile.getPath()));
+        Integer bytes = waitCompletionAndGet(bufferedFile.read(0, bb));
+        assertEquals((int) tempFile.length(), bytes);
         assertEquals(resultString, StandardCharsets.UTF_8.decode(bb).toString());
     }
 
     @Test
-    void read_wrongBuffer() throws InterruptedException, ExecutionException, IOException {
+    void read_wrongBuffer() throws Exception {
         File tempFile = File.createTempFile("temp-", "-file");
         tempFile.deleteOnExit();
-        CompletableFuture<BufferedFile> open = BufferedFile.open(tempFile.getPath());
-        waitCompletion(open);
-        BufferedFile bufferedFile = open.get();
+        BufferedFile bufferedFile = waitCompletionAndGet(BufferedFile.open(tempFile.getPath()));
         assertThrows(IllegalArgumentException.class, () -> bufferedFile.read(0, ByteBuffer.allocate(10)));
     }
 
+    @Test
+    void read_bufferLargerThanFile() throws Exception {
+        File tempFile = File.createTempFile("temp-", "-file");
+        tempFile.deleteOnExit();
+        FileWriter fw = new FileWriter(tempFile);
+        StringBuilder sb = new StringBuilder();
+        String s = "String number ";
+        for (int i = 0; i < 100; i++) {
+            sb.append(s).append(i);
+        }
+        String resultString = sb.toString();
+        fw.write(resultString);
+        fw.flush();
+        fw.close();
+        int stringLength = resultString.getBytes(StandardCharsets.UTF_8).length;
+        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(stringLength * 2);
+        BufferedFile bufferedFile = waitCompletionAndGet(BufferedFile.open(tempFile.getPath()));
+        Integer bytes = waitCompletionAndGet(bufferedFile.read(0, byteBuffer));
+        assertEquals(stringLength, bytes);
+    }
 
-    // read buffer > file size
-    // read file > buffer size
-    // read offset > file size
+    @Test
+    void read_bufferLessThanFile() throws Exception {
+        File tempFile = File.createTempFile("temp-", "-file");
+        tempFile.deleteOnExit();
+        FileWriter fw = new FileWriter(tempFile);
+        StringBuilder sb = new StringBuilder();
+        String s = "String number ";
+        for (int i = 0; i < 100; i++) {
+            sb.append(s).append(i);
+        }
+        String resultString = sb.toString();
+        fw.write(resultString);
+        fw.flush();
+        fw.close();
+        int stringLength = resultString.getBytes(StandardCharsets.UTF_8).length;
+        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(stringLength / 2);
+        BufferedFile bufferedFile = waitCompletionAndGet(BufferedFile.open(tempFile.getPath()));
+        Integer bytes = waitCompletionAndGet(bufferedFile.read(0, byteBuffer));
+        assertEquals(stringLength / 2, bytes);
+    }
 
+    @Test
+    void read_offsetLargerThanFileSize() throws Exception {
+        File tempFile = File.createTempFile("temp-", "-file");
+        tempFile.deleteOnExit();
+        FileWriter fw = new FileWriter(tempFile);
+        StringBuilder sb = new StringBuilder();
+        String s = "String number ";
+        for (int i = 0; i < 100; i++) {
+            sb.append(s).append(i);
+        }
+        String resultString = sb.toString();
+        fw.write(resultString);
+        fw.flush();
+        fw.close();
+        int stringLength = resultString.getBytes(StandardCharsets.UTF_8).length;
+        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(stringLength);
+        BufferedFile bufferedFile = waitCompletionAndGet(BufferedFile.open(tempFile.getPath()));
+        Integer bytes = waitCompletionAndGet(bufferedFile.read(stringLength * 2, byteBuffer));
+        assertEquals(0, bytes);
+    }
 
     private void waitCompletion(CompletableFuture<?> future) throws InterruptedException {
         int cnt = 0;
@@ -129,5 +173,10 @@ public class BufferedFileTest {
             cnt++;
         }
         assertTrue(future.isDone());
+    }
+
+    private <T> T waitCompletionAndGet(CompletableFuture<T> future) throws Exception {
+        waitCompletion(future);
+        return future.get();
     }
 }
