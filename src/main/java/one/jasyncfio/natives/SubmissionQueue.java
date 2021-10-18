@@ -170,4 +170,16 @@ public class SubmissionQueue {
                 opId
         );
     }
+
+    public void addClose(int fd, int opId) {
+        enqueueSqe(Native.IORING_OP_CLOSE,
+                0,
+                0,
+                fd,
+                0,
+                0,
+                0,
+                opId
+        );
+    }
 }
