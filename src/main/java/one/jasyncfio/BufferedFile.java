@@ -67,6 +67,12 @@ public class BufferedFile {
                 .scheduleRead(fd, MemoryUtils.getDirectBufferAddress(buffer), position, buffer.limit());
     }
 
+    public CompletableFuture<Integer> write(long position, int length, ByteBuffer buffer) {
+        return EventExecutorGroup.get()
+                .scheduleWrite(fd, MemoryUtils.getDirectBufferAddress(buffer), position, length);
+
+    }
+
     /**
      * Closes this file.
      * @return {@link CompletableFuture} contains 0
