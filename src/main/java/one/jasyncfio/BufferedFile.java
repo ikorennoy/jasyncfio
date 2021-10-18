@@ -59,22 +59,40 @@ public class BufferedFile {
      * Reads data at the specified position into a buffer.
      *
      * @param position start position
-     * @param buffer The buffer into which bytes are to be transferred
-     * @return {@link CompletableFuture} contains read bytes
+     * @param buffer   The buffer into which bytes are to be transferred
+     * @return {@link CompletableFuture} with the number of bytes read
      */
     public CompletableFuture<Integer> read(long position, ByteBuffer buffer) {
         return EventExecutorGroup.get()
                 .scheduleRead(fd, MemoryUtils.getDirectBufferAddress(buffer), position, buffer.limit());
     }
 
+    /**
+     * Write the data with in the byte buffer the specified length starting at the given file position.
+     * If the given position is greater than the file's current size then the file will be grown to accommodate the new bytes;
+     * the values of any bytes between the previous end-of-file and the newly-written bytes are unspecified.
+     *
+     * @param position The file position at which the transfer is to begin; must be non-negative
+     * @param length   The content length; must be non-negative
+     * @param buffer   The buffer from which bytes are to be retrieved
+     * @return {@link CompletableFuture} with the number of bytes written
+     */
+
     public CompletableFuture<Integer> write(long position, int length, ByteBuffer buffer) {
+        if (buffer == null) {
+            throw new IllegalArgumentException("buffer must be not null");
+        } else if (position < 0L) {
+            throw new IllegalArgumentException("position must be positive");
+        } else if (length < 0L) {
+            throw new IllegalArgumentException("length must be positive");
+        }
         return EventExecutorGroup.get()
                 .scheduleWrite(fd, MemoryUtils.getDirectBufferAddress(buffer), position, length);
-
     }
 
     /**
      * Closes this file.
+     *
      * @return {@link CompletableFuture} contains 0
      */
     public CompletableFuture<Integer> close() {
