@@ -66,4 +66,12 @@ public class BufferedFile {
         return EventExecutorGroup.get()
                 .scheduleRead(fd, MemoryUtils.getDirectBufferAddress(buffer), position, buffer.limit());
     }
+
+    /**
+     * Closes this file.
+     * @return {@link CompletableFuture} contains 0
+     */
+    public CompletableFuture<Integer> close() {
+        return EventExecutorGroup.get().scheduleClose(fd);
+    }
 }

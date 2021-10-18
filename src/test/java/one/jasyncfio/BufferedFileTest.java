@@ -163,13 +163,25 @@ public class BufferedFileTest {
         assertEquals(0, bytes);
     }
 
+    @Test
+    void close() throws Exception {
+        File tempFile = File.createTempFile("temp-", "-file");
+        tempFile.deleteOnExit();
+        BufferedFile bufferedFile = waitCompletionAndGet(BufferedFile.open(tempFile.getPath()));
+        assertTrue(bufferedFile.getRawFd() > 0);
+        waitCompletion(bufferedFile.close());
+        CompletableFuture<Integer> read = bufferedFile.read(0, ByteBuffer.allocateDirect(10));
+        waitCompletion(read);
+        assertTrue(read.isCompletedExceptionally());
+    }
+
     private void waitCompletion(CompletableFuture<?> future) throws InterruptedException {
         int cnt = 0;
         while (!future.isDone()) {
-            if (cnt > 5) {
+            if (cnt > 1000) {
                 break;
             }
-            Thread.sleep(10);
+            Thread.sleep(1);
             cnt++;
         }
         assertTrue(future.isDone());
