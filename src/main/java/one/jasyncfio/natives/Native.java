@@ -74,6 +74,41 @@ public class Native {
 
     public static native void releaseString(String str, long ptr);
 
+    public static native String kernelVersion();
+
+    /**
+     * took from netty io uring project
+     */
+    public static boolean checkKernelVersion(String kernelVersion) {
+        String[] versionComponents = kernelVersion.split("\\.");
+        if (versionComponents.length < 3) {
+            return false;
+        }
+
+        int major;
+        try {
+            major = Integer.parseInt(versionComponents[0]);
+        } catch (NumberFormatException e) {
+            return false;
+        }
+
+        if (major <= 4) {
+            return false;
+        }
+        if (major > 5) {
+            return true;
+        }
+
+        int minor;
+        try {
+            minor = Integer.parseInt(versionComponents[1]);
+        } catch (NumberFormatException e) {
+            return false;
+        }
+
+        return minor >= 9;
+    }
+
     public static int EAGAIN = ErrnoConstants.getEagain();
     public static int EBUSY = ErrnoConstants.getEbusy();
     public static int EBADF = ErrnoConstants.getEbadf();
