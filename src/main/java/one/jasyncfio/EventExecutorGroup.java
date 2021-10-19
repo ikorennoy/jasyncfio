@@ -1,5 +1,7 @@
 package one.jasyncfio;
 
+import one.jasyncfio.natives.Native;
+
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -12,6 +14,10 @@ public class EventExecutorGroup {
 
 
     static {
+        String kernelVersion = Native.kernelVersion();
+        if (!Native.checkKernelVersion(kernelVersion)) {
+            throw new UnsupportedOperationException("you need at least kernel version 5.9, current version: " + kernelVersion);
+        }
         Arrays.fill(executors, new EventExecutor());
     }
 
