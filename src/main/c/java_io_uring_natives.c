@@ -8,7 +8,7 @@
 #include "syscall.h"
 #include "java_io_uring_natives.h"
 #include "io_uring_constants.h"
-#include "open_constants.h"
+#include "file_io_constants.h"
 
 
 #define IOURING_NATIVE_CLASS_NAME "one/jasyncfio/natives/Native"
@@ -226,7 +226,7 @@ JNIEXPORT jint JNI_OnLoad(JavaVM *vm, void *reserved) {
         return JNI_ERR;
     }
 
-    if (jni_open_constants_on_load(env) == JNI_ERR) {
+    if (jni_file_io_constants_on_load(env) == JNI_ERR) {
         return JNI_ERR;
     }
 

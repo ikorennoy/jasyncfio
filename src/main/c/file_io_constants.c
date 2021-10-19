@@ -3,9 +3,9 @@
 #include <bits/statx.h>
 
 
-#include "open_constants.h"
+#include "file_io_constants.h"
 
-#define OPEN_CONSTANTS_CLASS_NAME "one/jasyncfio/natives/OpenConstants"
+#define FILE_IO_CONSTANTS_CLASS_NAME "one/jasyncfio/natives/FileIoConstants"
 
 static jint get_o_rdonly() {
     return O_RDONLY;
@@ -35,8 +35,8 @@ static JNINativeMethod method_table[] = {
     {"statxSize", "()I", (void *) &get_statx_size},
 };
 
-jint jni_open_constants_on_load(JNIEnv *env) {
-    jclass native_class = (*env)->FindClass(env, OPEN_CONSTANTS_CLASS_NAME);
+jint jni_file_io_constants_on_load(JNIEnv *env) {
+    jclass native_class = (*env)->FindClass(env, FILE_IO_CONSTANTS_CLASS_NAME);
     if ((*env)->ExceptionCheck(env)) {
         (*env)->ExceptionDescribe(env);
         return JNI_ERR;
