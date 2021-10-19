@@ -42,6 +42,9 @@ static jbyte get_ioring_op_poll_remove() {
 static jbyte get_ioring_op_statx() {
     return IORING_OP_STATX;
 }
+static jbyte get_ioring_op_fallocate() {
+    return IORING_OP_FALLOCATE;
+}
 
 static jint get_ioring_enter_getevents() {
     return IORING_ENTER_GETEVENTS;
@@ -71,12 +74,6 @@ static jint get_ioring_fsync_datasync() {
 
 static JNINativeMethod method_table[] = {
     {"ioRingEnterGetEvents", "()I", (void *) get_ioring_enter_getevents},
-    {"ioRingOpRead", "()B", (void *) get_ioring_op_read},
-    {"ioRingOpWrite", "()B", (void *) get_ioring_op_write},
-    {"ioRingOpenAt", "()B", (void *) get_ioring_op_openat},
-    {"ioRingOpClose", "()B", (void *) get_ioring_op_close},
-    {"ioRingOpNop", "()B", (void *) get_ioring_op_nop},
-    {"ioRingOpStatx", "()B", (void *) get_ioring_op_statx},
     {"ioRingSetupSqPoll", "()I", (void *) get_ioring_setup_sqpoll},
     {"ioRingSetupIoPoll", "()I", (void *) get_ioring_setup_iopoll},
     {"ioRingSetupSqAff", "()I", (void *) get_ioring_setup_sq_aff},
@@ -84,6 +81,12 @@ static JNINativeMethod method_table[] = {
     {"ioRingEnterSqWakeup", "()I", (void *) get_ioring_enter_sq_wakeup},
     {"ioRingSqNeedWakeup", "()I", (void *) get_ioring_sq_need_wakeup},
     {"ioRingFsyncDatasync", "()I", (void *) get_ioring_fsync_datasync},
+    {"ioRingOpRead", "()B", (void *) get_ioring_op_read},
+    {"ioRingOpWrite", "()B", (void *) get_ioring_op_write},
+    {"ioRingOpenAt", "()B", (void *) get_ioring_op_openat},
+    {"ioRingOpClose", "()B", (void *) get_ioring_op_close},
+    {"ioRingOpNop", "()B", (void *) get_ioring_op_nop},
+    {"ioRingOpStatx", "()B", (void *) get_ioring_op_statx},
     {"ioRingOpReadv", "()B", (void *) get_ioring_op_readv},
     {"ioRingOpWritev", "()B", (void *) get_ioring_op_writev},
     {"ioRingOpFsync", "()B", (void *) get_ioring_op_fsync},
@@ -91,6 +94,7 @@ static JNINativeMethod method_table[] = {
     {"ioRingOpWriteFixed", "()B", (void *) get_ioring_op_write_fixed},
     {"ioRingOpPollAdd", "()B", (void *) get_ioring_op_poll_add},
     {"ioRingOpPollRemove", "()B", (void *) get_ioring_op_poll_remove},
+    {"ioRingOpFallocate", "()B", (void *) get_ioring_op_fallocate},
 };
 
 jint jni_io_uring_constants_on_load(JNIEnv *env) {

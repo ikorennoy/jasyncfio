@@ -180,6 +180,18 @@ public class SubmissionQueue {
         );
     }
 
+    public void addFallocate(int fd, long length, int mode, long offset, int opId) {
+        enqueueSqe(Native.IORING_OP_FALLOCATE,
+                0,
+                0,
+                fd,
+                length,
+                mode,
+                offset,
+                opId
+        );
+    }
+
     public boolean addEventFdRead(int eventFd, long eventfdReadBuf, int position, int limit, int opId) {
         return enqueueSqe(Native.IORING_OP_READ,
                 0,

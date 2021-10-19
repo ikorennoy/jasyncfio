@@ -36,6 +36,8 @@ public class UringConstants {
 
     static native byte ioRingOpFsync();
 
+    static native byte ioRingOpFallocate();
+
     static native byte ioRingOpReadFixed();
 
     static native byte ioRingOpWriteFixed();
