@@ -3,6 +3,7 @@
 #include <jni.h>
 #include <errno.h>
 #include <sys/eventfd.h>
+#include <sys/utsname.h>
 
 #include "syscall.h"
 #include "java_io_uring_natives.h"
@@ -188,6 +189,14 @@ static jlong get_direct_buffer_address(JNIEnv *env, jobject self, jobject buffer
     return (jlong) ((*env)->GetDirectBufferAddress(env, buffer));
 }
 
+static jstring get_kernel_version(JNIEnv* env, jclass clazz) {
+    struct utsname u;
+    uname(&u);
+
+    jstring result = (*env)->NewStringUTF(env, u.release);
+    return result;
+}
+
 static JNINativeMethod method_table[] = {
     {"getStringPointer", "(Ljava/lang/String;)J", (void *) &get_string_ptr},
     {"releaseString", "(Ljava/lang/String;J)V", (void *) &release_string},
@@ -196,6 +205,7 @@ static JNINativeMethod method_table[] = {
     {"eventFdWrite", "(IJ)I", (void *) &jasyncfio_event_fd_write},
     {"setupIouring0", "(IIII)[[J", (void *) &java_io_uring_setup_iouring},
     {"ioUringEnter0", "(IIII)I", (void *) &asyncfio_io_uring_enter},
+    {"kernelVersion", "()Ljava/lang/String;", (void *) get_kernel_version},
 };
 
 jint jni_iouring_on_load(JNIEnv *env) {
