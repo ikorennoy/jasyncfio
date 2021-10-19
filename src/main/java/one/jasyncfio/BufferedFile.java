@@ -118,7 +118,7 @@ public class BufferedFile {
     /**
      * Returns the size of a file, in bytes.
      *
-     * @return {@link CompletableFuture} with the file size
+     * @return {@link CompletableFuture} with file size
      */
     public CompletableFuture<Long> size() {
         long bufAddress = MemoryUtils.allocateMemory(StatxUtils.BUF_SIZE);
@@ -169,12 +169,8 @@ public class BufferedFile {
         return EventExecutorGroup.get().scheduleFallocate(fd, size, 0, offset);
     }
 
-    // preAllocate with offsets
-
     /**
      * Closes this file.
-     *
-     * @return {@link CompletableFuture} contains 0
      */
     public CompletableFuture<Integer> close() {
         return EventExecutorGroup.get().scheduleClose(fd);
