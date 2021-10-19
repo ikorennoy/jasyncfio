@@ -198,13 +198,13 @@ static jstring get_kernel_version(JNIEnv* env, jclass clazz) {
 }
 
 static JNINativeMethod method_table[] = {
-    {"getStringPointer", "(Ljava/lang/String;)J", (void *) &get_string_ptr},
-    {"releaseString", "(Ljava/lang/String;J)V", (void *) &release_string},
-    {"getDirectBufferAddress", "(Ljava/nio/Buffer;)J", (void *) &get_direct_buffer_address},
-    {"getEventFd", "()I", (void *) &jasyncfio_get_event_fd},
-    {"eventFdWrite", "(IJ)I", (void *) &jasyncfio_event_fd_write},
-    {"setupIouring0", "(IIII)[[J", (void *) &java_io_uring_setup_iouring},
-    {"ioUringEnter0", "(IIII)I", (void *) &asyncfio_io_uring_enter},
+    {"getStringPointer", "(Ljava/lang/String;)J", (void *) get_string_ptr},
+    {"releaseString", "(Ljava/lang/String;J)V", (void *) release_string},
+    {"getDirectBufferAddress", "(Ljava/nio/Buffer;)J", (void *) get_direct_buffer_address},
+    {"getEventFd", "()I", (void *) jasyncfio_get_event_fd},
+    {"eventFdWrite", "(IJ)I", (void *) jasyncfio_event_fd_write},
+    {"setupIouring0", "(IIII)[[J", (void *) java_io_uring_setup_iouring},
+    {"ioUringEnter0", "(IIII)I", (void *) asyncfio_io_uring_enter},
     {"kernelVersion", "()Ljava/lang/String;", (void *) get_kernel_version},
 };
 
