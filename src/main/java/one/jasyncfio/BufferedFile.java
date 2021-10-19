@@ -2,8 +2,8 @@ package one.jasyncfio;
 
 import one.jasyncfio.natives.MemoryUtils;
 import one.jasyncfio.natives.Native;
-import sun.misc.Unsafe;
 
+import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 
@@ -91,6 +91,11 @@ public class BufferedFile {
                 .scheduleWrite(fd, MemoryUtils.getDirectBufferAddress(buffer), position, length);
     }
 
+    /**
+     * Returns the size of a file, in bytes.
+     *
+     * @return {@link CompletableFuture} with the file size
+     */
     public CompletableFuture<Long> size() {
         long bufAddress = MemoryUtils.allocateMemory(StatxUtils.BUF_SIZE);
         long strAddress = MemoryUtils.getStringPtr(path);
