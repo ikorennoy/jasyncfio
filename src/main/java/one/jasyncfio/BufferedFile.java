@@ -3,8 +3,8 @@ package one.jasyncfio;
 import one.jasyncfio.natives.MemoryUtils;
 import one.jasyncfio.natives.Native;
 
-import java.io.File;
 import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.util.concurrent.CompletableFuture;
 
 public class BufferedFile {
@@ -57,6 +57,25 @@ public class BufferedFile {
     }
 
     /**
+     * Reads data from a specified position and of a specified length into a byte buffer.
+     * @param position The file position at which the transfer is to begin; must be non-negative
+     * @param length   The content length; must be non-negative
+     * @param buffer   The buffer from which bytes are to be retrieved
+     * @return {@link CompletableFuture} with the number of bytes read
+     */
+    public CompletableFuture<Integer> read(long position, int length, ByteBuffer buffer) {
+        if (buffer == null) {
+            throw new IllegalArgumentException("buffer must be not null");
+        } else if (position < 0L) {
+            throw new IllegalArgumentException("position must be positive");
+        } else if (length < 0L) {
+            throw new IllegalArgumentException("length must be positive");
+        }
+        return EventExecutorGroup.get()
+                .scheduleRead(fd, MemoryUtils.getDirectBufferAddress(buffer), position, length);
+    }
+
+    /**
      * Reads data at the specified position into a buffer.
      *
      * @param position start position
@@ -64,8 +83,7 @@ public class BufferedFile {
      * @return {@link CompletableFuture} with the number of bytes read
      */
     public CompletableFuture<Integer> read(long position, ByteBuffer buffer) {
-        return EventExecutorGroup.get()
-                .scheduleRead(fd, MemoryUtils.getDirectBufferAddress(buffer), position, buffer.limit());
+        return read(position, buffer.limit(), buffer);
     }
 
     /**
