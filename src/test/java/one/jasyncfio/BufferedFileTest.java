@@ -221,9 +221,19 @@ public class BufferedFileTest {
     @Test
     void size_zero() throws Exception {
         BufferedFile f = waitCompletionAndGet(BufferedFile.create(TEMP_FILE_NAME));
-        File file = new File(f.getPath());
-        file.deleteOnExit();
+        deleteOnExit(f);
         assertEquals(0, waitCompletionAndGet(f.size()));
+    }
+
+    @Test
+    void dataSync() throws Exception {
+        BufferedFile f = waitCompletionAndGet(BufferedFile.create(TEMP_FILE_NAME));
+        deleteOnExit(f);
+        assertEquals(0, waitCompletionAndGet(f.dataSync()));
+    }
+
+    private void deleteOnExit(BufferedFile f) {
+        new File(f.getPath()).deleteOnExit();
     }
 
     private void waitCompletion(CompletableFuture<?> future) throws InterruptedException {
