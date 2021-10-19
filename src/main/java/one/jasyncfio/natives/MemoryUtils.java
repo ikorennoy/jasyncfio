@@ -50,8 +50,15 @@ public class MemoryUtils {
         return unsafe.allocateMemory(size);
     }
 
+    public static void freeMemory(long ptr) {
+        unsafe.freeMemory(ptr);
+    }
     public static int getInt(long address) {
         return unsafe.getInt(address);
+    }
+
+    public static short getShort(long address) {
+        return unsafe.getShort(address);
     }
 
     public static long getDirectBufferAddress(Buffer buffer) {

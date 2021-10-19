@@ -2,6 +2,7 @@ package one.jasyncfio;
 
 import one.jasyncfio.natives.*;
 
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
@@ -174,6 +175,16 @@ public class EventExecutor {
             int opId = sequencer.getAsInt();
             pendings.put(opId, f);
             ring.getSubmissionQueue().addOpenAt(dirFd, pathAddress, openFlags, mode, opId);
+        });
+        return f;
+    }
+
+    public CompletableFuture<Integer> scheduleStatx(int dirFd, long pathAddress, int statxFlags, int statxMask, long statxBufferAddress) {
+        CompletableFuture<Integer> f = new CompletableFuture<>();
+        execute(() -> {
+            int opId = sequencer.getAsInt();
+            pendings.put(opId, f);
+            ring.getSubmissionQueue().addStatx(dirFd, pathAddress, statxFlags, statxMask, statxBufferAddress, opId);
         });
         return f;
     }

@@ -39,6 +39,9 @@ static jbyte get_ioring_op_poll_add() {
 static jbyte get_ioring_op_poll_remove() {
     return IORING_OP_POLL_REMOVE;
 }
+static jbyte get_ioring_op_statx() {
+    return IORING_OP_STATX;
+}
 
 static jint get_ioring_enter_getevents() {
     return IORING_ENTER_GETEVENTS;
@@ -70,6 +73,7 @@ static JNINativeMethod method_table[] = {
     {"ioRingOpenAt", "()B", (void *) &get_ioring_op_openat},
     {"ioRingOpClose", "()B", (void *) &get_ioring_op_close},
     {"ioRingOpNop", "()B", (void *) &get_ioring_op_nop},
+    {"ioRingOpStatx", "()B", (void *) &get_ioring_op_statx},
     {"ioRingSetupSqPoll", "()I", (void *) &get_ioring_setup_sqpoll},
     {"ioRingSetupIoPoll", "()I", (void *) &get_ioring_setup_iopoll},
     {"ioRingSetupSqAff", "()I", (void *) &get_ioring_setup_sq_aff},

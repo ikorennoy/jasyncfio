@@ -26,6 +26,8 @@ public class UringConstants {
 
     static native byte ioRingOpNop();
 
+    static native byte ioRingOpStatx();
+
     static native byte ioRingOpReadv();
 
     static native byte ioRingOpWritev();

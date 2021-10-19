@@ -7,5 +7,5 @@ public class OpenConstants {
     static native int oRdWr();
     static native int oCreat();
     static native int oTrunc();
-
+    static native int statxSize();
 }
