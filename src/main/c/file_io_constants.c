@@ -26,12 +26,12 @@ static jint get_statx_size() {
 }
 
 static JNINativeMethod method_table[] = {
-    {"oRdOnly", "()I", (void *) &get_o_rdonly},
-    {"oWrOnly", "()I", (void *) &get_o_wronly},
-    {"oRdWr", "()I", (void *) &get_o_rdwr},
-    {"oCreat", "()I", (void *) &get_o_creat},
-    {"oTrunc", "()I", (void *) &get_o_trunc},
-    {"statxSize", "()I", (void *) &get_statx_size},
+    {"oRdOnly", "()I", (void *) get_o_rdonly},
+    {"oWrOnly", "()I", (void *) get_o_wronly},
+    {"oRdWr", "()I", (void *) get_o_rdwr},
+    {"oCreat", "()I", (void *) get_o_creat},
+    {"oTrunc", "()I", (void *) get_o_trunc},
+    {"statxSize", "()I", (void *) get_statx_size},
 };
 
 jint jni_file_io_constants_on_load(JNIEnv *env) {
