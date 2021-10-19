@@ -4,7 +4,6 @@ import one.jasyncfio.natives.MemoryUtils;
 import one.jasyncfio.natives.Native;
 
 import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.util.concurrent.CompletableFuture;
 
 public class BufferedFile {
@@ -31,6 +30,9 @@ public class BufferedFile {
      * @return {@link CompletableFuture} contains opened file or exception
      */
     public static CompletableFuture<BufferedFile> open(String path) {
+        if (path == null) {
+            throw new IllegalArgumentException("path must be not null");
+        }
         long pathPtr = MemoryUtils.getStringPtr(path);
         CompletableFuture<Integer> futureFd =
                 EventExecutorGroup.get().scheduleOpen(-1, pathPtr, Native.O_RDONLY, 0);
@@ -47,6 +49,9 @@ public class BufferedFile {
      * @return {@link CompletableFuture} contains opened file or exception
      */
     public static CompletableFuture<BufferedFile> create(String path) {
+        if (path == null) {
+            throw new IllegalArgumentException("path must be not null");
+        }
         long pathPtr = MemoryUtils.getStringPtr(path);
         int flags = Native.O_RDWR | Native.O_CREAT | Native.O_TRUNC;
         CompletableFuture<Integer> futureFd =
@@ -134,6 +139,18 @@ public class BufferedFile {
      */
     public CompletableFuture<Integer> dataSync() {
         return EventExecutorGroup.get().scheduleFsync(fd, Native.IORING_FSYNC_DATASYNC);
+    }
+
+    /**
+     * pre-allocates space in the filesystem to hold a file at least as big as the size argument.
+     * @param size bytes to allocate; must be non-negative
+     * @return
+     */
+    public CompletableFuture<Integer> preAllocate(long size) {
+        if (size < 0) {
+            throw new IllegalArgumentException("size must be positive");
+        }
+        return EventExecutorGroup.get().scheduleFallocate(fd, size, 0, 0);
     }
 
     /**

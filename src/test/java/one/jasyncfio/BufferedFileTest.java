@@ -232,6 +232,51 @@ public class BufferedFileTest {
         assertEquals(0, waitCompletionAndGet(f.dataSync()));
     }
 
+    @Test
+    void dataSync_closedFile() throws Exception {
+        BufferedFile f = waitCompletionAndGet(BufferedFile.create(TEMP_FILE_NAME));
+        deleteOnExit(f);
+        waitCompletion(f.close());
+        CompletableFuture<Integer> dataSync = f.dataSync();
+        waitCompletion(dataSync);
+        assertTrue(dataSync.isCompletedExceptionally());
+    }
+
+    @Test
+    void preAllocate_emptyFile() throws Exception {
+        BufferedFile f = waitCompletionAndGet(BufferedFile.create(TEMP_FILE_NAME));
+        deleteOnExit(f);
+        assertEquals(0, waitCompletionAndGet(f.size()));
+        assertEquals(0, waitCompletionAndGet(f.preAllocate(1024)));
+        assertEquals(1024, waitCompletionAndGet(f.size()));
+    }
+
+    @Test
+    void preAllocate_notEmptyFile() throws Exception {
+        BufferedFile bufferedFile = waitCompletionAndGet(BufferedFile.create(TEMP_FILE_NAME));
+        File file = new File(bufferedFile.getPath());
+        file.deleteOnExit();
+        String resultString = prepareString(100);
+        long stringLength = resultString.getBytes(StandardCharsets.UTF_8).length;
+        FileWriter fw = new FileWriter(file);
+        fw.write(resultString);
+        fw.flush();
+        fw.close();
+        assertEquals(stringLength, waitCompletionAndGet(bufferedFile.size()));
+        assertEquals(0, waitCompletionAndGet(bufferedFile.preAllocate(stringLength * 2)));
+        assertEquals(stringLength * 2, waitCompletionAndGet(bufferedFile.size()));
+    }
+
+    @Test
+    void preAllocate_closedFile() throws Exception {
+        BufferedFile bufferedFile = waitCompletionAndGet(BufferedFile.create(TEMP_FILE_NAME));
+        deleteOnExit(bufferedFile);
+        waitCompletion(bufferedFile.close());
+        CompletableFuture<Integer> preAllocate = bufferedFile.preAllocate(1024);
+        waitCompletion(preAllocate);
+        assertTrue(preAllocate.isCompletedExceptionally());
+    }
+
     private void deleteOnExit(BufferedFile f) {
         new File(f.getPath()).deleteOnExit();
     }
