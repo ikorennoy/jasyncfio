@@ -4,7 +4,6 @@ import one.jasyncfio.natives.MemoryUtils;
 import one.jasyncfio.natives.Native;
 
 import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.util.concurrent.CompletableFuture;
 
 public class BufferedFile {
