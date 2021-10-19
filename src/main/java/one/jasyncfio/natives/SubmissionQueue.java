@@ -1,8 +1,5 @@
 package one.jasyncfio.natives;
 
-import one.jasyncfio.natives.MemoryUtils;
-import one.jasyncfio.natives.Native;
-
 public class SubmissionQueue {
     private static final long SQE_SIZE = 64;
 
@@ -159,6 +156,17 @@ public class SubmissionQueue {
         );
     }
 
+    public void addStatx(int dirfd, long pathAddress, int statxFlags, int mask, long statxBufferAddress, int opId) {
+        enqueueSqe(Native.IORING_OP_STATX,
+                0,
+                statxFlags,
+                dirfd,
+                pathAddress,
+                mask,
+                statxBufferAddress,
+                opId
+        );
+    }
 
     public boolean addEventFdRead(int eventFd, long eventfdReadBuf, int position, int limit, int opId) {
         return enqueueSqe(Native.IORING_OP_READ,

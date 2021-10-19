@@ -2,6 +2,7 @@ package one.jasyncfio;
 
 import one.jasyncfio.natives.MemoryUtils;
 import one.jasyncfio.natives.Native;
+import sun.misc.Unsafe;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
@@ -88,6 +89,19 @@ public class BufferedFile {
         }
         return EventExecutorGroup.get()
                 .scheduleWrite(fd, MemoryUtils.getDirectBufferAddress(buffer), position, length);
+    }
+
+    public CompletableFuture<Long> size() {
+        long bufAddress = MemoryUtils.allocateMemory(StatxUtils.BUF_SIZE);
+        long strAddress = MemoryUtils.getStringPtr(path);
+        return EventExecutorGroup.get()
+                .scheduleStatx(-1, strAddress, 0, Native.STATX_SIZE, bufAddress)
+                .whenComplete((r, ex) -> MemoryUtils.releaseString(path, strAddress))
+                .thenApply((r) -> {
+                    long size = StatxUtils.getSize(bufAddress);
+                    MemoryUtils.freeMemory(bufAddress);
+                    return size;
+                });
     }
 
     /**
