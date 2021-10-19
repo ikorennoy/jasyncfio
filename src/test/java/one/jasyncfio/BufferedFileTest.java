@@ -76,12 +76,7 @@ public class BufferedFileTest {
         File tempFile = File.createTempFile("temp-", "-file");
         tempFile.deleteOnExit();
         FileWriter fw = new FileWriter(tempFile);
-        StringBuilder sb = new StringBuilder();
-        String s = "String number ";
-        for (int i = 0; i < 100; i++) {
-            sb.append(s).append(i);
-        }
-        String resultString = sb.toString();
+        String resultString = prepareString(100);
         fw.write(resultString);
         fw.flush();
         fw.close();
@@ -106,12 +101,7 @@ public class BufferedFileTest {
         File tempFile = File.createTempFile("temp-", "-file");
         tempFile.deleteOnExit();
         FileWriter fw = new FileWriter(tempFile);
-        StringBuilder sb = new StringBuilder();
-        String s = "String number ";
-        for (int i = 0; i < 100; i++) {
-            sb.append(s).append(i);
-        }
-        String resultString = sb.toString();
+        String resultString = prepareString(100);
         fw.write(resultString);
         fw.flush();
         fw.close();
@@ -127,12 +117,7 @@ public class BufferedFileTest {
         File tempFile = File.createTempFile("temp-", "-file");
         tempFile.deleteOnExit();
         FileWriter fw = new FileWriter(tempFile);
-        StringBuilder sb = new StringBuilder();
-        String s = "String number ";
-        for (int i = 0; i < 100; i++) {
-            sb.append(s).append(i);
-        }
-        String resultString = sb.toString();
+        String resultString = prepareString(100);
         fw.write(resultString);
         fw.flush();
         fw.close();
@@ -148,12 +133,7 @@ public class BufferedFileTest {
         File tempFile = File.createTempFile("temp-", "-file");
         tempFile.deleteOnExit();
         FileWriter fw = new FileWriter(tempFile);
-        StringBuilder sb = new StringBuilder();
-        String s = "String number ";
-        for (int i = 0; i < 100; i++) {
-            sb.append(s).append(i);
-        }
-        String resultString = sb.toString();
+        String resultString = prepareString(100);
         fw.write(resultString);
         fw.flush();
         fw.close();
@@ -221,6 +201,29 @@ public class BufferedFileTest {
         CompletableFuture<Integer> read = bufferedFile.read(0, ByteBuffer.allocateDirect(10));
         waitCompletion(read);
         assertTrue(read.isCompletedExceptionally());
+    }
+
+    @Test
+    void size() throws Exception {
+        BufferedFile bufferedFile = waitCompletionAndGet(BufferedFile.create(TEMP_FILE_NAME));
+        File file = new File(bufferedFile.getPath());
+        file.deleteOnExit();
+        String resultString = prepareString(100);
+        FileWriter fw = new FileWriter(file);
+        fw.write(resultString);
+        fw.flush();
+        fw.close();
+        int expectedLength = resultString.getBytes(StandardCharsets.UTF_8).length;
+        long actualLength = waitCompletionAndGet(bufferedFile.size());
+        assertEquals(expectedLength, actualLength);
+    }
+
+    @Test
+    void size_zero() throws Exception {
+        BufferedFile f = waitCompletionAndGet(BufferedFile.create(TEMP_FILE_NAME));
+        File file = new File(f.getPath());
+        file.deleteOnExit();
+        assertEquals(0, waitCompletionAndGet(f.size()));
     }
 
     private void waitCompletion(CompletableFuture<?> future) throws InterruptedException {

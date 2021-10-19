@@ -89,6 +89,7 @@ public class Native {
     public static byte IORING_OP_CLOSE = UringConstants.ioRingOpClose();
     public static byte IORING_OP_OPENAT = UringConstants.ioRingOpenAt();
     public static byte IORING_OP_NOP = UringConstants.ioRingOpNop();
+    public static byte IORING_OP_STATX = UringConstants.ioRingOpStatx();
 
     public static int IORING_ENTER_GETEVENTS = UringConstants.ioRingEnterGetEvents();
     public static int IORING_ENTER_SQ_WAKEUP = UringConstants.ioRingEnterSqWakeup();
@@ -99,4 +100,5 @@ public class Native {
     public static int O_RDWR = OpenConstants.oRdWr();
     public static int O_TRUNC = OpenConstants.oTrunc();
     public static int O_CREAT = OpenConstants.oCreat();
+    public static int STATX_SIZE = OpenConstants.statxSize();
 }

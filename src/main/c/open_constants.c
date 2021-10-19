@@ -1,4 +1,7 @@
 #include <fcntl.h>
+#include <sys/stat.h>
+#include <bits/statx.h>
+
 
 #include "open_constants.h"
 
@@ -19,6 +22,9 @@ static jint get_o_creat() {
 static jint get_o_trunc() {
     return O_TRUNC;
 }
+static jint get_statx_size() {
+    return STATX_SIZE;
+}
 
 static JNINativeMethod method_table[] = {
     {"oRdOnly", "()I", (void *) &get_o_rdonly},
@@ -26,6 +32,7 @@ static JNINativeMethod method_table[] = {
     {"oRdWr", "()I", (void *) &get_o_rdwr},
     {"oCreat", "()I", (void *) &get_o_creat},
     {"oTrunc", "()I", (void *) &get_o_trunc},
+    {"statxSize", "()I", (void *) &get_statx_size},
 };
 
 jint jni_open_constants_on_load(JNIEnv *env) {
