@@ -168,6 +168,18 @@ public class SubmissionQueue {
         );
     }
 
+    public void addFsync(int fd, int fsyncFlags, int opId) {
+        enqueueSqe(Native.IORING_OP_FSYNC,
+                0,
+                fsyncFlags,
+                fd,
+                0,
+                0,
+                0,
+                opId
+        );
+    }
+
     public boolean addEventFdRead(int eventFd, long eventfdReadBuf, int position, int limit, int opId) {
         return enqueueSqe(Native.IORING_OP_READ,
                 0,

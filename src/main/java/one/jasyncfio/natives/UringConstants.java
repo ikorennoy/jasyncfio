@@ -16,6 +16,8 @@ public class UringConstants {
 
     static native int ioRingSetupCqSize();
 
+    static native int ioRingFsyncDatasync();
+
     static native byte ioRingOpRead();
 
     static native byte ioRingOpWrite();

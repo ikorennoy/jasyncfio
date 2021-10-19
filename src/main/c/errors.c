@@ -1,4 +1,5 @@
 #include <errno.h>
+
 #include "errors.h"
 
 #define ERRNO_CONSTANTS_CLASS_NAME "one/jasyncfio/natives/ErrnoConstants"

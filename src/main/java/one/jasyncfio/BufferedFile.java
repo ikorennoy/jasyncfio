@@ -4,6 +4,7 @@ import one.jasyncfio.natives.MemoryUtils;
 import one.jasyncfio.natives.Native;
 
 import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.util.concurrent.CompletableFuture;
 
 public class BufferedFile {
@@ -57,6 +58,7 @@ public class BufferedFile {
 
     /**
      * Reads data from a specified position and of a specified length into a byte buffer.
+     *
      * @param position The file position at which the transfer is to begin; must be non-negative
      * @param length   The content length; must be non-negative
      * @param buffer   The buffer from which bytes are to be retrieved
@@ -124,6 +126,14 @@ public class BufferedFile {
                     MemoryUtils.freeMemory(bufAddress);
                     return size;
                 });
+    }
+
+    /**
+     * Issues fdatasync for the underlying file, instructing the OS to flush all writes to the device,
+     * providing durability even if the system crashes or is rebooted.
+     */
+    public CompletableFuture<Integer> dataSync() {
+        return EventExecutorGroup.get().scheduleFsync(fd, Native.IORING_FSYNC_DATASYNC);
     }
 
     /**
