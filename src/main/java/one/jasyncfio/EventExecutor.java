@@ -198,6 +198,16 @@ public class EventExecutor {
         return f;
     }
 
+    public CompletableFuture<Integer> scheduleFallocate(int fd, long length, int mode, long offset) {
+        CompletableFuture<Integer> f = new CompletableFuture<>();
+        execute(() -> {
+            int opId = sequencer.getAsInt();
+            pendings.put(opId, f);
+            ring.getSubmissionQueue().addFallocate(fd, length, mode, offset, opId);
+        });
+        return f;
+    }
+
     public CompletableFuture<Integer> scheduleClose(int fd) {
         CompletableFuture<Integer> f = new CompletableFuture<>();
         execute(() -> {
