@@ -130,10 +130,10 @@ public class Native {
     public static int IORING_ENTER_SQ_WAKEUP = UringConstants.ioRingEnterSqWakeup();
     public static int IORING_SQ_NEED_WAKEUP = UringConstants.ioRingSqNeedWakeup();
 
-    public static int O_RDONLY = OpenConstants.oRdOnly();
-    public static int O_WRONLY = OpenConstants.oWrOnly();
-    public static int O_RDWR = OpenConstants.oRdWr();
-    public static int O_TRUNC = OpenConstants.oTrunc();
-    public static int O_CREAT = OpenConstants.oCreat();
-    public static int STATX_SIZE = OpenConstants.statxSize();
+    public static int O_RDONLY = FileIoConstants.oRdOnly();
+    public static int O_WRONLY = FileIoConstants.oWrOnly();
+    public static int O_RDWR = FileIoConstants.oRdWr();
+    public static int O_TRUNC = FileIoConstants.oTrunc();
+    public static int O_CREAT = FileIoConstants.oCreat();
+    public static int STATX_SIZE = FileIoConstants.statxSize();
 }
