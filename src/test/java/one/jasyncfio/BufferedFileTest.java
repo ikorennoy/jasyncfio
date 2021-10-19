@@ -268,6 +268,22 @@ public class BufferedFileTest {
     }
 
     @Test
+    void preAllocate_withOffset() throws Exception {
+        BufferedFile bufferedFile = waitCompletionAndGet(BufferedFile.create(TEMP_FILE_NAME));
+        File file = new File(bufferedFile.getPath());
+        file.deleteOnExit();
+        String resultString = prepareString(100);
+        long stringLength = resultString.getBytes(StandardCharsets.UTF_8).length;
+        FileWriter fw = new FileWriter(file);
+        fw.write(resultString);
+        fw.flush();
+        fw.close();
+        assertEquals(stringLength, waitCompletionAndGet(bufferedFile.size()));
+        assertEquals(0, waitCompletionAndGet(bufferedFile.preAllocate(stringLength, stringLength)));
+        assertEquals(stringLength * 2, waitCompletionAndGet(bufferedFile.size()));
+    }
+
+    @Test
     void preAllocate_closedFile() throws Exception {
         BufferedFile bufferedFile = waitCompletionAndGet(BufferedFile.create(TEMP_FILE_NAME));
         deleteOnExit(bufferedFile);
