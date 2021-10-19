@@ -142,16 +142,34 @@ public class BufferedFile {
     }
 
     /**
-     * pre-allocates space in the filesystem to hold a file at least as big as the size argument.
+     * Pre-allocates space in the filesystem to hold a file at least as big as the size argument from 0 offset.
+     *
      * @param size bytes to allocate; must be non-negative
-     * @return
      */
     public CompletableFuture<Integer> preAllocate(long size) {
+        return preAllocate(size, 0);
+    }
+
+    /**
+     * Pre-allocates space in the filesystem to hold a file at least as big as the size argument from specified offset.
+     * After a successful call, subsequent writes into the range
+     * specified by offset and len are guaranteed not to fail because of
+     * lack of disk space.
+     *
+     * @param size   bytes to allocate; must be non-negative
+     * @param offset start offset; must be non-negative
+     */
+    public CompletableFuture<Integer> preAllocate(long size, long offset) {
         if (size < 0) {
             throw new IllegalArgumentException("size must be positive");
         }
-        return EventExecutorGroup.get().scheduleFallocate(fd, size, 0, 0);
+        if (offset < 0) {
+            throw new IllegalArgumentException("offset must be positive");
+        }
+        return EventExecutorGroup.get().scheduleFallocate(fd, size, 0, offset);
     }
+
+    // preAllocate with offsets
 
     /**
      * Closes this file.
