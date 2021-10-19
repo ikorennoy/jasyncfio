@@ -33,15 +33,15 @@ static jint get_ENOENT() {
 }
 
 static JNINativeMethod method_table[] = {
-    {"getEagain", "()I", (void *) &get_EAGAIN},
-    {"getEbusy", "()I", (void *) &get_EBUSY},
-    {"getEbadf", "()I", (void *) &get_EBADF},
-    {"getEfault", "()I", (void *) &get_EFAULT},
-    {"getEinval", "()I", (void *) &get_EINVAL},
-    {"getEnxio", "()I", (void *) &get_ENXIO},
-    {"getEopnotsupp", "()I", (void *) &get_EOPNOTSUPP},
-    {"getIntr", "()I", (void *) &get_EINTR},
-    {"getEnoent", "()I", (void *) &get_ENOENT},
+    {"getEagain", "()I", (void *) get_EAGAIN},
+    {"getEbusy", "()I", (void *) get_EBUSY},
+    {"getEbadf", "()I", (void *) get_EBADF},
+    {"getEfault", "()I", (void *) get_EFAULT},
+    {"getEinval", "()I", (void *) get_EINVAL},
+    {"getEnxio", "()I", (void *) get_ENXIO},
+    {"getEopnotsupp", "()I", (void *) get_EOPNOTSUPP},
+    {"getIntr", "()I", (void *) get_EINTR},
+    {"getEnoent", "()I", (void *) get_ENOENT},
 };
 
 jint jni_errno_constants_on_load(JNIEnv* env) {
