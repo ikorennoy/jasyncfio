@@ -125,10 +125,12 @@ public class Native {
     public static byte IORING_OP_OPENAT = UringConstants.ioRingOpenAt();
     public static byte IORING_OP_NOP = UringConstants.ioRingOpNop();
     public static byte IORING_OP_STATX = UringConstants.ioRingOpStatx();
+    public static byte IORING_OP_FSYNC = UringConstants.ioRingOpFsync();
 
     public static int IORING_ENTER_GETEVENTS = UringConstants.ioRingEnterGetEvents();
     public static int IORING_ENTER_SQ_WAKEUP = UringConstants.ioRingEnterSqWakeup();
     public static int IORING_SQ_NEED_WAKEUP = UringConstants.ioRingSqNeedWakeup();
+    public static int IORING_FSYNC_DATASYNC = UringConstants.ioRingFsyncDatasync();
 
     public static int O_RDONLY = FileIoConstants.oRdOnly();
     public static int O_WRONLY = FileIoConstants.oWrOnly();

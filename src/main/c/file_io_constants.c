@@ -2,7 +2,6 @@
 #include <sys/stat.h>
 #include <bits/statx.h>
 
-
 #include "file_io_constants.h"
 
 #define FILE_IO_CONSTANTS_CLASS_NAME "one/jasyncfio/natives/FileIoConstants"

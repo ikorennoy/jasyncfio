@@ -188,6 +188,16 @@ public class EventExecutor {
         return f;
     }
 
+    public CompletableFuture<Integer> scheduleFsync(int fd, int fsyncFlags) {
+        CompletableFuture<Integer> f = new CompletableFuture<>();
+        execute(() -> {
+            int opId = sequencer.getAsInt();
+            pendings.put(opId, f);
+            ring.getSubmissionQueue().addFsync(fd, fsyncFlags, opId);
+        });
+        return f;
+    }
+
     public CompletableFuture<Integer> scheduleClose(int fd) {
         CompletableFuture<Integer> f = new CompletableFuture<>();
         execute(() -> {
