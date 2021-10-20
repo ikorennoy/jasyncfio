@@ -293,6 +293,46 @@ public class BufferedFileTest {
         assertTrue(preAllocate.isCompletedExceptionally());
     }
 
+    @Test
+    void remove() throws Exception {
+        BufferedFile bufferedFile = waitCompletionAndGet(BufferedFile.create(TEMP_FILE_NAME));
+        File file = new File(bufferedFile.getPath());
+        assertTrue(file.exists());
+        assertEquals(0, waitCompletionAndGet(bufferedFile.remove()));
+        assertFalse(file.exists());
+    }
+
+    @Test
+    void remove_removed() throws Exception {
+        BufferedFile bufferedFile = waitCompletionAndGet(BufferedFile.create(TEMP_FILE_NAME));
+        File file = new File(bufferedFile.getPath());
+        assertTrue(file.exists());
+        assertEquals(0, waitCompletionAndGet(bufferedFile.remove()));
+        assertFalse(file.exists());
+        CompletableFuture<Integer> remove = bufferedFile.remove();
+        waitCompletion(remove);
+        assertTrue(remove.isCompletedExceptionally());
+    }
+
+    @Test
+    void remove_readOnly() throws Exception {
+        File tempFile = File.createTempFile("temp-", "-file");
+        assertTrue(tempFile.exists());
+        BufferedFile bufferedFile = waitCompletionAndGet(BufferedFile.open(tempFile.getPath()));
+        assertEquals(0, waitCompletionAndGet(bufferedFile.remove()));
+        assertFalse(tempFile.exists());
+    }
+
+    @Test
+    void remove_closed() throws Exception {
+        File tempFile = File.createTempFile("temp-", "-file");
+        assertTrue(tempFile.exists());
+        BufferedFile bufferedFile = waitCompletionAndGet(BufferedFile.open(tempFile.getPath()));
+        assertEquals(0, waitCompletionAndGet(bufferedFile.close()));
+        assertEquals(0, waitCompletionAndGet(bufferedFile.remove()));
+        assertFalse(tempFile.exists());
+    }
+
     private void deleteOnExit(BufferedFile f) {
         new File(f.getPath()).deleteOnExit();
     }

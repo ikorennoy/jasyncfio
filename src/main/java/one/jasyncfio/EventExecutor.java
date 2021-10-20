@@ -208,6 +208,26 @@ public class EventExecutor {
         return f;
     }
 
+    public CompletableFuture<Integer> scheduleUnlink(int dirFd, long pathAddress, int flags) {
+        CompletableFuture<Integer> f = new CompletableFuture<>();
+        execute(() -> {
+            int opId = sequencer.getAsInt();
+            pendings.put(opId, f);
+            ring.getSubmissionQueue().addUnlinkAt(dirFd, pathAddress, flags, opId);
+        });
+        return f;
+    }
+
+    public CompletableFuture<Integer> scheduleRename(int oldDirFd, long oldPathAddress, int newDirFd, int newPathAddress, int flags) {
+        CompletableFuture<Integer> f = new CompletableFuture<>();
+        execute(() -> {
+            int opId = sequencer.getAsInt();
+            pendings.put(opId, f);
+            ring.getSubmissionQueue().addRenameAt(oldDirFd, oldPathAddress, newDirFd, newPathAddress, flags, opId);
+        });
+        return f;
+    }
+
     public CompletableFuture<Integer> scheduleClose(int fd) {
         CompletableFuture<Integer> f = new CompletableFuture<>();
         execute(() -> {

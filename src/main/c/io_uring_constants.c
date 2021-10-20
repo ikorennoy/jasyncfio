@@ -45,6 +45,12 @@ static jbyte get_ioring_op_statx() {
 static jbyte get_ioring_op_fallocate() {
     return IORING_OP_FALLOCATE;
 }
+static jbyte get_ioring_op_unlinkat() {
+    return IORING_OP_UNLINKAT;
+}
+static jbyte get_ioring_op_renameat() {
+    return IORING_OP_RENAMEAT;
+}
 
 static jint get_ioring_enter_getevents() {
     return IORING_ENTER_GETEVENTS;
@@ -95,6 +101,8 @@ static JNINativeMethod method_table[] = {
     {"ioRingOpPollAdd", "()B", (void *) get_ioring_op_poll_add},
     {"ioRingOpPollRemove", "()B", (void *) get_ioring_op_poll_remove},
     {"ioRingOpFallocate", "()B", (void *) get_ioring_op_fallocate},
+    {"ioRingOpUnlinkAt", "()B", (void *) get_ioring_op_unlinkat},
+    {"ioRingOpRenameAt", "()B", (void *) get_ioring_op_renameat},
 };
 
 jint jni_io_uring_constants_on_load(JNIEnv *env) {
