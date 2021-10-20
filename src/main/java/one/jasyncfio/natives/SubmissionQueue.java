@@ -192,6 +192,31 @@ public class SubmissionQueue {
         );
     }
 
+    public void addUnlinkAt(int dirFd, long pathAddress, int flags, int opId) {
+        enqueueSqe(Native.IORING_OP_UNLINKAT,
+                0,
+                flags,
+                dirFd,
+                pathAddress,
+                0,
+                0,
+                opId
+        );
+    }
+
+    public void addRenameAt(int oldDirFd, long oldPathAddress, int newDirFd, long newPathAddress, int flags, int opId) {
+        enqueueSqe(
+                Native.IORING_OP_RENAMEAT,
+                0,
+                flags,
+                oldDirFd,
+                oldPathAddress,
+                newDirFd,
+                newPathAddress,
+                opId
+        );
+    }
+
     public boolean addEventFdRead(int eventFd, long eventfdReadBuf, int position, int limit, int opId) {
         return enqueueSqe(Native.IORING_OP_READ,
                 0,
