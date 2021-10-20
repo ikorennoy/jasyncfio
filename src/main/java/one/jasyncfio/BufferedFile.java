@@ -9,10 +9,12 @@ import java.util.concurrent.CompletableFuture;
 public class BufferedFile {
     private final int fd;
     private final String path;
+    private final long pathAddress;
 
-    private BufferedFile(String path, int fd) {
+    private BufferedFile(String path, int fd, long pathAddress) {
         this.path = path;
         this.fd = fd;
+        this.pathAddress = pathAddress;
     }
 
     public int getRawFd() {
@@ -37,8 +39,7 @@ public class BufferedFile {
         CompletableFuture<Integer> futureFd =
                 EventExecutorGroup.get().scheduleOpen(-1, pathPtr, Native.O_RDONLY, 0);
         return futureFd
-                .whenComplete(((fd, throwable) -> MemoryUtils.releaseString(path, pathPtr)))
-                .thenApply((fd) -> new BufferedFile(path, fd));
+                .thenApply((fd) -> new BufferedFile(path, fd, pathPtr));
     }
 
     /**
@@ -57,8 +58,7 @@ public class BufferedFile {
         CompletableFuture<Integer> futureFd =
                 EventExecutorGroup.get().scheduleOpen(-1, pathPtr, flags, 0666);
         return futureFd
-                .whenComplete(((fd, ex) -> MemoryUtils.releaseString(path, pathPtr)))
-                .thenApply((fd) -> new BufferedFile(path, fd));
+                .thenApply((fd) -> new BufferedFile(path, fd, pathPtr));
     }
 
     /**
@@ -122,10 +122,8 @@ public class BufferedFile {
      */
     public CompletableFuture<Long> size() {
         long bufAddress = MemoryUtils.allocateMemory(StatxUtils.BUF_SIZE);
-        long strAddress = MemoryUtils.getStringPtr(path);
         return EventExecutorGroup.get()
-                .scheduleStatx(-1, strAddress, 0, Native.STATX_SIZE, bufAddress)
-                .whenComplete((r, ex) -> MemoryUtils.releaseString(path, strAddress))
+                .scheduleStatx(-1, pathAddress, 0, Native.STATX_SIZE, bufAddress)
                 .thenApply((r) -> {
                     long size = StatxUtils.getSize(bufAddress);
                     MemoryUtils.freeMemory(bufAddress);
@@ -167,6 +165,23 @@ public class BufferedFile {
             throw new IllegalArgumentException("offset must be positive");
         }
         return EventExecutorGroup.get().scheduleFallocate(fd, size, 0, offset);
+    }
+
+
+    /**
+     * Remove this file.
+     * <p>
+     * The file does not have to be closed to be removed.
+     * Removing removes the name from the filesystem but the file will still be accessible for as long as it is open.
+     */
+    public CompletableFuture<Integer> remove() {
+        return EventExecutorGroup.get()
+                .scheduleUnlink(-1, pathAddress, 0);
+    }
+
+    @Override
+    protected void finalize() {
+        MemoryUtils.releaseString(path, pathAddress);
     }
 
     /**

@@ -38,6 +38,10 @@ public class UringConstants {
 
     static native byte ioRingOpFallocate();
 
+    static native byte ioRingOpUnlinkAt();
+
+    static native byte ioRingOpRenameAt();
+
     static native byte ioRingOpReadFixed();
 
     static native byte ioRingOpWriteFixed();

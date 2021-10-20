@@ -127,6 +127,8 @@ public class Native {
     public static byte IORING_OP_STATX = UringConstants.ioRingOpStatx();
     public static byte IORING_OP_FSYNC = UringConstants.ioRingOpFsync();
     public static byte IORING_OP_FALLOCATE = UringConstants.ioRingOpFallocate();
+    public static byte IORING_OP_UNLINKAT = UringConstants.ioRingOpUnlinkAt();
+    public static byte IORING_OP_RENAMEAT = UringConstants.ioRingOpRenameAt();
 
     public static int IORING_ENTER_GETEVENTS = UringConstants.ioRingEnterGetEvents();
     public static int IORING_ENTER_SQ_WAKEUP = UringConstants.ioRingEnterSqWakeup();
