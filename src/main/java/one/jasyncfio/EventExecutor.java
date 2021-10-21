@@ -15,7 +15,7 @@ public class EventExecutor {
     private static final boolean WAIT = false;
 
     private final AtomicBoolean state = new AtomicBoolean(WAIT);
-    private final Queue<Runnable> tasks = new ConcurrentLinkedDeque<>();
+    private final Queue<ExtRunnable> tasks = new ConcurrentLinkedDeque<>();
     private final Map<Integer, CompletableFuture<Integer>> pendings = new HashMap<>();
     private final int entries = Integer.parseInt(System.getProperty("JASYNCFIO_RING_ENTRIES", "4096"));
     private final long eventfdReadBuf = MemoryUtils.allocateMemory(8);
@@ -89,16 +89,20 @@ public class EventExecutor {
     }
 
     private void addEventFdRead(SubmissionQueue submissionQueue) {
-        submissionQueue.addEventFdRead(eventFd, eventfdReadBuf, 0, 8, 0);
+        try {
+            submissionQueue.addEventFdRead(eventFd, eventfdReadBuf, 0, 8, 0);
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
     }
 
-    public void execute(Runnable task) {
+    public void execute(ExtRunnable task) {
         boolean inEventLoop = inEventLoop();
         addTask(task);
         wakeup(inEventLoop);
     }
 
-    private void addTask(Runnable task) {
+    private void addTask(ExtRunnable task) {
         tasks.add(task);
     }
 
@@ -114,7 +118,7 @@ public class EventExecutor {
     }
 
     private boolean runAllTasks() {
-        Runnable t = tasks.poll();
+        ExtRunnable t = tasks.poll();
         if (t == null) {
             return false;
         }
@@ -127,7 +131,7 @@ public class EventExecutor {
         }
     }
 
-    private static void safeExec(Runnable task) {
+    private static void safeExec(ExtRunnable task) {
         try {
             task.run();
         } catch (Throwable ex) {

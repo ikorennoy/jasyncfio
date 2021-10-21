@@ -106,18 +106,19 @@ public class Native {
             return false;
         }
 
-        return minor >= 9;
+        return minor >= 11;
     }
 
     public static int EAGAIN = ErrnoConstants.getEagain();
     public static int EBUSY = ErrnoConstants.getEbusy();
-    public static int EBADF = ErrnoConstants.getEbadf();
+    public static final int EBADF = ErrnoConstants.getEbadf();
     public static int EFAULT = ErrnoConstants.getEfault();
     public static int EINVAL = ErrnoConstants.getEinval();
     public static int ENXIO = ErrnoConstants.getEnxio();
     public static int EOPNOTSUPP = ErrnoConstants.getEopnotsupp();
     public static int EINTR = ErrnoConstants.getIntr();
     public static int ENOENT = ErrnoConstants.getEnoent();
+    public static int EBADFD = ErrnoConstants.getEbadfd();
 
     public static byte IORING_OP_READ = UringConstants.ioRingOpRead();
     public static byte IORING_OP_WRITE = UringConstants.ioRingOpWrite();
