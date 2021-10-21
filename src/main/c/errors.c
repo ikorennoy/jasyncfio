@@ -22,7 +22,7 @@ static jint get_einval() {
 static jint get_enxio() {
     return ENXIO;
 }
-static jint get_eopnotsupp {
+static jint get_eopnotsupp() {
     return EOPNOTSUPP;
 }
 static jint get_eintr() {
