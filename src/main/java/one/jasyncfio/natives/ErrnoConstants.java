@@ -12,4 +12,5 @@ public class ErrnoConstants {
     static native int getEnoent();
     static native int getEbadfd();
     static native int getEnotdir();
+    static native int getEacces();
 }

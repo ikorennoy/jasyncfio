@@ -22,7 +22,22 @@ public class ErrnoDecoder {
     }
 
     public static Throwable decodeIoUringCqeError(int errno) {
-        return null;
+        final Throwable result;
+        final int err = -errno;
+        if (err == EACCES) {
+            result = new IllegalStateException("the flags field or opcode in a submission queue entry is not allowed due to registered restrictions");
+        } else if (err == EBADF) {
+            result = new IllegalArgumentException("the fd field in the submission queue entry is invalid or fixed files not registered");
+        } else if (err == EFAULT) {
+            result = new IllegalArgumentException("buffer address is wrong or buffers were not registered");
+        } else if (err == EINVAL) {
+            result = new IllegalArgumentException("invalid io arguments");
+        } else if (err == EOPNOTSUPP) {
+            result = new IllegalStateException("opcode is not supported by this kernel");
+        } else {
+            result = new RuntimeException("unknown error: " + err);
+        }
+        return result;
     }
 
     public static Throwable decodeIoUringEnterError(int errno) {
