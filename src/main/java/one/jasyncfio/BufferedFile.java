@@ -37,7 +37,7 @@ public class BufferedFile {
         }
         long pathPtr = MemoryUtils.getStringPtr(path);
         CompletableFuture<Integer> futureFd =
-                EventExecutorGroup.get().scheduleOpen(-1, pathPtr, Native.O_RDONLY, 0);
+                EventExecutorGroup.get().scheduleOpenAt(-1, pathPtr, Native.O_RDONLY, 0);
         return futureFd
                 .thenApply((fd) -> new BufferedFile(path, fd, pathPtr));
     }
@@ -56,7 +56,7 @@ public class BufferedFile {
         long pathPtr = MemoryUtils.getStringPtr(path);
         int flags = Native.O_RDWR | Native.O_CREAT | Native.O_TRUNC;
         CompletableFuture<Integer> futureFd =
-                EventExecutorGroup.get().scheduleOpen(-1, pathPtr, flags, 0666);
+                EventExecutorGroup.get().scheduleOpenAt(-1, pathPtr, flags, 0666);
         return futureFd
                 .thenApply((fd) -> new BufferedFile(path, fd, pathPtr));
     }

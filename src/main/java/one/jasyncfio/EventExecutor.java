@@ -79,7 +79,7 @@ public class EventExecutor {
         } else {
             CompletableFuture<Integer> userCallback = pendings.remove(data);
             if (userCallback != null) {
-                if (res > 0) {
+                if (res >= 0) {
                     userCallback.complete(res);
                 } else {
                     final Throwable callException;
@@ -183,7 +183,7 @@ public class EventExecutor {
         return f;
     }
 
-    public CompletableFuture<Integer> scheduleOpen(int dirFd, long pathAddress, int openFlags, int mode) {
+    public CompletableFuture<Integer> scheduleOpenAt(int dirFd, long pathAddress, int openFlags, int mode) {
         CompletableFuture<Integer> f = new CompletableFuture<>();
         execute(() -> {
             int opId = sequencer.getAsInt();
