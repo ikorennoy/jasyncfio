@@ -120,6 +120,7 @@ public class Native {
     public static final int ENOENT = ErrnoConstants.getEnoent();
     public static final int EBADFD = ErrnoConstants.getEbadfd();
     public static final int ENOTDIR = ErrnoConstants.getEnotdir();
+    public static final int EACCES = ErrnoConstants.getEacces();
 
     public static final byte IORING_OP_READ = UringConstants.ioRingOpRead();
     public static final byte IORING_OP_WRITE = UringConstants.ioRingOpWrite();
