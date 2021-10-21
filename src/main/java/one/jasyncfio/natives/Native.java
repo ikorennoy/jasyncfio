@@ -109,37 +109,38 @@ public class Native {
         return minor >= 11;
     }
 
-    public static int EAGAIN = ErrnoConstants.getEagain();
-    public static int EBUSY = ErrnoConstants.getEbusy();
+    public static final int EAGAIN = ErrnoConstants.getEagain();
+    public static final int EBUSY = ErrnoConstants.getEbusy();
     public static final int EBADF = ErrnoConstants.getEbadf();
-    public static int EFAULT = ErrnoConstants.getEfault();
-    public static int EINVAL = ErrnoConstants.getEinval();
-    public static int ENXIO = ErrnoConstants.getEnxio();
-    public static int EOPNOTSUPP = ErrnoConstants.getEopnotsupp();
-    public static int EINTR = ErrnoConstants.getIntr();
-    public static int ENOENT = ErrnoConstants.getEnoent();
-    public static int EBADFD = ErrnoConstants.getEbadfd();
+    public static final int EFAULT = ErrnoConstants.getEfault();
+    public static final int EINVAL = ErrnoConstants.getEinval();
+    public static final int ENXIO = ErrnoConstants.getEnxio();
+    public static final int EOPNOTSUPP = ErrnoConstants.getEopnotsupp();
+    public static final int EINTR = ErrnoConstants.getIntr();
+    public static final int ENOENT = ErrnoConstants.getEnoent();
+    public static final int EBADFD = ErrnoConstants.getEbadfd();
+    public static final int ENOTDIR = ErrnoConstants.getEnotdir();
 
-    public static byte IORING_OP_READ = UringConstants.ioRingOpRead();
-    public static byte IORING_OP_WRITE = UringConstants.ioRingOpWrite();
-    public static byte IORING_OP_CLOSE = UringConstants.ioRingOpClose();
-    public static byte IORING_OP_OPENAT = UringConstants.ioRingOpenAt();
-    public static byte IORING_OP_NOP = UringConstants.ioRingOpNop();
-    public static byte IORING_OP_STATX = UringConstants.ioRingOpStatx();
-    public static byte IORING_OP_FSYNC = UringConstants.ioRingOpFsync();
-    public static byte IORING_OP_FALLOCATE = UringConstants.ioRingOpFallocate();
-    public static byte IORING_OP_UNLINKAT = UringConstants.ioRingOpUnlinkAt();
-    public static byte IORING_OP_RENAMEAT = UringConstants.ioRingOpRenameAt();
+    public static final byte IORING_OP_READ = UringConstants.ioRingOpRead();
+    public static final byte IORING_OP_WRITE = UringConstants.ioRingOpWrite();
+    public static final byte IORING_OP_CLOSE = UringConstants.ioRingOpClose();
+    public static final byte IORING_OP_OPENAT = UringConstants.ioRingOpenAt();
+    public static final byte IORING_OP_NOP = UringConstants.ioRingOpNop();
+    public static final byte IORING_OP_STATX = UringConstants.ioRingOpStatx();
+    public static final byte IORING_OP_FSYNC = UringConstants.ioRingOpFsync();
+    public static final byte IORING_OP_FALLOCATE = UringConstants.ioRingOpFallocate();
+    public static final byte IORING_OP_UNLINKAT = UringConstants.ioRingOpUnlinkAt();
+    public static final byte IORING_OP_RENAMEAT = UringConstants.ioRingOpRenameAt();
 
-    public static int IORING_ENTER_GETEVENTS = UringConstants.ioRingEnterGetEvents();
-    public static int IORING_ENTER_SQ_WAKEUP = UringConstants.ioRingEnterSqWakeup();
-    public static int IORING_SQ_NEED_WAKEUP = UringConstants.ioRingSqNeedWakeup();
-    public static int IORING_FSYNC_DATASYNC = UringConstants.ioRingFsyncDatasync();
+    public static final int IORING_ENTER_GETEVENTS = UringConstants.ioRingEnterGetEvents();
+    public static final int IORING_ENTER_SQ_WAKEUP = UringConstants.ioRingEnterSqWakeup();
+    public static final int IORING_SQ_NEED_WAKEUP = UringConstants.ioRingSqNeedWakeup();
+    public static final int IORING_FSYNC_DATASYNC = UringConstants.ioRingFsyncDatasync();
 
-    public static int O_RDONLY = FileIoConstants.oRdOnly();
-    public static int O_WRONLY = FileIoConstants.oWrOnly();
-    public static int O_RDWR = FileIoConstants.oRdWr();
-    public static int O_TRUNC = FileIoConstants.oTrunc();
-    public static int O_CREAT = FileIoConstants.oCreat();
-    public static int STATX_SIZE = FileIoConstants.statxSize();
+    public static final int O_RDONLY = FileIoConstants.oRdOnly();
+    public static final int O_WRONLY = FileIoConstants.oWrOnly();
+    public static final int O_RDWR = FileIoConstants.oRdWr();
+    public static final int O_TRUNC = FileIoConstants.oTrunc();
+    public static final int O_CREAT = FileIoConstants.oCreat();
+    public static final int STATX_SIZE = FileIoConstants.statxSize();
 }
