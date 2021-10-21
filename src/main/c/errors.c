@@ -40,6 +40,54 @@ static jint get_enotdir() {
 static jint get_eacces() {
     return EACCES;
 }
+static jint get_eexist() {
+    return EEXIST;
+}
+static jint get_eisdir() {
+    return EISDIR;
+}
+static jint get_enametoolong() {
+    return ENAMETOOLONG;
+}
+static jint get_enodev() {
+    return ENODEV;
+}
+static jint get_erofs() {
+    return EROFS;
+}
+static jint get_etxtbsy() {
+    return ETXTBSY;
+}
+static jint get_eloop() {
+    return ELOOP;
+}
+static jint get_enospc() {
+    return ENOSPC;
+}
+static jint get_enonmem() {
+    return ENOMEM;
+}
+static jint get_emfile() {
+    return EMFILE;
+}
+static jint get_enfile() {
+    return ENFILE;
+}
+static jint get_edquot() {
+    return EDQUOT;
+}
+static jint get_efbig() {
+    return EFBIG;
+}
+static jint get_eoverflow() {
+    return EOVERFLOW;
+}
+static jint get_eperm() {
+    return EPERM;
+}
+static jint get_ewouldblock() {
+    return EWOULDBLOCK;
+}
 
 static JNINativeMethod method_table[] = {
     {"getEagain", "()I", (void *) get_eagain},
@@ -54,6 +102,22 @@ static JNINativeMethod method_table[] = {
     {"getEbadfd", "()I", (void *) get_ebadfd},
     {"getEnotdir", "()I", (void *) get_enotdir},
     {"getEacces", "()I", (void *) get_eacces},
+    {"getEexist", "()I", (void *) get_eexist},
+    {"getEisdir", "()I", (void *) get_eisdir},
+    {"getEnametoolong", "()I", (void *) get_enametoolong},
+    {"getEnodev", "()I", (void *) get_enodev},
+    {"getErofs", "()I", (void *) get_erofs},
+    {"getEtxtbsy", "()I", (void *) get_etxtbsy},
+    {"getEloop", "()I", (void *) get_eloop},
+    {"getEnospc", "()I", (void *) get_enospc},
+    {"getEnomem", "()I", (void *) get_enonmem},
+    {"getEmfile", "()I", (void *) get_emfile},
+    {"getEnfile", "()I", (void *) get_enfile},
+    {"getEdquot", "()I", (void *) get_edquot},
+    {"getEfbig", "()I", (void *) get_efbig},
+    {"getEoverflow", "()I", (void *) get_eoverflow},
+    {"getEperm", "()I", (void *) get_eperm},
+    {"getEwouldblock", "()I", (void *) get_ewouldblock},
 };
 
 jint jni_errno_constants_on_load(JNIEnv* env) {
