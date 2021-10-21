@@ -241,7 +241,7 @@ public class SubmissionQueue {
         int ret = Native.ioUringEnter(ringFd, toSubmit, minComplete, flags);
         head = MemoryUtils.getIntVolatile(kHead);
         if (ret < 0) {
-            throw ErrnoDecoder.decodeIoUringError(ret);
+            throw ErrnoDecoder.decodeIoUringEnterError(ret);
         }
         return ret;
     }

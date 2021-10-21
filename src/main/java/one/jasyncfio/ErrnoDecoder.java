@@ -8,8 +8,24 @@ import static one.jasyncfio.natives.Native.*;
 public class ErrnoDecoder {
 
 
+    public static Throwable decodeOpenAtError(int errno) {
+        final Throwable result;
+        final int err = -errno;
+        if (err == EBADF) {
+            result = new IllegalArgumentException("dirfd is not a valid file descriptor");
+        } else if (err == ENOTDIR) {
+            result = new IllegalArgumentException("pathname is relative and dirfd is a file descriptor referring to a file other than a directory");
+        } else {
+            result = new RuntimeException("unknown error: " + err);
+        }
+        return result;
+    }
 
-    public static Throwable decodeIoUringError(int errno) {
+    public static Throwable decodeIoUringCqeError(int errno) {
+        return null;
+    }
+
+    public static Throwable decodeIoUringEnterError(int errno) {
         final Throwable result;
         final int err = -errno;
         if (err == EBADF) {

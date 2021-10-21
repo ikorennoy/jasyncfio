@@ -79,10 +79,21 @@ public class EventExecutor {
         } else {
             CompletableFuture<Integer> userCallback = pendings.remove(data);
             if (userCallback != null) {
-                if (res < 0) {
-                    userCallback.completeExceptionally(ErrnoDecoder.decodeError(res));
-                } else {
+                if (res > 0) {
                     userCallback.complete(res);
+                } else {
+                    final Throwable callException;
+                    if (op == Native.IORING_OP_OPENAT) {
+                        callException = ErrnoDecoder.decodeOpenAtError(res);
+                    } else {
+                        callException = new RuntimeException();
+                    }
+
+                    if (callException instanceof RuntimeException) {
+                        userCallback.completeExceptionally(ErrnoDecoder.decodeIoUringCqeError(res));
+                    } else {
+                        userCallback.completeExceptionally(callException);
+                    }
                 }
             }
         }
