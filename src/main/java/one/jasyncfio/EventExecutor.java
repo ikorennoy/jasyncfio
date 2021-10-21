@@ -86,10 +86,10 @@ public class EventExecutor {
                     if (op == Native.IORING_OP_OPENAT) {
                         callException = ErrnoDecoder.decodeOpenAtError(res);
                     } else {
-                        callException = new RuntimeException();
+                        callException = null;
                     }
 
-                    if (callException instanceof RuntimeException) {
+                    if (callException == null) {
                         userCallback.completeExceptionally(ErrnoDecoder.decodeIoUringCqeError(res));
                     } else {
                         userCallback.completeExceptionally(callException);
