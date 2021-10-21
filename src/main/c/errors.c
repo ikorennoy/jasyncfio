@@ -34,6 +34,9 @@ static jint get_enoent() {
 static jint get_ebadfd() {
     return EBADFD;
 }
+static jint get_enotdir() {
+    return ENOTDIR;
+}
 
 static JNINativeMethod method_table[] = {
     {"getEagain", "()I", (void *) get_eagain},
@@ -46,6 +49,7 @@ static JNINativeMethod method_table[] = {
     {"getIntr", "()I", (void *) get_eintr},
     {"getEnoent", "()I", (void *) get_enoent},
     {"getEbadfd", "()I", (void *) get_ebadfd},
+    {"getEnotdir", "()I", (void *) get_enotdir},
 };
 
 jint jni_errno_constants_on_load(JNIEnv* env) {
