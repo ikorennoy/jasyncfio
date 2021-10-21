@@ -15,6 +15,48 @@ public class ErrnoDecoder {
             result = new IllegalArgumentException("dirfd is not a valid file descriptor");
         } else if (err == ENOTDIR) {
             result = new IllegalArgumentException("pathname is relative and dirfd is a file descriptor referring to a file other than a directory");
+        } else if (err == EACCES) {
+            result = new SecurityException("the requested access to the file is not allowed");
+        } else if (err == EDQUOT) {
+            result = new IOException("can't create file, not enough resources");
+        } else if (err == EEXIST) {
+            result = new IOException("file already exist");
+        } else if (err == EFAULT) {
+            result = new SecurityException("wrong path address");
+        } else if (err == EFBIG || err == EOVERFLOW) {
+            result = new IOException("file is too big to open");
+        } else if (err == EINTR) {
+            result = new IOException("call was interrupted by a signal handler");
+        } else if (err == EINVAL) {
+            result = new IllegalArgumentException("direct io not supported, or wrong flag combination");
+        } else if (err == EISDIR) {
+            result = new SecurityException("not enough permissions");
+        } else if (err == ELOOP) {
+            result = new IOException("too many symbolic link");
+        } else if (err == ENAMETOOLONG) {
+            result = new IllegalArgumentException("pathname too long");
+        } else if (err == ENFILE) {
+            result = new IOException("the system-wide limit on the total number of open files has been reached");
+        } else if (err == ENODEV) {
+            result = new IllegalArgumentException("pathname device does not exist");
+        } else if (err == ENOENT) {
+            result = new IllegalArgumentException("pathname refers to non existing dir");
+        } else if (err == ENOMEM) {
+            result = new IOException("not enough memory");
+        } else if (err == ENOSPC) {
+            result = new IOException("not enough memory on device");
+        } else if (err == ENXIO) {
+            result = new IllegalArgumentException("the file is not suitable for operation");
+        } else if (err == EOPNOTSUPP) {
+            result = new IOException("the filesystem containing pathname does not support tmpfile");
+        } else if (err == EPERM) {
+            result = new SecurityException("not enough permissions");
+        } else if (err == EROFS) {
+            result = new SecurityException("read only filesystem");
+        } else if (err == ETXTBSY) {
+            result = new IllegalArgumentException("can't modify executable file");
+        } else if (err == EWOULDBLOCK) {
+            result = new IllegalArgumentException("incompatible lease was held on the file");
         } else {
             result = new RuntimeException("unknown error: " + err);
         }
