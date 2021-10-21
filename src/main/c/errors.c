@@ -4,44 +4,48 @@
 
 #define ERRNO_CONSTANTS_CLASS_NAME "one/jasyncfio/natives/ErrnoConstants"
 
-static jint get_EAGAIN() {
-    return (jint) EAGAIN;
+static jint get_eagain() {
+    return EAGAIN;
 }
-static jint get_EBUSY() {
-    return (jint) EBUSY;
+static jint get_ebusy() {
+    return EBUSY;
 }
-static jint get_EBADF() {
-    return (jint) EBADF;
+static jint get_ebadf() {
+    return EBADF;
 }
-static jint get_EFAULT() {
-    return (jint) EFAULT;
+static jint get_efault() {
+    return EFAULT;
 }
-static jint get_EINVAL() {
-    return (jint) EINVAL;
+static jint get_einval() {
+    return EINVAL;
 }
-static jint get_ENXIO() {
-    return (jint) ENXIO;
+static jint get_enxio() {
+    return ENXIO;
 }
-static jint get_EOPNOTSUPP() {
-    return (jint) EOPNOTSUPP;
+static jint get_eopnotsupp {
+    return EOPNOTSUPP;
 }
-static jint get_EINTR() {
-    return (jint) EINTR;
+static jint get_eintr() {
+    return EINTR;
 }
-static jint get_ENOENT() {
-    return (jint) ENOENT;
+static jint get_enoent() {
+    return ENOENT;
+}
+static jint get_ebadfd() {
+    return EBADFD;
 }
 
 static JNINativeMethod method_table[] = {
-    {"getEagain", "()I", (void *) get_EAGAIN},
-    {"getEbusy", "()I", (void *) get_EBUSY},
-    {"getEbadf", "()I", (void *) get_EBADF},
-    {"getEfault", "()I", (void *) get_EFAULT},
-    {"getEinval", "()I", (void *) get_EINVAL},
-    {"getEnxio", "()I", (void *) get_ENXIO},
-    {"getEopnotsupp", "()I", (void *) get_EOPNOTSUPP},
-    {"getIntr", "()I", (void *) get_EINTR},
-    {"getEnoent", "()I", (void *) get_ENOENT},
+    {"getEagain", "()I", (void *) get_eagain},
+    {"getEbusy", "()I", (void *) get_ebusy},
+    {"getEbadf", "()I", (void *) get_ebadf},
+    {"getEfault", "()I", (void *) get_efault},
+    {"getEinval", "()I", (void *) get_einval},
+    {"getEnxio", "()I", (void *) get_enxio},
+    {"getEopnotsupp", "()I", (void *) get_eopnotsupp},
+    {"getIntr", "()I", (void *) get_eintr},
+    {"getEnoent", "()I", (void *) get_enoent},
+    {"getEbadfd", "()I", (void *) get_ebadfd},
 };
 
 jint jni_errno_constants_on_load(JNIEnv* env) {
