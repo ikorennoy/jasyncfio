@@ -1,6 +1,7 @@
 package one.jasyncfio;
 
 import one.jasyncfio.natives.*;
+import org.jctools.queues.MpscArrayQueue;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -161,6 +162,16 @@ public class EventExecutor {
             e.printStackTrace();
             // ignore
         }
+    }
+
+    CompletableFuture<Integer> scheduleNoop() {
+        CompletableFuture<Integer> f = new CompletableFuture<>();
+        execute(() -> {
+            int opId = sequencer.getAsInt();
+            pendings.put(opId, f);
+            ring.getSubmissionQueue().addNoOp(opId);
+        });
+        return f;
     }
 
     public CompletableFuture<Integer> scheduleRead(int fd, long bufferAddress, long offset, int length) {
