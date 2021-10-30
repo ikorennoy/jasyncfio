@@ -16,7 +16,7 @@ public class EventExecutorGroup {
     static {
         String kernelVersion = Native.kernelVersion();
         if (!Native.checkKernelVersion(kernelVersion)) {
-            throw new UnsupportedOperationException("you need at least kernel version 5.9, current version: " + kernelVersion);
+            throw new UnsupportedOperationException("you need at least kernel version 5.11, current version is: " + kernelVersion);
         }
         Arrays.fill(executors, new EventExecutor());
     }
