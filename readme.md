@@ -16,11 +16,11 @@ with memory alignment.
 
 ```java
 CompletableFuture<BufferedFile> f = BufferedFile.create("/tmp/testFile");
-// let's assume our future completed
+// let's assume that our future is completed
 BufferedFile file = f.get();
 ByteBuffer byteBuffer = ByteBuffer.allocateDirect(1024);
-CompletableFuture<Integer> readResult = file.read(0,byteBuffer);
-// let's assume our future completed
+CompletableFuture<Integer> readResult = file.read(0, byteBuffer);
+// let's assume that our future is completed
 Integer readBytes = readResult.get();
 // so we have `readBytes` in out byteBuffer
 ```
