@@ -99,6 +99,19 @@ public class SubmissionQueue {
         );
     }
 
+    public void addNoOp(int opId) throws Throwable {
+        enqueueSqe(
+                Native.IORING_OP_NOP,
+                0,
+                0,
+                -1,
+                0,
+                0,
+                0,
+                opId
+        );
+    }
+
     public void addWrite(int fd, long bufferAddress, long offset, int length, int opId) throws Throwable {
         enqueueSqe(Native.IORING_OP_WRITE,
                 0,

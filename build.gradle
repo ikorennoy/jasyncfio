@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'dev.nokee.jni-library'
     id 'dev.nokee.c-language'
+//    id "me.champeau.jmh" version "0.6.5"
 }
 
 group 'one.jasyncfio'
@@ -19,6 +20,7 @@ tasks.withType(CCompile).configureEach {
 tasks.test.dependsOn("sharedLibrary")
 
 dependencies {
+    implementation 'org.jctools:jctools-core:3.3.0'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
 }
@@ -26,3 +28,7 @@ dependencies {
 test {
     useJUnitPlatform()
 }
+
+//jmh {
+//    fork = 1
+//}
