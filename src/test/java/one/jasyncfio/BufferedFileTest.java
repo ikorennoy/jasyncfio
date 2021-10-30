@@ -10,8 +10,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 import static org.junit.jupiter.api.Assertions.*;
-// test create path to dir
-// test create
+
 public class BufferedFileTest {
     private final String TEMP_FILE_NAME = "/tmp/" + UUID.randomUUID();
 
@@ -29,6 +28,13 @@ public class BufferedFileTest {
         waitCompletion(open);
         assertTrue(open.isCompletedExceptionally());
         assertThrows(ExecutionException.class, open::get);
+    }
+
+    @Test
+    void create_dir() throws Exception {
+        CompletableFuture<BufferedFile> bufferedFile = BufferedFile.create("/tmp");
+        waitCompletion(bufferedFile);
+        assertTrue(bufferedFile.isCompletedExceptionally());
     }
 
     @Test

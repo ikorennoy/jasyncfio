@@ -29,7 +29,7 @@ public class ErrnoDecoder {
         } else if (err == EINVAL) {
             result = new IllegalArgumentException("direct io not supported, or wrong flag combination");
         } else if (err == EISDIR) {
-            result = new SecurityException("not enough permissions");
+            result = new SecurityException("path is dir");
         } else if (err == ELOOP) {
             result = new IOException("too many symbolic link");
         } else if (err == ENAMETOOLONG) {
