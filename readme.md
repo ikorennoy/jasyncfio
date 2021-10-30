@@ -28,6 +28,6 @@ Integer readBytes = readResult.get();
 ## jasyncfio Direct I/O
 
 Direct I/O means that it will not be backed by the operating system's page cache. So you will have to bother with memory
-alignment, but it may give a positive performance effect under some loads.
+alignment, but it may give a positive performance effect under some workloads.
 
 TODO..
