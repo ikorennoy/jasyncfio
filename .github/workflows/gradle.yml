@@ -12,7 +12,7 @@ on:
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
     - uses: actions/checkout@v2
@@ -22,9 +22,7 @@ jobs:
         java-version: '8'
         distribution: 'adopt'
         cache: gradle
-    - name: Install native dependencies
-      run: sudo apt install build-essential
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
     - name: Build with Gradle
-      run: ./gradlew build --debug
+      run: ./gradlew build
