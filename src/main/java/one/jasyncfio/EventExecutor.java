@@ -1,7 +1,6 @@
 package one.jasyncfio;
 
 import one.jasyncfio.natives.*;
-import org.jctools.queues.MpscArrayQueue;
 
 import java.util.HashMap;
 import java.util.Map;
