@@ -22,6 +22,8 @@ jobs:
         java-version: '8'
         distribution: 'adopt'
         cache: gradle
+    - name: Install native dependencies
+      run: sudo apt install gcc
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
     - name: Build with Gradle
