@@ -11,9 +11,12 @@ public class Native {
                 throw new RuntimeException("only supported on linux");
             }
             System.load(Utils.loadLib("libjasyncfio.so").toPath().toAbsolutePath().toString());
+            String kernelVersion = Native.kernelVersion();
+            if (!Native.checkKernelVersion(kernelVersion)) {
+                throw new UnsupportedOperationException("you need at least kernel version 5.11, current version is: " + kernelVersion);
+            }
         } catch (Throwable ex) {
-            ex.printStackTrace();
-            throw new RuntimeException(ex);
+            throw (Error) new UnsatisfiedLinkError("can't load native library").initCause(ex);
         }
     }
 
