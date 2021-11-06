@@ -38,14 +38,6 @@ public class BufferedFileTest {
     }
 
     @Test
-    void open_insufficientPrivileges() throws InterruptedException {
-        CompletableFuture<BufferedFile> open = BufferedFile.open("/proc/1/auxv");
-        waitCompletion(open);
-        assertTrue(open.isCompletedExceptionally());
-        assertThrows(ExecutionException.class, open::get);
-    }
-
-    @Test
     void create_fileExist() throws Exception {
         File file = File.createTempFile("temp-", "-file");
         file.deleteOnExit();
@@ -69,13 +61,6 @@ public class BufferedFileTest {
         File file = new File(bufferedFile.getPath());
         assertTrue(file.exists());
         file.deleteOnExit();
-    }
-
-    @Test
-    void create_insufficientPrivileges() throws InterruptedException {
-        CompletableFuture<BufferedFile> create = BufferedFile.create("/root/temp-jasyncfio-file");
-        waitCompletion(create);
-        assertTrue(create.isCompletedExceptionally());
     }
 
     @Test

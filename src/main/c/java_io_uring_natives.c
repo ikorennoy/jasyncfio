@@ -4,6 +4,7 @@
 #include <errno.h>
 #include <sys/eventfd.h>
 #include <sys/utsname.h>
+#include <stdlib.h>
 
 #include "syscall.h"
 #include "java_io_uring_natives.h"
@@ -12,6 +13,30 @@
 
 
 #define IOURING_NATIVE_CLASS_NAME "one/jasyncfio/natives/Native"
+
+/**
+ Our `strerror_r` wrapper makes sure that the function is XSI compliant,
+ even on platforms where the GNU variant is exposed.
+ Note: `strerrbuf` must be initialized to all zeros prior to calling this function.
+ XSI or GNU functions do not have such a requirement, but our wrappers do.
+ */
+#if (_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600 || __APPLE__) && ! _GNU_SOURCE
+    static inline int strerror_r_xsi(int errnum, char *strerrbuf, size_t buflen) {
+        return strerror_r(errnum, strerrbuf, buflen);
+    }
+#else
+    static inline int strerror_r_xsi(int errnum, char *strerrbuf, size_t buflen) {
+        char* tmp = strerror_r(errnum, strerrbuf, buflen);
+        if (strerrbuf[0] == '\0') {
+            // Our output buffer was not used. Copy from tmp.
+            strncpy(strerrbuf, tmp, buflen - 1); // Use (buflen - 1) to avoid overwriting terminating \0.
+        }
+        if (errno != 0) {
+            return -1;
+        }
+        return 0;
+    }
+#endif
 
 
 int io_uring_mmap(struct io_uring *ring, struct io_uring_params *p, struct io_uring_sq *sq, struct io_uring_cq *cq) {
@@ -60,7 +85,74 @@ int io_uring_mmap(struct io_uring *ring, struct io_uring_params *p, struct io_ur
     return 0;
 }
 
-int setup_iouring(struct io_uring *ring, int entries, int flags, int sq_thread_cpu, int cq_entries) {
+
+
+// took from netty jni utils project
+char* jni_util_prepend(const char* prefix, const char* str) {
+    if (str == NULL) {
+        // If str is NULL we should just return NULL as passing NULL to strlen is undefined behavior.
+        return NULL;
+    }
+    if (prefix == NULL) {
+        char* result = (char*) malloc(sizeof(char) * (strlen(str) + 1));
+        if (result == NULL) {
+            return NULL;
+        }
+        strcpy(result, str);
+        return result;
+    }
+    char* result = (char*) malloc(sizeof(char) * (strlen(prefix) + strlen(str) + 1));
+    if (result == NULL) {
+        return NULL;
+    }
+    strcpy(result, prefix);
+    strcat(result, str);
+    return result;
+}
+
+// took from netty jni utils project
+static char* exceptionMessage(char* msg, int error) {
+    if (error < 0) {
+        // Error may be negative because some functions return negative values. We should make sure it is always
+        // positive when passing to standard library functions.
+        error = -error;
+    }
+
+    int buflen = 32;
+    char* strerrbuf = NULL;
+    int result = 0;
+    do {
+        buflen = buflen * 2;
+        if (buflen >= 2048) {
+            break; // Limit buffer growth.
+        }
+        if (strerrbuf != NULL) {
+            free(strerrbuf);
+        }
+        strerrbuf = calloc(buflen, sizeof(char));
+        result = strerror_r_xsi(error, strerrbuf, buflen);
+        if (result == -1) {
+            result = errno;
+        }
+    } while (result == ERANGE);
+
+    char* combined = jni_util_prepend(msg, strerrbuf);
+    free(strerrbuf);
+    return combined;
+}
+
+void throwRuntimeExceptionErrorNo(JNIEnv* env, char* message, int errorNumber) {
+    char* allocatedMessage = exceptionMessage(message, errorNumber);
+    if (allocatedMessage == NULL) {
+        return;
+    }
+    jclass runtimeExceptionClass = (*env)->FindClass(env, "java/lang/RuntimeException");
+
+    (*env)->ThrowNew(env, runtimeExceptionClass, allocatedMessage);
+    free(allocatedMessage);
+}
+
+int setup_iouring(JNIEnv *env, struct io_uring *ring, int entries, int flags, int sq_thread_cpu, int cq_entries) {
     struct io_uring_params p;
     int ring_fd;
 
@@ -74,7 +166,8 @@ int setup_iouring(struct io_uring *ring, int entries, int flags, int sq_thread_c
     p.flags = flags;
     ring_fd = sys_io_uring_setup(entries, &p);
     if (ring_fd < 0) {
-        return ring_fd;
+        throwRuntimeExceptionErrorNo(env, "failed to create io_uring ring fd ", errno);
+        return NULL;
     }
 
     ring->ring_fd = ring_fd;
@@ -102,13 +195,7 @@ static jobjectArray java_io_uring_setup_iouring(JNIEnv *env, jclass clazz, jint 
     }
 
     struct io_uring ring;
-    int res = setup_iouring(&ring, entries, flags, sq_thread_cpu, cq_entries);
-
-    if (res < 0) {
-        // todo fixme
-        return NULL;
-//        throwRuntimeException(env, "setup_iouring");
-    }
+    int res = setup_iouring(env, &ring, entries, flags, sq_thread_cpu, cq_entries);
 
     jlong submissionArrayElements[] = {
         (jlong) ring.sq.head,
