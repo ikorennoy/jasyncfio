@@ -21,4 +21,4 @@ jobs:
     - name: pull docker image
       run: docker pull ubuntu:20.04
     - name: build in docker
-      run: docker run --rm -v $GITHUB_WORKSPACE:/work debian:10 /work/.github/workflows/build.sh
+      run: docker run --rm -v $GITHUB_WORKSPACE:/work ubuntu:20.04 /work/.github/workflows/build.sh
