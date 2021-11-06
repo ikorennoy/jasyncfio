@@ -12,6 +12,5 @@ cd "$(dirname "$(dirname "$0")")"
 apt-get update -y
 apt-get install -y --no-install-recommends openjdk-8-jdk-headless build-essential
 cd ..
-pwd
 ./gradlew build
 
