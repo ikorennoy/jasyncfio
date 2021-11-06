@@ -10,7 +10,7 @@ set -ex
 cd "$(dirname "$(dirname "$0")")"
 
 apt-get update -y
-apt-get install -y --no-install-recommends openjdk-8-jdk-headless build-essential
+apt-get install -y --no-install-recommends openjdk-8-jdk build-essential
 cd ..
 ./gradlew build
 
