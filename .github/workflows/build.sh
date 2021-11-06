@@ -10,7 +10,7 @@ END
 cd "$(dirname "$(dirname "$0")")"
 
 apt-get update -y
-apt-get install -y --no-install-recommends openjdk-8-jdk-headless make gcc libc6-dev
+apt-get install -y --no-install-recommends openjdk-8-jdk-headless build-essential
 cd ..
 pwd
 ./gradlew build
