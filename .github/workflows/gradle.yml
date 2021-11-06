@@ -19,6 +19,6 @@ jobs:
     - uses: satackey/action-docker-layer-caching@v0.0.11
       continue-on-error: true
     - name: pull docker image
-      run: docker pull debian:20.04
+      run: docker pull ubuntu:20.04
     - name: build in docker
       run: docker run --rm -v $GITHUB_WORKSPACE:/work debian:10 /work/.github/workflows/build.sh
