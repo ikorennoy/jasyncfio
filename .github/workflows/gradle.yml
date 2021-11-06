@@ -21,4 +21,4 @@ jobs:
     - name: pull docker image
       run: docker pull debian:10
     - name: build in docker
-      run: docker run --rm -v $GITHUB_WORKSPACE:/work debian:10 /work/.github/workflows/build.sh
+      run: docker run --rm --ulimit memlock=10000000:10000000 -v $GITHUB_WORKSPACE:/work ubuntu:20.04 /work/.github/workflows/build.sh
