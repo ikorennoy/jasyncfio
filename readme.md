@@ -11,8 +11,8 @@ glommio crate.
 
 ## jasyncfio Buffered I/O
 
-Buffered I/O means that it will be supported by the operating system's page cache, and you don't have to bother
-with memory alignment.
+Buffered I/O means that it will be supported by the operating system's page cache, and you don't have to worry
+about memory alignment.
 
 ```java
 CompletableFuture<BufferedFile> f = BufferedFile.create("/tmp/testFile");
@@ -27,7 +27,7 @@ Integer readBytes = readResult.get();
 
 ## jasyncfio Direct I/O
 
-Direct I/O means that it will not be backed by the operating system's page cache. So you will have to bother with memory
+Direct I/O means that it will not be backed by the operating system's page cache. So you will have to deal with memory
 alignment, but it may give a positive performance effect under some workloads.
 
 TODO..
