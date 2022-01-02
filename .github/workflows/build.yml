@@ -10,9 +10,14 @@ on:
     branches: [ master ]
 
 jobs:
-  build:
-
+  native:
     runs-on: ubuntu-20.04
+
+    strategy:
+      matrix:
+        arch:
+          - amd64
+    name: Linux binary ${{ matrix.arch }}
 
     steps:
     - uses: actions/checkout@v2
@@ -22,3 +27,8 @@ jobs:
       run: docker pull ubuntu-20.04
     - name: build in docker
       run: docker run --rm --ulimit memlock=10000000:10000000 -v $GITHUB_WORKSPACE:/work ubuntu:20.04 /work/.github/workflows/build.sh
+    - name: Upload
+      uses: actions/upload-artifact@v2
+      with:
+        name: shared-lib-${{ matrix.arch }}
+        path: build/libs/main/*.so
