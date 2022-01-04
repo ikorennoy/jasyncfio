@@ -3,6 +3,7 @@ package one.jasyncfio;
 import one.jasyncfio.natives.MemoryUtils;
 import one.jasyncfio.natives.Native;
 
+import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 
 public class BufferedFile extends AbstractFile {
@@ -45,5 +46,17 @@ public class BufferedFile extends AbstractFile {
                 EventExecutorGroup.get().scheduleOpenAt(-1, pathPtr, flags, 0666);
         return futureFd
                 .thenApply((fd) -> new BufferedFile(fd, path, pathPtr));
+    }
+
+    /**
+     * Reads data at the specified position into a buffer.
+     * For {@link  DmaFile} position must be properly aligned
+     *
+     * @param position start position
+     * @param buffer   The buffer into which bytes are to be transferred
+     * @return {@link CompletableFuture} with the number of bytes read
+     */
+    public CompletableFuture<Integer> read(long position, ByteBuffer buffer) {
+        return read(position, buffer.capacity(), buffer);
     }
 }
