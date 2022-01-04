@@ -8,4 +8,5 @@ public class FileIoConstants {
     static native int oCreat();
     static native int oTrunc();
     static native int statxSize();
+    static native int oDirect();
 }

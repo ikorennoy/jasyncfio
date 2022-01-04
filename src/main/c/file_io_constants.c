@@ -24,6 +24,9 @@ static jint get_o_trunc() {
 static jint get_statx_size() {
     return STATX_SIZE;
 }
+static jint get_o_direct() {
+    return O_DIRECT;
+}
 
 static JNINativeMethod method_table[] = {
     {"oRdOnly", "()I", (void *) get_o_rdonly},
@@ -32,6 +35,7 @@ static JNINativeMethod method_table[] = {
     {"oCreat", "()I", (void *) get_o_creat},
     {"oTrunc", "()I", (void *) get_o_trunc},
     {"statxSize", "()I", (void *) get_statx_size},
+    {"oDirect", "()I", (void *) get_o_direct},
 };
 
 jint jni_file_io_constants_on_load(JNIEnv *env) {
