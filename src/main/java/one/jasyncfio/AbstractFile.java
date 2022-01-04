@@ -28,7 +28,7 @@ class AbstractFile {
     /**
      * Reads data from a specified position and of a specified length into a byte buffer.
      * <p>
-     * When using {@link DmaFile}  position, length and buffer address must be properly aligned for DIRECT_IO.
+     * When using {@link DmaFile}  position, length and buffer must be properly aligned for DIRECT_IO.
      * In most platforms that means 512 bytes.
      *
      * @param position The file position at which the transfer is to begin; must be non-negative
@@ -53,7 +53,7 @@ class AbstractFile {
      * If the given position is greater than the file's current size then the file will be grown to accommodate the new bytes;
      * the values of any bytes between the previous end-of-file and the newly-written bytes are unspecified.
      * <p>
-     * When using {@link DmaFile}  position, length and buffer address must be properly aligned for DIRECT_IO.
+     * When using {@link DmaFile}  position, length and buffer must be properly aligned for DIRECT_IO.
      * In most platforms that means 4096 bytes
      *
      * @param position The file position at which the transfer is to begin; must be non-negative

@@ -71,7 +71,6 @@ public class MemoryUtils {
         if ((address & (align - 1)) == 0) {
             // set the new limit to intended capacity
             buffer.limit(capacity);
-            // the slice is now an aligned buffer of the required capacity
         } else {
             // we need to shift the start position to an aligned address --> address + (align - (address % align))
             // the modulo replacement with the & trick is valid for power of 2 values only
@@ -81,8 +80,8 @@ public class MemoryUtils {
             int newLimit = newPosition + capacity;
             // set the new limit to accommodate offset + intended capacity
             buffer.limit(newLimit);
-            // the slice is now an aligned buffer of the required capacity
         }
+        // the slice is now an aligned buffer of the required capacity
         return buffer.slice().order(ByteOrder.nativeOrder());
     }
 
