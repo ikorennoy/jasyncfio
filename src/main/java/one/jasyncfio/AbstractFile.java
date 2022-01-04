@@ -17,17 +17,17 @@ class AbstractFile {
         this.pathAddress = pathAddress;
     }
 
-    int getRawFd() {
+    public int getRawFd() {
         return fd;
     }
 
-    String getPath() {
+    public String getPath() {
         return path;
     }
 
     /**
      * Reads data from a specified position and of a specified length into a byte buffer.
-     *
+     * <p>
      * When using {@link DmaFile}  position and length must be properly aligned for DIRECT_IO.
      * In most platforms that means 512 bytes.
      *
@@ -52,7 +52,7 @@ class AbstractFile {
      * Write the data with in the byte buffer the specified length starting at the given file position.
      * If the given position is greater than the file's current size then the file will be grown to accommodate the new bytes;
      * the values of any bytes between the previous end-of-file and the newly-written bytes are unspecified.
-     *
+     * <p>
      * When using {@link DmaFile}  position and length must be properly aligned for DIRECT_IO.
      * In most platforms that means 4096 bytes
      *
@@ -79,7 +79,7 @@ class AbstractFile {
      *
      * @return {@link CompletableFuture} with file size
      */
-    CompletableFuture<Long> size() {
+    public CompletableFuture<Long> size() {
         long bufAddress = MemoryUtils.allocateMemory(StatxUtils.BUF_SIZE);
         return EventExecutorGroup.get()
                 .scheduleStatx(-1, pathAddress, 0, Native.STATX_SIZE, bufAddress)
@@ -94,7 +94,7 @@ class AbstractFile {
      * Issues fdatasync for the underlying file, instructing the OS to flush all writes to the device,
      * providing durability even if the system crashes or is rebooted.
      */
-    CompletableFuture<Integer> dataSync() {
+    public CompletableFuture<Integer> dataSync() {
         return EventExecutorGroup.get().scheduleFsync(fd, Native.IORING_FSYNC_DATASYNC);
     }
 
@@ -103,7 +103,7 @@ class AbstractFile {
      *
      * @param size bytes to allocate; must be non-negative
      */
-    CompletableFuture<Integer> preAllocate(long size) {
+    public CompletableFuture<Integer> preAllocate(long size) {
         return preAllocate(size, 0);
     }
 
@@ -116,7 +116,7 @@ class AbstractFile {
      * @param size   bytes to allocate; must be non-negative
      * @param offset start offset; must be non-negative
      */
-    CompletableFuture<Integer> preAllocate(long size, long offset) {
+    public CompletableFuture<Integer> preAllocate(long size, long offset) {
         if (size < 0) {
             throw new IllegalArgumentException("size must be positive");
         }
@@ -133,7 +133,7 @@ class AbstractFile {
      * The file does not have to be closed to be removed.
      * Removing removes the name from the filesystem but the file will still be accessible for as long as it is open.
      */
-    CompletableFuture<Integer> remove() {
+    public CompletableFuture<Integer> remove() {
         return EventExecutorGroup.get()
                 .scheduleUnlink(-1, pathAddress, 0);
     }
@@ -146,7 +146,7 @@ class AbstractFile {
     /**
      * Closes this file.
      */
-    CompletableFuture<Integer> close() {
+    public CompletableFuture<Integer> close() {
         return EventExecutorGroup.get().scheduleClose(fd);
     }
 
