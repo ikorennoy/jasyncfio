@@ -9,4 +9,5 @@ public class FileIoConstants {
     static native int oTrunc();
     static native int statxSize();
     static native int oDirect();
+    static native int oCloexec();
 }
