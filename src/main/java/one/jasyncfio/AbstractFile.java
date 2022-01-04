@@ -11,19 +11,17 @@ class AbstractFile {
     final String path;
     final long pathAddress;
 
-
     AbstractFile(int fd, String path, long pathAddress) {
         this.fd = fd;
         this.path = path;
         this.pathAddress = pathAddress;
     }
 
-
-    public int getRawFd() {
+    int getRawFd() {
         return fd;
     }
 
-    public String getPath() {
+    String getPath() {
         return path;
     }
 
@@ -35,7 +33,7 @@ class AbstractFile {
      * @param buffer   The buffer from which bytes are to be retrieved
      * @return {@link CompletableFuture} with the number of bytes read
      */
-    public CompletableFuture<Integer> read(long position, int length, ByteBuffer buffer) {
+    CompletableFuture<Integer> read(long position, int length, ByteBuffer buffer) {
         if (buffer == null) {
             throw new IllegalArgumentException("buffer must be not null");
         } else if (position < 0L) {
@@ -45,17 +43,6 @@ class AbstractFile {
         }
         return EventExecutorGroup.get()
                 .scheduleRead(fd, MemoryUtils.getDirectBufferAddress(buffer), position, length);
-    }
-
-    /**
-     * Reads data at the specified position into a buffer.
-     *
-     * @param position start position
-     * @param buffer   The buffer into which bytes are to be transferred
-     * @return {@link CompletableFuture} with the number of bytes read
-     */
-    public CompletableFuture<Integer> read(long position, ByteBuffer buffer) {
-        return read(position, buffer.limit(), buffer);
     }
 
     /**
@@ -69,7 +56,7 @@ class AbstractFile {
      * @return {@link CompletableFuture} with the number of bytes written
      */
 
-    public CompletableFuture<Integer> write(long position, int length, ByteBuffer buffer) {
+    CompletableFuture<Integer> write(long position, int length, ByteBuffer buffer) {
         if (buffer == null) {
             throw new IllegalArgumentException("buffer must be not null");
         } else if (position < 0L) {
@@ -86,7 +73,7 @@ class AbstractFile {
      *
      * @return {@link CompletableFuture} with file size
      */
-    public CompletableFuture<Long> size() {
+    CompletableFuture<Long> size() {
         long bufAddress = MemoryUtils.allocateMemory(StatxUtils.BUF_SIZE);
         return EventExecutorGroup.get()
                 .scheduleStatx(-1, pathAddress, 0, Native.STATX_SIZE, bufAddress)
@@ -101,7 +88,7 @@ class AbstractFile {
      * Issues fdatasync for the underlying file, instructing the OS to flush all writes to the device,
      * providing durability even if the system crashes or is rebooted.
      */
-    public CompletableFuture<Integer> dataSync() {
+    CompletableFuture<Integer> dataSync() {
         return EventExecutorGroup.get().scheduleFsync(fd, Native.IORING_FSYNC_DATASYNC);
     }
 
@@ -110,7 +97,7 @@ class AbstractFile {
      *
      * @param size bytes to allocate; must be non-negative
      */
-    public CompletableFuture<Integer> preAllocate(long size) {
+    CompletableFuture<Integer> preAllocate(long size) {
         return preAllocate(size, 0);
     }
 
@@ -123,7 +110,7 @@ class AbstractFile {
      * @param size   bytes to allocate; must be non-negative
      * @param offset start offset; must be non-negative
      */
-    public CompletableFuture<Integer> preAllocate(long size, long offset) {
+    CompletableFuture<Integer> preAllocate(long size, long offset) {
         if (size < 0) {
             throw new IllegalArgumentException("size must be positive");
         }
@@ -140,7 +127,7 @@ class AbstractFile {
      * The file does not have to be closed to be removed.
      * Removing removes the name from the filesystem but the file will still be accessible for as long as it is open.
      */
-    public CompletableFuture<Integer> remove() {
+    CompletableFuture<Integer> remove() {
         return EventExecutorGroup.get()
                 .scheduleUnlink(-1, pathAddress, 0);
     }
@@ -153,7 +140,7 @@ class AbstractFile {
     /**
      * Closes this file.
      */
-    public CompletableFuture<Integer> close() {
+    CompletableFuture<Integer> close() {
         return EventExecutorGroup.get().scheduleClose(fd);
     }
 
