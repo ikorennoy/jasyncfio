@@ -9,8 +9,8 @@ import java.util.concurrent.CompletableFuture;
 import static one.jasyncfio.natives.MemoryUtils.allocateAlignedByteBuffer;
 
 public class DmaFile extends AbstractFile {
-    private final int readAlignment = 512;
-    private final int writeAlignment = 4096;
+    public static final int READ_ALIGNMENT = 512;
+    public static final int WRITE_ALIGNMENT = 4096;
 
     DmaFile(int fd, String path, long pathAddress) {
         super(fd, path, pathAddress);
@@ -66,10 +66,10 @@ public class DmaFile extends AbstractFile {
      * @return {@link CompletableFuture} with the result ByteBuffer
      */
     public CompletableFuture<ByteBuffer> readAligned(long position, int length) {
-        final long effectivePosition = alignDown(position, readAlignment);
+        final long effectivePosition = alignDown(position, READ_ALIGNMENT);
         final long b = (position - effectivePosition);
-        final int effectiveSize = alignUp((length + b), readAlignment);
-        ByteBuffer byteBuffer = allocateAlignedByteBuffer(effectiveSize, readAlignment);
+        final int effectiveSize = alignUp((length + b), READ_ALIGNMENT);
+        ByteBuffer byteBuffer = allocateAlignedByteBuffer(effectiveSize, READ_ALIGNMENT);
         CompletableFuture<Integer> read = read(effectivePosition, effectiveSize, byteBuffer);
         return read.thenApply((result) -> {
             byteBuffer.limit(Math.min(result, length));
