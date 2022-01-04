@@ -12,9 +12,10 @@ repositories {
     mavenCentral()
 }
 
-//tasks.withType(CCompile::class.java) {
+tasks.withType(CCompile::class.java) {
 //    compilerArgs.add("-ggdb")
-//}
+    compilerArgs.add("-D_GNU_SOURCE ")
+}
 
 dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.2")
