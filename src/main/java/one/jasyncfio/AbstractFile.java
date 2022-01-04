@@ -28,6 +28,9 @@ class AbstractFile {
     /**
      * Reads data from a specified position and of a specified length into a byte buffer.
      *
+     * When using {@link DmaFile}  position and length must be properly aligned for DIRECT_IO.
+     * In most platforms that means 512 bytes.
+     *
      * @param position The file position at which the transfer is to begin; must be non-negative
      * @param length   The content length; must be non-negative
      * @param buffer   The buffer from which bytes are to be retrieved
@@ -50,13 +53,16 @@ class AbstractFile {
      * If the given position is greater than the file's current size then the file will be grown to accommodate the new bytes;
      * the values of any bytes between the previous end-of-file and the newly-written bytes are unspecified.
      *
+     * When using {@link DmaFile}  position and length must be properly aligned for DIRECT_IO.
+     * In most platforms that means 4096 bytes
+     *
      * @param position The file position at which the transfer is to begin; must be non-negative
      * @param length   The content length; must be non-negative
      * @param buffer   The buffer from which bytes are to be retrieved
      * @return {@link CompletableFuture} with the number of bytes written
      */
 
-    CompletableFuture<Integer> write(long position, int length, ByteBuffer buffer) {
+    public CompletableFuture<Integer> write(long position, int length, ByteBuffer buffer) {
         if (buffer == null) {
             throw new IllegalArgumentException("buffer must be not null");
         } else if (position < 0L) {
