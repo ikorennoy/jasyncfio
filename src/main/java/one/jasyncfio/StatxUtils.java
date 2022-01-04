@@ -20,7 +20,6 @@ class StatxUtils {
     private static final int STX_BLOCKS = 48; // __u64
     private static final int STX_ATTRIBUTES_MASK = 56; // __u64
 
-    // also, we have a bunch of timestamp fields but that's too lazy...
 
     static long getSize(long buf) {
         if (isFlagSet(buf, Native.STATX_SIZE)) {

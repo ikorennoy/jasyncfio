@@ -1,7 +1,11 @@
 package one.jasyncfio.natives;
 
+import sun.nio.ch.DirectBuffer;
+
 import java.lang.reflect.Field;
 import java.nio.Buffer;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 public class MemoryUtils {
 
@@ -53,6 +57,35 @@ public class MemoryUtils {
     public static void freeMemory(long ptr) {
         unsafe.freeMemory(ptr);
     }
+
+    public static ByteBuffer allocateAlignedByteBuffer(int capacity, long align) {
+        // Power of 2 --> single bit, none power of 2 alignments are not allowed.
+        if (Long.bitCount(align) != 1) {
+            throw new IllegalArgumentException("Alignment must be a power of 2");
+        }
+        // We over allocate by the alignment, so we know we can have a large enough aligned
+        // block of memory to use. Also set order to native while we are here.
+        ByteBuffer buffer = ByteBuffer.allocateDirect((int) (capacity + align));
+        long address = getDirectBufferAddress(buffer);
+        // check if we got lucky and the address is already aligned
+        if ((address & (align - 1)) == 0) {
+            // set the new limit to intended capacity
+            buffer.limit(capacity);
+            // the slice is now an aligned buffer of the required capacity
+        } else {
+            // we need to shift the start position to an aligned address --> address + (align - (address % align))
+            // the modulo replacement with the & trick is valid for power of 2 values only
+            int newPosition = (int) (align - (address & (align - 1)));
+            // change the position
+            buffer.position(newPosition);
+            int newLimit = newPosition + capacity;
+            // set the new limit to accommodate offset + intended capacity
+            buffer.limit(newLimit);
+            // the slice is now an aligned buffer of the required capacity
+        }
+        return buffer.slice().order(ByteOrder.nativeOrder());
+    }
+
     public static int getInt(long address) {
         return unsafe.getInt(address);
     }
@@ -65,7 +98,8 @@ public class MemoryUtils {
         if (!buffer.isDirect()) {
             throw new IllegalArgumentException("buffer is not direct");
         }
-        return Native.getDirectBufferAddress(buffer);
+        return ((DirectBuffer) buffer).address();
+//        return Native.getDirectBufferAddress(buffer);
     }
 
     public static long getStringPtr(String str) {

@@ -166,4 +166,5 @@ public class Native {
     public static final int O_CREAT = FileIoConstants.oCreat();
     public static final int STATX_SIZE = FileIoConstants.statxSize();
     public static final int O_DIRECT = FileIoConstants.oDirect();
+    public static final int O_CLOEXEC = FileIoConstants.oCloexec();
 }

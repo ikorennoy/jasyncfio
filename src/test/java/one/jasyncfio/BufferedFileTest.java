@@ -9,6 +9,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
+import static one.jasyncfio.TestUtils.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class BufferedFileTest {
@@ -327,42 +328,5 @@ public class BufferedFileTest {
 
     private void deleteOnExit(BufferedFile f) {
         new File(f.getPath()).deleteOnExit();
-    }
-
-    private void waitCompletion(CompletableFuture<?> future) throws InterruptedException {
-        int cnt = 0;
-        while (!future.isDone()) {
-            if (cnt > 1000) {
-                break;
-            }
-            Thread.sleep(1);
-            cnt++;
-        }
-        assertTrue(future.isDone());
-    }
-
-    private <T> T waitCompletionAndGet(CompletableFuture<T> future) throws Exception {
-        waitCompletion(future);
-        return future.get();
-    }
-
-    private String readFileToString(File f) throws IOException {
-        BufferedReader br = new BufferedReader(new FileReader(f));
-        StringBuilder sb = new StringBuilder();
-        String line = br.readLine();
-        while (line != null) {
-            sb.append(line).append("\n");
-            line = br.readLine();
-        }
-        return sb.toString();
-    }
-
-    private String prepareString(int iters) {
-        StringBuilder sb = new StringBuilder();
-        String s = "String number ";
-        for (int i = 0; i < iters; i++) {
-            sb.append(s).append(i).append("\n");
-        }
-        return sb.toString();
     }
 }
