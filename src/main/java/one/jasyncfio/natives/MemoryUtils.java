@@ -9,11 +9,11 @@ import java.nio.ByteOrder;
 
 public class MemoryUtils {
 
-    protected static sun.misc.Unsafe unsafe = sun.misc.Unsafe.class.cast(getUnsafe());
+    protected static sun.misc.Unsafe unsafe = (sun.misc.Unsafe) getUnsafe();
 
     private static Object getUnsafe() {
         try {
-            Class sunUnsafe = Class.forName("sun.misc.Unsafe");
+            Class<?> sunUnsafe = Class.forName("sun.misc.Unsafe");
             Field f = sunUnsafe.getDeclaredField("theUnsafe");
             f.setAccessible(true);
             return f.get(sunUnsafe);

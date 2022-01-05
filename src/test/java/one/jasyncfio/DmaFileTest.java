@@ -8,6 +8,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -38,7 +39,7 @@ public class DmaFileTest {
         writer.write(resultString);
         writer.close();
 
-        DmaFile dmaFile = TestUtils.waitCompletionAndGet(DmaFile.open(file.toAbsolutePath().toString()));
+        DmaFile dmaFile = DmaFile.open(file.toAbsolutePath().toString()).get(1000, TimeUnit.MILLISECONDS);
 
         ByteBuffer byteBuffer = dmaFile.readAligned(0, 256).get();
         System.out.println(byteBuffer.limit());

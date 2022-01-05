@@ -4,9 +4,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.concurrent.CompletableFuture;
-
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TestUtils {
 
@@ -28,22 +25,5 @@ public class TestUtils {
             line = br.readLine();
         }
         return sb.toString();
-    }
-
-    public static void waitCompletion(CompletableFuture<?> future) throws InterruptedException {
-        int cnt = 0;
-        while (!future.isDone()) {
-            if (cnt > 1000) {
-                break;
-            }
-            Thread.sleep(1);
-            cnt++;
-        }
-        assertTrue(future.isDone());
-    }
-
-    public static <T> T waitCompletionAndGet(CompletableFuture<T> future) throws Exception {
-        waitCompletion(future);
-        return future.get();
     }
 }
