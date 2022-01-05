@@ -1,9 +1,6 @@
 package one.jasyncfio;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 
 public class TestUtils {
 
@@ -16,14 +13,11 @@ public class TestUtils {
         return sb.toString();
     }
 
-    public static String readFileToString(File f) throws IOException {
-        BufferedReader br = new BufferedReader(new FileReader(f));
-        StringBuilder sb = new StringBuilder();
-        String line = br.readLine();
-        while (line != null) {
-            sb.append(line).append("\n");
-            line = br.readLine();
+
+    public static void writeStringToFile(String stringToWrite, File f) throws IOException {
+        try (FileWriter fw = new FileWriter(f)) {
+            fw.write(stringToWrite);
+            fw.flush();
         }
-        return sb.toString();
     }
 }
