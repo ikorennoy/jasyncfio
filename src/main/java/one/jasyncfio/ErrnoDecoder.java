@@ -5,6 +5,8 @@ import java.io.InterruptedIOException;
 
 import static one.jasyncfio.natives.Native.*;
 
+// todo improve with glommio example
+// add errno to error
 public class ErrnoDecoder {
 
     public static Throwable decodeOpenAtError(int errno) {
