@@ -18,7 +18,6 @@ public class DmaFileTest {
 
     @TempDir
     Path tmpDir;
-    
 
     @Test
     void readAligned_lengthNotAligned() throws Exception {
@@ -115,14 +114,46 @@ public class DmaFileTest {
         assertEquals(expected.substring(0, readLength), actual);
     }
 
+    @Test
+    void read_lengthGreaterThanBufferSize() throws Exception {
+        Path tempFile = Files.createTempFile(tmpDir, "test-", "file");
+        String expected = TestUtils.prepareString(100);
+        int readLength = 2048;
+        TestUtils.writeStringToFile(expected, tempFile.toFile());
+        DmaFile dmaFile = DmaFile.open(tempFile.toString()).get(1000, TimeUnit.MILLISECONDS);
+        ByteBuffer byteBuffer = MemoryUtils.allocateAlignedByteBuffer(1024, DmaFile.READ_ALIGNMENT);
+        assertThrows(IllegalArgumentException.class, () -> dmaFile.read(0, readLength, byteBuffer).get(1000, TimeUnit.MILLISECONDS));
+    }
+
+    @Test
+    void read_lengthLessThenBufferSize() throws Exception {
+        Path tempFile = Files.createTempFile(tmpDir, "test-", "file");
+        String expected = TestUtils.prepareString(100);
+        int readLength = 1024;
+        TestUtils.writeStringToFile(expected, tempFile.toFile());
+        DmaFile dmaFile = DmaFile.open(tempFile.toString()).get(1000, TimeUnit.MILLISECONDS);
+        ByteBuffer byteBuffer = MemoryUtils.allocateAlignedByteBuffer(2048, DmaFile.READ_ALIGNMENT);
+        assertEquals(readLength, dmaFile.read(0, readLength, byteBuffer).get(1000, TimeUnit.MILLISECONDS));
+        String actual = StandardCharsets.UTF_8.decode(byteBuffer).toString();
+        assertEquals(expected.substring(0, readLength), actual);
+    }
+
+    @Test
+    void read_positionGreaterThanFileSize() throws Exception {
+        Path tempFile = Files.createTempFile(tmpDir, "test-", "file");
+        String expected = TestUtils.prepareString(10);
+        int readLength = expected.length();
+        TestUtils.writeStringToFile(expected, tempFile.toFile());
+        DmaFile dmaFile = DmaFile.open(tempFile.toString()).get(1000, TimeUnit.MILLISECONDS);
+        ByteBuffer byteBuffer = MemoryUtils.allocateAlignedByteBuffer(2048, DmaFile.READ_ALIGNMENT);
+        assertEquals(0, dmaFile.read(2048, readLength, byteBuffer).get(1000, TimeUnit.MILLISECONDS));
+    }
 
 
-    // read position aligned len not
-    // read len aligned position not
-    // read not aligned
-    // read all aligned
-    // read all aligned buffer not and buffer bigger
-    // read all aligned buffer not and buffer less
 
-
+    // write len not aligned
+    // write position not aligned
+    // write buffer not aligned
+    // write all not aligned
+    // write all aligned
 }
