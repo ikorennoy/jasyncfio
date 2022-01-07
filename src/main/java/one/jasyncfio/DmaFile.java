@@ -72,7 +72,7 @@ public class DmaFile extends AbstractFile {
         ByteBuffer byteBuffer = allocateAlignedByteBuffer(effectiveSize, READ_ALIGNMENT);
         CompletableFuture<Integer> read = read(effectivePosition, effectiveSize, byteBuffer);
         return read.thenApply((result) -> {
-            byteBuffer.limit(Math.min(result, length));
+            byteBuffer.position((int) position).limit(Math.min(result, length));
             return byteBuffer;
         });
     }
