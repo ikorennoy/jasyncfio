@@ -13,7 +13,6 @@ public class TestUtils {
         return sb.toString();
     }
 
-
     public static void writeStringToFile(String stringToWrite, File f) throws IOException {
         try (FileWriter fw = new FileWriter(f)) {
             fw.write(stringToWrite);

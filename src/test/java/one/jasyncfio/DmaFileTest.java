@@ -31,21 +31,24 @@ public class DmaFileTest {
     }
 
     @Test
-    void readAligned(@TempDir Path dir) throws Exception {
-        Path file = Files.createTempFile(dir, "test-", "file");
-        String resultString = TestUtils.prepareString(100);
-        int resultStringLength = resultString.getBytes().length;
-        FileWriter writer = new FileWriter(file.toFile());
-        writer.write(resultString);
-        writer.close();
-
+    void readAligned(@TempDir Path tempDir) throws Exception {
+        Path file = Files.createTempFile(tempDir, "test-", "file");
+        String expected = TestUtils.prepareString(100);
+        int resultStringLength = expected.getBytes().length;
+        TestUtils.writeStringToFile(expected, file.toFile());
         DmaFile dmaFile = DmaFile.open(file.toAbsolutePath().toString()).get(1000, TimeUnit.MILLISECONDS);
-
-        ByteBuffer byteBuffer = dmaFile.readAligned(0, 256).get();
-        System.out.println(byteBuffer.limit());
+        ByteBuffer byteBuffer = dmaFile.readAligned(0, resultStringLength).get();
+        assertEquals(resultStringLength, byteBuffer.limit());
         String actual = StandardCharsets.UTF_8.decode(byteBuffer).toString();
-        System.out.println(actual);
+        assertEquals(expected, actual);
     }
+
+    @Test
+    void read_positionAligned() {
+
+    }
+
+
 
     // read position aligned len not
     // read len aligned position not

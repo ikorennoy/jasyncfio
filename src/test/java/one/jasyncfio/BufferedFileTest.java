@@ -19,8 +19,11 @@ import static org.junit.jupiter.api.Assertions.*;
 public class BufferedFileTest {
     private final String TEMP_FILE_NAME = "/tmp/" + UUID.randomUUID();
 
+    @TempDir
+    Path tmpDir;
+
     @Test
-    void open(@TempDir Path tmpDir) throws Exception {
+    void open() throws Exception {
         Path file = Files.createTempFile(tmpDir, "temp-", "-file");
         BufferedFile bufferedFile = BufferedFile.open(file.toString()).get(1000, TimeUnit.MILLISECONDS);
         assertTrue(bufferedFile.getRawFd() > 0);
@@ -39,7 +42,7 @@ public class BufferedFileTest {
     }
 
     @Test
-    void create_fileExist(@TempDir Path tmpDir) throws Exception {
+    void create_fileExist() throws Exception {
         Path file = Files.createTempFile(tmpDir, "temp-", "-file");
         writeStringToFile("file is not empty", file.toFile());
         assertTrue(Files.size(file) > 0);
@@ -60,7 +63,7 @@ public class BufferedFileTest {
     }
 
     @Test
-    void read(@TempDir Path tmpDir) throws Exception {
+    void read() throws Exception {
         Path tempFile = Files.createTempFile(tmpDir, "temp-", "-file");
         String resultString = prepareString(100);
         writeStringToFile(resultString, tempFile.toFile());
@@ -73,14 +76,14 @@ public class BufferedFileTest {
     }
 
     @Test
-    void read_wrongBuffer(@TempDir Path tmpDir) throws Exception {
+    void read_wrongBuffer() throws Exception {
         Path tempFile = Files.createTempFile(tmpDir, "temp-", "-file");
         BufferedFile bufferedFile = BufferedFile.open(tempFile.toString()).get(1000, TimeUnit.MILLISECONDS);
         assertThrows(IllegalArgumentException.class, () -> bufferedFile.read(0, ByteBuffer.allocate(10)));
     }
 
     @Test
-    void read_bufferGreaterThanFile(@TempDir Path tmpDir) throws Exception {
+    void read_bufferGreaterThanFile() throws Exception {
         Path tempFile = Files.createTempFile(tmpDir, "temp-", "-file");
         String resultString = prepareString(100);
         writeStringToFile(resultString, tempFile.toFile());
@@ -92,7 +95,7 @@ public class BufferedFileTest {
     }
 
     @Test
-    void read_bufferLessThanFile(@TempDir Path tmpDir) throws Exception {
+    void read_bufferLessThanFile() throws Exception {
         Path tempFile = Files.createTempFile(tmpDir, "temp-", "-file");
         String resultString = prepareString(100);
         writeStringToFile(resultString, tempFile.toFile());
@@ -104,7 +107,7 @@ public class BufferedFileTest {
     }
 
     @Test
-    void read_offsetGreaterThanFileSize(@TempDir Path tmpDir) throws Exception {
+    void read_offsetGreaterThanFileSize() throws Exception {
         Path tempFile = Files.createTempFile(tmpDir, "temp-", "-file");
         String resultString = prepareString(100);
         writeStringToFile(resultString, tempFile.toFile());
@@ -116,7 +119,7 @@ public class BufferedFileTest {
     }
 
     @Test
-    void write_emptyFile(@TempDir Path tmpDir) throws Exception {
+    void write_emptyFile() throws Exception {
         Path tempFile = Files.createTempFile(tmpDir, "temp-", "-file");
         BufferedFile bufferedFile = BufferedFile.create(tempFile.toString()).get(1000, TimeUnit.MILLISECONDS);
         assertEquals(0, Files.size(tempFile));
@@ -160,7 +163,7 @@ public class BufferedFileTest {
     }
 
     @Test
-    void close(@TempDir Path tmpDir) throws Exception {
+    void close() throws Exception {
         Path tempFile = Files.createTempFile(tmpDir, "temp-", "-file");
         BufferedFile bufferedFile = BufferedFile.open(tempFile.toString()).get(1000, TimeUnit.MILLISECONDS);
         assertTrue(bufferedFile.getRawFd() > 0);
