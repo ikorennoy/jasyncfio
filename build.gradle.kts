@@ -14,7 +14,7 @@ repositories {
 
 tasks.withType(CCompile::class.java) {
 //    compilerArgs.add("-ggdb")
-    compilerArgs.add("-D_GNU_SOURCE ")
+    compilerArgs.add("-D_GNU_SOURCE")
 }
 
 dependencies {
