@@ -44,6 +44,9 @@ class AbstractFile {
         } else if (length < 0L) {
             throw new IllegalArgumentException("length must be positive");
         }
+        if (buffer.capacity() < length) {
+            throw new IllegalArgumentException("buffer capacity less than length");
+        }
         return EventExecutorGroup.get()
                 .scheduleRead(fd, MemoryUtils.getDirectBufferAddress(buffer), position, length)
                 .thenApply((result) -> {

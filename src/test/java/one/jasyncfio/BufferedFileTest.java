@@ -107,7 +107,19 @@ public class BufferedFileTest {
     }
 
     @Test
-    void read_offsetGreaterThanFileSize() throws Exception {
+    void read_lengthGreaterThanBufferSize() throws Exception {
+        Path tempFile = Files.createTempFile(tmpDir, "test-", "file");
+        String expected = TestUtils.prepareString(100);
+        int readLength = 2048;
+        TestUtils.writeStringToFile(expected, tempFile.toFile());
+        BufferedFile bufferedFile = BufferedFile.open(tempFile.toString()).get(1000, TimeUnit.MILLISECONDS);
+        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(1024);
+        assertThrows(IllegalArgumentException.class, () -> bufferedFile.read(0, readLength, byteBuffer).get(1000, TimeUnit.MILLISECONDS));
+    }
+
+
+    @Test
+    void read_positionGreaterThanFileSize() throws Exception {
         Path tempFile = Files.createTempFile(tmpDir, "temp-", "-file");
         String resultString = prepareString(100);
         writeStringToFile(resultString, tempFile.toFile());
