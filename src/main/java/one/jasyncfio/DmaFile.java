@@ -59,7 +59,7 @@ public class DmaFile extends AbstractFile {
      * It is not necessary to respect the `O_DIRECT` alignment of the file, and
      * this API will internally convert the positions and sizes to match, at a cost.
      * <p>
-     * limit of the result ByteBuffer will be installed at read bytes
+     * Limit of the result ByteBuffer will be installed at read bytes
      *
      * @param position The file position at which the transfer is to begin; must be non-negative
      * @param length   The content length; must be non-negative
