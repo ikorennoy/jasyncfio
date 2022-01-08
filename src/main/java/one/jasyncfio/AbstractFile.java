@@ -37,16 +37,7 @@ class AbstractFile {
      * @return {@link CompletableFuture} with the number of bytes read
      */
     public CompletableFuture<Integer> read(long position, int length, ByteBuffer buffer) {
-        if (buffer == null) {
-            throw new IllegalArgumentException("buffer must be not null");
-        } else if (position < 0L) {
-            throw new IllegalArgumentException("position must be positive");
-        } else if (length < 0L) {
-            throw new IllegalArgumentException("length must be positive");
-        }
-        if (buffer.capacity() < length) {
-            throw new IllegalArgumentException("buffer capacity less than length");
-        }
+        checkConstraints(position, length, buffer);
         return EventExecutorGroup.get()
                 .scheduleRead(fd, MemoryUtils.getDirectBufferAddress(buffer), position, length)
                 .thenApply((result) -> {
@@ -70,6 +61,12 @@ class AbstractFile {
      */
 
     public CompletableFuture<Integer> write(long position, int length, ByteBuffer buffer) {
+        checkConstraints(position, length, buffer);
+        return EventExecutorGroup.get()
+                .scheduleWrite(fd, MemoryUtils.getDirectBufferAddress(buffer), position, length);
+    }
+
+    private void checkConstraints(long position, int length, ByteBuffer buffer) {
         if (buffer == null) {
             throw new IllegalArgumentException("buffer must be not null");
         } else if (position < 0L) {
@@ -77,8 +74,9 @@ class AbstractFile {
         } else if (length < 0L) {
             throw new IllegalArgumentException("length must be positive");
         }
-        return EventExecutorGroup.get()
-                .scheduleWrite(fd, MemoryUtils.getDirectBufferAddress(buffer), position, length);
+        if (buffer.capacity() < length) {
+            throw new IllegalArgumentException("buffer capacity less than length");
+        }
     }
 
     /**
