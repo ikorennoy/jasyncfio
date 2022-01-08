@@ -79,6 +79,8 @@ public class Native {
 
     public static native String kernelVersion();
 
+    public static native String decodeErrno(int errorCode);
+
     /**
      * took from netty io uring project
      */
