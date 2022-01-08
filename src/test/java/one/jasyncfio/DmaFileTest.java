@@ -74,7 +74,7 @@ public class DmaFileTest {
         String expected = TestUtils.prepareString(10);
         TestUtils.writeStringToFile(expected, tempFile.toFile());
         DmaFile dmaFile = DmaFile.open(tempFile.toString()).get(1000, TimeUnit.MILLISECONDS);
-        ByteBuffer byteBuffer = MemoryUtils.allocateAlignedByteBuffer(128, DmaFile.DEFAULT_ALIGNMENT);
+        ByteBuffer byteBuffer = MemoryUtils.allocateAlignedByteBuffer(1024, DmaFile.DEFAULT_ALIGNMENT);
         assertThrows(ExecutionException.class, () -> dmaFile.read(1, 512, byteBuffer).get(1000, TimeUnit.MILLISECONDS));
     }
 
