@@ -317,15 +317,6 @@ JNIEXPORT jint JNI_OnLoad(JavaVM *vm, void *reserved) {
         return JNI_ERR;
     }
 
-    if (jni_errno_constants_on_load(env) == JNI_ERR) {
-        return JNI_ERR;
-    }
-
-//
-//    if (jni_memory_utils_on_load(env) == JNI_ERR) {
-//        return JNI_ERR;
-//    }
-
     // register natives
     if (jni_iouring_on_load(env) == JNI_ERR) {
         return JNI_ERR;
