@@ -79,6 +79,8 @@ public class Native {
 
     public static native String kernelVersion();
 
+    public static native String decodeErrno(int errorCode);
+
     /**
      * took from netty io uring project
      */
@@ -111,36 +113,6 @@ public class Native {
 
         return minor >= 11;
     }
-
-    public static final int EAGAIN = ErrnoConstants.getEagain();
-    public static final int EBUSY = ErrnoConstants.getEbusy();
-    public static final int EBADF = ErrnoConstants.getEbadf();
-    public static final int EFAULT = ErrnoConstants.getEfault();
-    public static final int EINVAL = ErrnoConstants.getEinval();
-    public static final int ENXIO = ErrnoConstants.getEnxio();
-    public static final int EOPNOTSUPP = ErrnoConstants.getEopnotsupp();
-    public static final int EINTR = ErrnoConstants.getIntr();
-    public static final int ENOENT = ErrnoConstants.getEnoent();
-    public static final int EBADFD = ErrnoConstants.getEbadfd();
-    public static final int ENOTDIR = ErrnoConstants.getEnotdir();
-    public static final int EACCES = ErrnoConstants.getEacces();
-    public static final int EEXIST = ErrnoConstants.getEexist();
-    public static final int EISDIR = ErrnoConstants.getEisdir();
-    public static final int ENAMETOOLONG = ErrnoConstants.getEnametoolong();
-    public static final int ENODEV = ErrnoConstants.getEnodev();
-    public static final int EROFS = ErrnoConstants.getErofs();
-    public static final int ETXTBSY = ErrnoConstants.getEtxtbsy();
-    public static final int ELOOP = ErrnoConstants.getEloop();
-    public static final int ENOSPC = ErrnoConstants.getEnospc();
-    public static final int ENOMEM = ErrnoConstants.getEnomem();
-    public static final int EMFILE = ErrnoConstants.getEmfile();
-    public static final int ENFILE = ErrnoConstants.getEnfile();
-    public static final int EDQUOT = ErrnoConstants.getEdquot();
-    public static final int EFBIG = ErrnoConstants.getEfbig();
-    public static final int EOVERFLOW = ErrnoConstants.getEoverflow();
-    public static final int EPERM = ErrnoConstants.getEperm();
-    public static final int EWOULDBLOCK = ErrnoConstants.getEwouldblock();
-
 
 
     public static final byte IORING_OP_READ = UringConstants.ioRingOpRead();
