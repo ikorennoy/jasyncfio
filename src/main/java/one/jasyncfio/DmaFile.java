@@ -9,8 +9,7 @@ import java.util.concurrent.CompletableFuture;
 import static one.jasyncfio.natives.MemoryUtils.allocateAlignedByteBuffer;
 
 public class DmaFile extends AbstractFile {
-    public static final int READ_ALIGNMENT = 512;
-    public static final int WRITE_ALIGNMENT = 4096;
+    public static final int DEFAULT_ALIGNMENT = 512;
 
     DmaFile(int fd, String path, long pathAddress) {
         super(fd, path, pathAddress);
@@ -41,7 +40,7 @@ public class DmaFile extends AbstractFile {
      * @param path path to file
      * @return {@link CompletableFuture} contains opened file or exception
      */
-    public static CompletableFuture<BufferedFile> create(String path) {
+    public static CompletableFuture<DmaFile> create(String path) {
         if (path == null) {
             throw new IllegalArgumentException("path must be not null");
         }
@@ -50,7 +49,7 @@ public class DmaFile extends AbstractFile {
         CompletableFuture<Integer> futureFd =
                 EventExecutorGroup.get().scheduleOpenAt(-1, pathPtr, flags, 0666);
         return futureFd
-                .thenApply((fd) -> new BufferedFile(fd, path, pathPtr));
+                .thenApply((fd) -> new DmaFile(fd, path, pathPtr));
     }
 
     /**
@@ -66,10 +65,10 @@ public class DmaFile extends AbstractFile {
      * @return {@link CompletableFuture} with the result ByteBuffer
      */
     public CompletableFuture<ByteBuffer> readAligned(long position, int length) {
-        final long effectivePosition = alignDown(position, READ_ALIGNMENT);
+        final long effectivePosition = alignDown(position, DEFAULT_ALIGNMENT);
         final long b = (position - effectivePosition);
-        final int effectiveSize = alignUp((length + b), READ_ALIGNMENT);
-        ByteBuffer byteBuffer = allocateAlignedByteBuffer(effectiveSize, READ_ALIGNMENT);
+        final int effectiveSize = alignUp((length + b), DEFAULT_ALIGNMENT);
+        ByteBuffer byteBuffer = allocateAlignedByteBuffer(effectiveSize, DEFAULT_ALIGNMENT);
         CompletableFuture<Integer> read = read(effectivePosition, effectiveSize, byteBuffer);
         return read.thenApply((result) -> {
             byteBuffer.position((int) position).limit(Math.min(result, length));
