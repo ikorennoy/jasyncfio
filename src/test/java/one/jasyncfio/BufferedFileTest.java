@@ -118,7 +118,6 @@ public class BufferedFileTest {
         assertThrows(IllegalArgumentException.class, () -> bufferedFile.read(0, readLength, byteBuffer).get(1000, TimeUnit.MILLISECONDS));
     }
 
-
     @Test
     void read_positionGreaterThanFileSize() throws Exception {
         Path tempFile = Files.createTempFile(tmpDir, "temp-", "-file");
