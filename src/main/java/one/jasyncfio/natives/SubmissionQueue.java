@@ -1,7 +1,5 @@
 package one.jasyncfio.natives;
 
-import one.jasyncfio.ErrnoDecoder;
-
 import java.io.IOException;
 
 public class SubmissionQueue {
@@ -254,7 +252,7 @@ public class SubmissionQueue {
         int ret = Native.ioUringEnter(ringFd, toSubmit, minComplete, flags);
         head = MemoryUtils.getIntVolatile(kHead);
         if (ret < 0) {
-            throw ErrnoDecoder.decodeIoUringEnterError(ret);
+            throw new IOException(String.format("Error code: %d; message: %s", -ret, Native.decodeErrno(ret)));
         }
         return ret;
     }
