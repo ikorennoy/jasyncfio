@@ -12,6 +12,15 @@ repositories {
     mavenCentral()
 }
 
+tasks.jar {
+    manifest {
+        attributes(mapOf("Implementation-Title" to project.name,
+            "Implementation-Version" to project.version,
+            "Bundle-Description" to "Jasyncfio provides an API for working with files through the Linux io_uring interface"),
+        )
+    }
+}
+
 tasks.withType(CCompile::class.java) {
 //    compilerArgs.add("-ggdb")
     compilerArgs.add("-D_GNU_SOURCE")
