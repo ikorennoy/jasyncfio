@@ -14,6 +14,4 @@ public class UserDataUtils {
         int data = (int) (udata >>> 8);
         callback.handle(fd, res, flags, op, data);
     }
-
-
 }
