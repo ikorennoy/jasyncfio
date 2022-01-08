@@ -2,6 +2,7 @@ package one.jasyncfio;
 
 import one.jasyncfio.natives.*;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
@@ -48,7 +49,7 @@ public class EventExecutor {
 
         addEventFdRead(submissionQueue);
 
-        for (;;) {
+        for (; ; ) {
             try {
                 state.set(WAIT);
                 if (!hasTasks() && !completionQueue.hasCompletions()) {
@@ -82,18 +83,7 @@ public class EventExecutor {
                 if (res >= 0) {
                     userCallback.complete(res);
                 } else {
-                    final Throwable callException;
-                    if (op == Native.IORING_OP_OPENAT) {
-                        callException = ErrnoDecoder.decodeOpenAtError(res);
-                    } else {
-                        callException = null;
-                    }
-
-                    if (callException == null) {
-                        userCallback.completeExceptionally(ErrnoDecoder.decodeIoUringCqeError(res));
-                    } else {
-                        userCallback.completeExceptionally(callException);
-                    }
+                    userCallback.completeExceptionally(new IOException("temp exception"));
                 }
             }
         }
@@ -133,7 +123,7 @@ public class EventExecutor {
         if (t == null) {
             return false;
         }
-        for (;;) {
+        for (; ; ) {
             safeExec(t);
             t = tasks.poll();
             if (t == null) {
