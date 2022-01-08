@@ -16,7 +16,7 @@ tasks.jar {
     manifest {
         attributes(mapOf("Implementation-Title" to project.name,
             "Implementation-Version" to project.version,
-            "Bundle-Description" to "Jasyncfio provides an API for working with files through the Linux io_uring interface"),
+            "Bundle-Description" to "jasyncfio provides an API for working with files through the Linux io_uring interface"),
         )
     }
 }
