@@ -17,14 +17,23 @@ jobs:
       matrix:
         arch:
           - amd64
+          - arm64
     name: Linux binary ${{ matrix.arch }}
 
     steps:
     - uses: actions/checkout@v2
     - uses: satackey/action-docker-layer-caching@v0.0.11
       continue-on-error: true
+    - name: Update System
+      run: sudo apt-get update -y
+    - name: Install qemu
+      run: sudo apt-get install -y --no-install-recommends qemu-user-static
+    - name: Experimental Docker
+      run: sudo cp .github/experimental-docker.json /etc/docker/daemon.json
+    - name: Restart Docker
+      run: sudo systemctl restart docker.service
     - name: pull docker image
-      run: docker pull debian:10
+      run: docker pull --platform $(echo ${{ matrix.arch }} | sed 's|-|/|g') debian:10 || true
     - name: build in docker
       run: docker run --rm --ulimit memlock=10000000:10000000 -v $GITHUB_WORKSPACE:/work ubuntu:20.04 /work/.github/workflows/build.sh
     - name: Upload
