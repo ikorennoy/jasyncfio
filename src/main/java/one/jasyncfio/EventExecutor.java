@@ -83,7 +83,8 @@ public class EventExecutor {
                 if (res >= 0) {
                     userCallback.complete(res);
                 } else {
-                    userCallback.completeExceptionally(new IOException("temp exception"));
+                    userCallback.completeExceptionally(
+                            new IOException(String.format("Error code: %d; message: %s", -res, Native.decodeErrno(res))));
                 }
             }
         }

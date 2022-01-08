@@ -284,6 +284,12 @@ static jstring get_kernel_version(JNIEnv* env, jclass clazz) {
     return result;
 }
 
+static jstring decode_errno(JNIEnv* env, jclass clazz, jint error_code) {
+    char *message = exceptionMessage("", error_code);
+    jstring result = (*env)->NewStringUTF(env, message);
+    return result;
+}
+
 static JNINativeMethod method_table[] = {
     {"getStringPointer", "(Ljava/lang/String;)J", (void *) get_string_ptr},
     {"releaseString", "(Ljava/lang/String;J)V", (void *) release_string},
@@ -293,6 +299,7 @@ static JNINativeMethod method_table[] = {
     {"setupIouring0", "(IIII)[[J", (void *) java_io_uring_setup_iouring},
     {"ioUringEnter0", "(IIII)I", (void *) asyncfio_io_uring_enter},
     {"kernelVersion", "()Ljava/lang/String;", (void *) get_kernel_version},
+    {"decodeErrno", "(I)Ljava/lang/String;", (void *) decode_errno},
 };
 
 jint jni_iouring_on_load(JNIEnv *env) {
