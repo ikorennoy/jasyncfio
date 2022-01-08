@@ -3,6 +3,7 @@ package one.jasyncfio;
 import one.jasyncfio.natives.MemoryUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import sun.nio.ch.DirectBuffer;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -174,8 +175,13 @@ public class DmaFileTest {
         String expected = TestUtils.prepareString(10);
         DmaFile dmaFile = DmaFile.create(tempFile.toString()).get(1000, TimeUnit.MILLISECONDS);
         ByteBuffer byteBuffer = ByteBuffer.allocateDirect(512);
+        // because sometimes we accidentally get properly aligned buffer
+        while ((((DirectBuffer) byteBuffer).address() & (512 - 1)) == 0) {
+            byteBuffer = ByteBuffer.allocateDirect(512);
+        }
         byteBuffer.put(expected.getBytes(StandardCharsets.UTF_8));
-        assertThrows(ExecutionException.class, () -> dmaFile.write(0, DmaFile.DEFAULT_ALIGNMENT, byteBuffer).get(1000, TimeUnit.MILLISECONDS));
+        ByteBuffer finalByteBuffer = byteBuffer;
+        assertThrows(ExecutionException.class, () -> dmaFile.write(0, DmaFile.DEFAULT_ALIGNMENT, finalByteBuffer).get(1000, TimeUnit.MILLISECONDS));
     }
 
     @Test
