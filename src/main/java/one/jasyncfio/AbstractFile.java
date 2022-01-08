@@ -41,7 +41,7 @@ class AbstractFile {
         return EventExecutorGroup.get()
                 .scheduleRead(fd, MemoryUtils.getDirectBufferAddress(buffer), position, length)
                 .thenApply((result) -> {
-                    buffer.position((int) position).limit(Math.min(result, length));
+                    buffer.limit(Math.min(result, length));
                     return result;
                 });
     }
