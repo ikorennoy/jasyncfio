@@ -76,6 +76,12 @@ static jint get_ioring_sq_need_wakeup() {
 static jint get_ioring_fsync_datasync() {
     return IORING_FSYNC_DATASYNC;
 }
+static jint get_ioring_setup_clamp() {
+    return IORING_SETUP_CLAMP;
+}
+static jint get_ioring_setup_attach_wq() {
+    return IORING_SETUP_ATTACH_WQ;
+}
 
 
 static JNINativeMethod method_table[] = {
@@ -87,6 +93,8 @@ static JNINativeMethod method_table[] = {
     {"ioRingEnterSqWakeup", "()I", (void *) get_ioring_enter_sq_wakeup},
     {"ioRingSqNeedWakeup", "()I", (void *) get_ioring_sq_need_wakeup},
     {"ioRingFsyncDatasync", "()I", (void *) get_ioring_fsync_datasync},
+    {"ioRingSetupClamp", "()I", (void *) get_ioring_setup_clamp},
+    {"ioRingSetupAttachWq", "()I", (void *) get_ioring_setup_attach_wq},
     {"ioRingOpRead", "()B", (void *) get_ioring_op_read},
     {"ioRingOpWrite", "()B", (void *) get_ioring_op_write},
     {"ioRingOpenAt", "()B", (void *) get_ioring_op_openat},
