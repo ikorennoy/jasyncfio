@@ -2,7 +2,7 @@
 
 [![Build](https://github.com/ikorennoy/jasyncfio/actions/workflows/build.yml/badge.svg)](https://github.com/ikorennoy/jasyncfio/actions/workflows/build.yml)
 
-jasyncfio provides an asynchronous file I/O API based on the Linux io_uring interface. To some extent, the API was inspired by Rust glommio crate.
+jasyncfio provides an asynchronous file I/O API based on the Linux io_uring interface.
 
 ## jasyncfio Features
 
