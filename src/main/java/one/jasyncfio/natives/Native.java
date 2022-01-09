@@ -28,15 +28,8 @@ public class Native {
         return ret;
     }
 
-    private static boolean isPowerOfTwo(int x) {
-        return (x != 0) && ((x & (x - 1)) == 0);
-    }
-
-    public static Uring setupIoUring(int entries, int flags) {
-        if (entries > 4096 || !isPowerOfTwo(entries)) {
-            throw new IllegalArgumentException("entries must be power of 2 and less than 4096");
-        }
-        long[][] pointers = setupIouring0(entries, flags, 0, 0);
+    public static Uring setupIoUring(int entries, int flags, int sqThreadIdle, int sqThreadCpu, int cqSize, int attachWqRingFd) {
+        long[][] pointers = setupIoUring0(entries, flags, sqThreadIdle, sqThreadCpu, cqSize, attachWqRingFd);
         final SubmissionQueue submissionQueue = new SubmissionQueue(
                 pointers[0][0],
                 pointers[0][1],
@@ -66,9 +59,10 @@ public class Native {
 
     private static native int ioUringEnter0(int ringFd, int toSubmit, int minComplete, int flags);
 
-    private static native long[][] setupIouring0(int entries, int flags, int sqThreadCpu, int cqEntries);
+    private static native long[][] setupIoUring0(int entries, int flags, int sqThreadIdle, int sqThreadCpu, int cqSize, int attachWqRingFd);
 
     public static native int getEventFd();
+
     public static native int eventFdWrite(int fd, long value);
 
     static native long getDirectBufferAddress(java.nio.Buffer buffer);
@@ -130,6 +124,12 @@ public class Native {
     public static final int IORING_ENTER_SQ_WAKEUP = UringConstants.ioRingEnterSqWakeup();
     public static final int IORING_SQ_NEED_WAKEUP = UringConstants.ioRingSqNeedWakeup();
     public static final int IORING_FSYNC_DATASYNC = UringConstants.ioRingFsyncDatasync();
+    public static final int IORING_SETUP_SQPOLL = UringConstants.ioRingSetupSqPoll();
+    public static final int IORING_SETUP_IOPOLL = UringConstants.ioRingSetupIoPoll();
+    public static final int IORING_SETUP_SQ_AFF = UringConstants.ioRingSetupSqAff();
+    public static final int IORING_SETUP_CQ_SIZE = UringConstants.ioRingSetupCqSize();
+    public static final int IORING_SETUP_CLAMP = UringConstants.ioRingSetupClamp();
+    public static final int IORING_SETUP_ATTACH_WQ = UringConstants.ioRingSetupAttachWq();
 
     public static final int O_RDONLY = FileIoConstants.oRdOnly();
     public static final int O_WRONLY = FileIoConstants.oWrOnly();

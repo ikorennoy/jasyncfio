@@ -10,11 +10,13 @@ class AbstractFile {
     final int fd;
     final String path;
     final long pathAddress;
+    final EventExecutor eventExecutor;
 
-    AbstractFile(int fd, String path, long pathAddress) {
+    AbstractFile(int fd, String path, long pathAddress, EventExecutor eventExecutor) {
         this.fd = fd;
         this.path = path;
         this.pathAddress = pathAddress;
+        this.eventExecutor = eventExecutor;
     }
 
     public int getRawFd() {
@@ -38,8 +40,7 @@ class AbstractFile {
      */
     public CompletableFuture<Integer> read(long position, int length, ByteBuffer buffer) {
         checkConstraints(position, length, buffer);
-        return EventExecutorGroup.get()
-                .scheduleRead(fd, MemoryUtils.getDirectBufferAddress(buffer), position, length)
+        return eventExecutor.scheduleRead(fd, MemoryUtils.getDirectBufferAddress(buffer), position, length)
                 .thenApply((result) -> {
                     buffer.limit(Math.min(result, length));
                     return result;
@@ -62,8 +63,7 @@ class AbstractFile {
 
     public CompletableFuture<Integer> write(long position, int length, ByteBuffer buffer) {
         checkConstraints(position, length, buffer);
-        return EventExecutorGroup.get()
-                .scheduleWrite(fd, MemoryUtils.getDirectBufferAddress(buffer), position, length);
+        return eventExecutor.scheduleWrite(fd, MemoryUtils.getDirectBufferAddress(buffer), position, length);
     }
 
     private void checkConstraints(long position, int length, ByteBuffer buffer) {
@@ -86,8 +86,7 @@ class AbstractFile {
      */
     public CompletableFuture<Long> size() {
         long bufAddress = MemoryUtils.allocateMemory(StatxUtils.BUF_SIZE);
-        return EventExecutorGroup.get()
-                .scheduleStatx(-1, pathAddress, 0, Native.STATX_SIZE, bufAddress)
+        return eventExecutor.scheduleStatx(-1, pathAddress, 0, Native.STATX_SIZE, bufAddress)
                 .thenApply((r) -> {
                     long size = StatxUtils.getSize(bufAddress);
                     MemoryUtils.freeMemory(bufAddress);
@@ -100,7 +99,7 @@ class AbstractFile {
      * providing durability even if the system crashes or is rebooted.
      */
     public CompletableFuture<Integer> dataSync() {
-        return EventExecutorGroup.get().scheduleFsync(fd, Native.IORING_FSYNC_DATASYNC);
+        return eventExecutor.scheduleFsync(fd, Native.IORING_FSYNC_DATASYNC);
     }
 
     /**
@@ -128,7 +127,7 @@ class AbstractFile {
         if (offset < 0) {
             throw new IllegalArgumentException("offset must be positive");
         }
-        return EventExecutorGroup.get().scheduleFallocate(fd, size, 0, offset);
+        return eventExecutor.scheduleFallocate(fd, size, 0, offset);
     }
 
 
@@ -139,8 +138,7 @@ class AbstractFile {
      * Removing removes the name from the filesystem but the file will still be accessible for as long as it is open.
      */
     public CompletableFuture<Integer> remove() {
-        return EventExecutorGroup.get()
-                .scheduleUnlink(-1, pathAddress, 0);
+        return eventExecutor.scheduleUnlink(-1, pathAddress, 0);
     }
 
     @Override
@@ -152,7 +150,7 @@ class AbstractFile {
      * Closes this file.
      */
     public CompletableFuture<Integer> close() {
-        return EventExecutorGroup.get().scheduleClose(fd);
+        return eventExecutor.scheduleClose(fd);
     }
 
 }

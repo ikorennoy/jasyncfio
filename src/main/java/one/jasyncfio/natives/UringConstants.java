@@ -18,6 +18,10 @@ public class UringConstants {
 
     static native int ioRingFsyncDatasync();
 
+    static native int ioRingSetupClamp();
+
+    static native int ioRingSetupAttachWq();
+
     static native byte ioRingOpRead();
 
     static native byte ioRingOpWrite();
