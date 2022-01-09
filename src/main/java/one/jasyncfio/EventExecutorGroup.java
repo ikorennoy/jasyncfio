@@ -1,6 +1,5 @@
 package one.jasyncfio;
 
-
 import one.jasyncfio.natives.MemoryUtils;
 import one.jasyncfio.natives.Native;
 
@@ -12,7 +11,7 @@ public class EventExecutorGroup {
     private final AtomicInteger sequencer = new AtomicInteger();
     private final EventExecutor[] executors;
 
-    public EventExecutorGroup(int numberOfRings,
+    EventExecutorGroup(int numberOfRings,
                               int entries,
                               boolean ioRingSetupIoPoll,
                               boolean ioRingSetupSqPoll,
@@ -152,7 +151,7 @@ public class EventExecutorGroup {
         private int sqThreadIdle = 0;
         private boolean ioRingSetupSqAff = false;
         private int sqThreadCpu = 0;
-        private boolean ioRingSetupCqsize = false;
+        private boolean ioRingSetupCqSize = false;
         private int cqSize = 0;
         private boolean ioRingSetupClamp = false;
         private boolean ioRingSetupAttachWq = false;
@@ -233,7 +232,7 @@ public class EventExecutorGroup {
             if (cqSize < 0) {
                 throw new IllegalArgumentException("cqSize < 0");
             }
-            this.ioRingSetupCqsize = true;
+            this.ioRingSetupCqSize = true;
             this.cqSize = cqSize;
             return this;
         }
@@ -266,7 +265,7 @@ public class EventExecutorGroup {
             if (entries > 4096 || !isPowerOfTwo(entries)) {
                 throw new IllegalArgumentException("entries must be power of 2 and less than 4096");
             }
-            if (cqSize < entries) {
+            if (ioRingSetupCqSize && cqSize < entries) {
                 throw new IllegalStateException("cqSize must be greater than entries");
             }
             if (ioRingSetupSqAff && !ioRingSetupSqPoll) {
@@ -279,7 +278,7 @@ public class EventExecutorGroup {
                     sqThreadIdle,
                     ioRingSetupSqAff,
                     sqThreadCpu,
-                    ioRingSetupCqsize,
+                    ioRingSetupCqSize,
                     cqSize,
                     ioRingSetupClamp,
                     ioRingSetupAttachWq,
@@ -292,18 +291,4 @@ public class EventExecutorGroup {
         }
 
     }
-
-//    private static final AtomicInteger sequencer = new AtomicInteger();
-//    private static final EventExecutor[] executors =
-//            new EventExecutor[Integer.parseInt(
-//                    System.getProperty("JASYNCFIO_EXECUTORS", "1"))];
-//
-//    static {
-//        try {
-//            Arrays.fill(executors, new EventExecutor());
-//        } catch (Throwable ex) {
-//            throw (Error) new UnsatisfiedLinkError("can't initialize runtime").initCause(ex);
-//        }
-//    }
-//
 }
