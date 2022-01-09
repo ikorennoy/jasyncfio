@@ -1,12 +1,9 @@
 package one.jasyncfio.natives;
 
-import sun.nio.ch.DirectBuffer;
-
 import java.lang.reflect.Field;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.concurrent.locks.LockSupport;
 
 public class MemoryUtils {
 
@@ -98,8 +95,8 @@ public class MemoryUtils {
         if (!buffer.isDirect()) {
             throw new IllegalArgumentException("buffer is not direct");
         }
-        return ((DirectBuffer) buffer).address();
-//        return Native.getDirectBufferAddress(buffer);
+//        return ((DirectBuffer) buffer).address();
+        return Native.getDirectBufferAddress(buffer);
     }
 
     public static long getStringPtr(String str) {
