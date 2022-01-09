@@ -87,7 +87,7 @@ int io_uring_mmap(struct io_uring *ring, struct io_uring_params *p, struct io_ur
 
 
 
-// took from netty jni utils project
+// taken from netty jni utils project
 char* jni_util_prepend(const char* prefix, const char* str) {
     if (str == NULL) {
         // If str is NULL we should just return NULL as passing NULL to strlen is undefined behavior.
@@ -110,7 +110,7 @@ char* jni_util_prepend(const char* prefix, const char* str) {
     return result;
 }
 
-// took from netty jni utils project
+// taken from netty jni utils project
 static char* exceptionMessage(char* msg, int error) {
     if (error < 0) {
         // Error may be negative because some functions return negative values. We should make sure it is always
@@ -172,7 +172,7 @@ int setup_iouring(JNIEnv *env, struct io_uring *ring, int entries, int flags, in
     p.flags = flags;
     ring_fd = sys_io_uring_setup(entries, &p);
     if (ring_fd < 0) {
-        throwRuntimeExceptionErrorNo(env, "failed to create io_uring ring fd ", errno);
+        throwRuntimeExceptionErrorNo(env, "failed to create io_uring ring fd;", errno);
         return NULL;
     }
 
