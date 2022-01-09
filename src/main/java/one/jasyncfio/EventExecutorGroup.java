@@ -1,8 +1,10 @@
 package one.jasyncfio;
 
 
+import one.jasyncfio.natives.MemoryUtils;
 import one.jasyncfio.natives.Native;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class EventExecutorGroup {
@@ -48,6 +50,99 @@ public class EventExecutorGroup {
         }
     }
 
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static EventExecutorGroup initDefault() {
+        return new Builder().build();
+    }
+
+    private EventExecutor get() {
+        if (executors.length == 1) {
+            return executors[0];
+        } else {
+            return executors[sequencer.getAndIncrement() % executors.length];
+        }
+    }
+
+    /**
+     * Attempts to open a file in read-only mode
+     *
+     * @param path path to file
+     * @return {@link CompletableFuture} contains opened file or exception
+     */
+    public CompletableFuture<DmaFile> openDmaFile(String path) {
+        if (path == null) {
+            throw new IllegalArgumentException("path must be not null");
+        }
+        long pathPtr = MemoryUtils.getStringPtr(path);
+        int flags = Native.O_RDONLY | Native.O_CLOEXEC | Native.O_DIRECT;
+        EventExecutor eventExecutor = get();
+        CompletableFuture<Integer> futureFd =
+                eventExecutor.scheduleOpenAt(-1, pathPtr, flags, 0);
+        return futureFd
+                .thenApply((fd) -> new DmaFile(fd, path, pathPtr, eventExecutor));
+    }
+
+    /**
+     * Opens a file in read write mode.
+     * This function will create a file if it does not exist, and will truncate it if it does.
+     *
+     * @param path path to file
+     * @return {@link CompletableFuture} contains opened file or exception
+     */
+    public CompletableFuture<DmaFile> createDmaFile(String path) {
+        if (path == null) {
+            throw new IllegalArgumentException("path must be not null");
+        }
+        long pathPtr = MemoryUtils.getStringPtr(path);
+        int flags = Native.O_RDWR | Native.O_CREAT | Native.O_TRUNC | Native.O_DIRECT;
+        EventExecutor eventExecutor = get();
+        CompletableFuture<Integer> futureFd =
+                eventExecutor.scheduleOpenAt(-1, pathPtr, flags, 0666);
+        return futureFd
+                .thenApply(fd -> new DmaFile(fd, path, pathPtr, eventExecutor));
+    }
+
+    /**
+     * Attempts to open a file in read-only mode
+     *
+     * @param path path to file
+     * @return {@link CompletableFuture} contains opened file or exception
+     */
+    public CompletableFuture<BufferedFile> openBufferedFile(String path) {
+        if (path == null) {
+            throw new IllegalArgumentException("path must be not null");
+        }
+        long pathPtr = MemoryUtils.getStringPtr(path);
+        EventExecutor eventExecutor = get();
+        CompletableFuture<Integer> futureFd =
+                eventExecutor.scheduleOpenAt(-1, pathPtr, Native.O_RDONLY, 0);
+        return futureFd
+                .thenApply((fd) -> new BufferedFile(fd, path, pathPtr, eventExecutor));
+    }
+
+    /**
+     * Opens a file in read write mode.
+     * This function will create a file if it does not exist, and will truncate it if it does.
+     *
+     * @param path path to file
+     * @return {@link CompletableFuture} contains opened file or exception
+     */
+    public CompletableFuture<BufferedFile> createBufferedFile(String path) {
+        if (path == null) {
+            throw new IllegalArgumentException("path must be not null");
+        }
+        long pathPtr = MemoryUtils.getStringPtr(path);
+        int flags = Native.O_RDWR | Native.O_CREAT | Native.O_TRUNC;
+        EventExecutor eventExecutor = get();
+        CompletableFuture<Integer> futureFd =
+                eventExecutor.scheduleOpenAt(-1, pathPtr, flags, 0666);
+        return futureFd
+                .thenApply((fd) -> new BufferedFile(fd, path, pathPtr, eventExecutor));
+    }
+
 
     public static class Builder {
         private int numberOfRings = 1;
@@ -62,6 +157,9 @@ public class EventExecutorGroup {
         private boolean ioRingSetupClamp = false;
         private boolean ioRingSetupAttachWq = false;
         private int attachWqRingFd = 0;
+
+        private Builder() {
+        }
 
 
         /**
@@ -208,11 +306,4 @@ public class EventExecutorGroup {
 //        }
 //    }
 //
-//    static EventExecutor get() {
-//        if (executors.length == 1) {
-//            return executors[0];
-//        } else {
-//            return executors[sequencer.getAndIncrement() % executors.length];
-//        }
-//    }
 }
