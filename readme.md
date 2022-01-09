@@ -2,7 +2,7 @@
 
 [![Build](https://github.com/ikorennoy/jasyncfio/actions/workflows/build.yml/badge.svg)](https://github.com/ikorennoy/jasyncfio/actions/workflows/build.yml)
 
-jasyncfio provides an asynchronous file I/O API based on the Linux io_uring interface. To some extent, the API was inspired by Rust glommio crate.
+jasyncfio provides an asynchronous file I/O API based on the Linux io_uring interface.
 
 ## jasyncfio Features
 
@@ -16,7 +16,8 @@ Buffered I/O means that it will be supported by the operating system's page cach
 about memory alignment.
 
 ```java
-CompletableFuture<BufferedFile> f = BufferedFile.create("/tmp/testFile");
+EventExecutorGroup eventExecutorGroup = EventExecutorGroup.initDefault();
+CompletableFuture<BufferedFile> f = eventExecutorGroup.createBufferedFile("/tmp/testFile");
 // let's assume that our future is completed
 BufferedFile file = f.get();
 ByteBuffer byteBuffer = ByteBuffer.allocateDirect(1024);
@@ -33,7 +34,8 @@ alignment, but it may give a positive performance effect under some workloads. R
 [open man page](https://man7.org/linux/man-pages/man2/open.2.html) `NOTES` section `O_DIRECT`.
 
 ```java
-CompletableFuture<DmaFile> f = DmaFile.create("/tmp/testFile");
+EventExecutorGroup eventExecutorGroup = EventExecutorGroup.initDefault();
+CompletableFuture<DmaFile> f = eventExecutorGroup.createDmaFile("/tmp/testFile");
 // let's assume that our future is completed
 DmaFile file = f.get();
 ByteBuffer byteBuffer = MemoryUtils.allocateAlignedByteBuffer(512, DmaFile.DEFAULT_ALIGNMENT);

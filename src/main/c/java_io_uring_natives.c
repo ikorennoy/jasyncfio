@@ -87,7 +87,7 @@ int io_uring_mmap(struct io_uring *ring, struct io_uring_params *p, struct io_ur
 
 
 
-// took from netty jni utils project
+// taken from netty jni utils project
 char* jni_util_prepend(const char* prefix, const char* str) {
     if (str == NULL) {
         // If str is NULL we should just return NULL as passing NULL to strlen is undefined behavior.
@@ -110,7 +110,7 @@ char* jni_util_prepend(const char* prefix, const char* str) {
     return result;
 }
 
-// took from netty jni utils project
+// taken from netty jni utils project
 static char* exceptionMessage(char* msg, int error) {
     if (error < 0) {
         // Error may be negative because some functions return negative values. We should make sure it is always
@@ -152,21 +152,27 @@ void throwRuntimeExceptionErrorNo(JNIEnv* env, char* message, int errorNumber) {
     free(allocatedMessage);
 }
 
-int setup_iouring(JNIEnv *env, struct io_uring *ring, int entries, int flags, int sq_thread_cpu, int cq_entries) {
+int setup_iouring(JNIEnv *env, struct io_uring *ring, int entries, int flags, int sq_thread_idle, int sq_thread_cpu, int cq_size, int attach_wq_ring_fd) {
     struct io_uring_params p;
     int ring_fd;
 
     memset(&p, 0, sizeof(p));
+    if ((flags &IORING_SETUP_SQPOLL) == IORING_SETUP_SQPOLL) {
+        p.sq_thread_idle = sq_thread_idle;
+    }
     if ((flags & IORING_SETUP_SQ_AFF) == IORING_SETUP_SQ_AFF) {
         p.sq_thread_cpu = sq_thread_cpu;
     }
     if ((flags & IORING_SETUP_CQSIZE) == IORING_SETUP_CQSIZE) {
-        p.cq_entries = cq_entries;
+        p.cq_entries = cq_size;
+    }
+    if ((flags & IORING_SETUP_ATTACH_WQ) == IORING_SETUP_ATTACH_WQ) {
+        p.wq_fd = attach_wq_ring_fd;
     }
     p.flags = flags;
     ring_fd = sys_io_uring_setup(entries, &p);
     if (ring_fd < 0) {
-        throwRuntimeExceptionErrorNo(env, "failed to create io_uring ring fd ", errno);
+        throwRuntimeExceptionErrorNo(env, "failed to create io_uring ring fd;", errno);
         return NULL;
     }
 
@@ -175,7 +181,7 @@ int setup_iouring(JNIEnv *env, struct io_uring *ring, int entries, int flags, in
     return io_uring_mmap(ring, &p, &ring->sq, &ring->cq);
 }
 
-static jobjectArray java_io_uring_setup_iouring(JNIEnv *env, jclass clazz, jint entries, jint flags, jint sq_thread_cpu, jint cq_entries) {
+static jobjectArray java_io_uring_setup_iouring(JNIEnv *env, jclass clazz, jint entries, jint flags, jint sq_thread_idle, jint sq_thread_cpu, jint cq_size, jint attach_wq_ring_fd) {
     jclass longArrayClass = (*env)->FindClass(env, "[J");
 
     jobjectArray array = (*env)->NewObjectArray(env, 2, longArrayClass, NULL);
@@ -195,7 +201,7 @@ static jobjectArray java_io_uring_setup_iouring(JNIEnv *env, jclass clazz, jint 
     }
 
     struct io_uring ring;
-    int res = setup_iouring(env, &ring, entries, flags, sq_thread_cpu, cq_entries);
+    int res = setup_iouring(env, &ring, entries, flags, sq_thread_idle, sq_thread_cpu, cq_size, attach_wq_ring_fd);
 
     jlong submissionArrayElements[] = {
         (jlong) ring.sq.head,
@@ -296,7 +302,7 @@ static JNINativeMethod method_table[] = {
     {"getDirectBufferAddress", "(Ljava/nio/Buffer;)J", (void *) get_direct_buffer_address},
     {"getEventFd", "()I", (void *) jasyncfio_get_event_fd},
     {"eventFdWrite", "(IJ)I", (void *) jasyncfio_event_fd_write},
-    {"setupIouring0", "(IIII)[[J", (void *) java_io_uring_setup_iouring},
+    {"setupIoUring0", "(IIIIII)[[J", (void *) java_io_uring_setup_iouring},
     {"ioUringEnter0", "(IIII)I", (void *) asyncfio_io_uring_enter},
     {"kernelVersion", "()Ljava/lang/String;", (void *) get_kernel_version},
     {"decodeErrno", "(I)Ljava/lang/String;", (void *) decode_errno},
