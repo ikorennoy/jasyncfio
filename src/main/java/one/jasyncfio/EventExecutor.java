@@ -18,7 +18,6 @@ public class EventExecutor {
     private final AtomicBoolean state = new AtomicBoolean(WAIT);
     private final Queue<ExtRunnable> tasks = new ConcurrentLinkedDeque<>();
     private final Map<Integer, CompletableFuture<Integer>> pendingFutures = new HashMap<>();
-    private final int entries = Integer.parseInt(System.getProperty("JASYNCFIO_RING_ENTRIES", "4096"));
     private final long eventfdReadBuf = MemoryUtils.allocateMemory(8);
     private final CompletionCallback callback = this::handle;
 
