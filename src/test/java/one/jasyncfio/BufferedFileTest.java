@@ -22,23 +22,24 @@ public class BufferedFileTest {
 
     @TempDir
     Path tmpDir;
+    private final EventExecutorGroup eventExecutorGroup = EventExecutorGroup.initDefault();
 
     @Test
     void open() throws Exception {
         Path file = Files.createTempFile(tmpDir, "temp-", "-file");
-        BufferedFile bufferedFile = BufferedFile.open(file.toString()).get(1000, TimeUnit.MILLISECONDS);
+        BufferedFile bufferedFile = eventExecutorGroup.openBufferedFile(file.toString()).get(1000, TimeUnit.MILLISECONDS);
         assertTrue(bufferedFile.getRawFd() > 0);
     }
 
     @Test
     void open_fileNotExist() {
-        CompletableFuture<BufferedFile> open = BufferedFile.open("some/path");
+        CompletableFuture<BufferedFile> open = eventExecutorGroup.openBufferedFile("some/path");
         assertThrows(ExecutionException.class, () -> open.get(1000, TimeUnit.MILLISECONDS));
     }
 
     @Test
     void create_dir() {
-        CompletableFuture<BufferedFile> bufferedFile = BufferedFile.create("/tmp");
+        CompletableFuture<BufferedFile> bufferedFile = eventExecutorGroup.createBufferedFile("/tmp");
         assertThrows(ExecutionException.class, () -> bufferedFile.get(1000, TimeUnit.MILLISECONDS));
     }
 
@@ -47,7 +48,7 @@ public class BufferedFileTest {
         Path file = Files.createTempFile(tmpDir, "temp-", "-file");
         writeStringToFile("file is not empty", file.toFile());
         assertTrue(Files.size(file) > 0);
-        BufferedFile bufferedFile = BufferedFile.create(file.toString()).get(1000, TimeUnit.MILLISECONDS);
+        BufferedFile bufferedFile = eventExecutorGroup.createBufferedFile(file.toString()).get(1000, TimeUnit.MILLISECONDS);
         // file was actually open
         assertTrue(bufferedFile.getRawFd() > 0);
         // file was truncated
@@ -56,7 +57,7 @@ public class BufferedFileTest {
 
     @Test
     void create_fileDoesNotExist() throws Exception {
-        BufferedFile bufferedFile = BufferedFile.create(TEMP_FILE_NAME).get(1000, TimeUnit.MILLISECONDS);
+        BufferedFile bufferedFile = eventExecutorGroup.createBufferedFile(TEMP_FILE_NAME).get(1000, TimeUnit.MILLISECONDS);
         assertTrue(bufferedFile.getRawFd() > 0);
         File file = new File(bufferedFile.getPath());
         assertTrue(file.exists());
@@ -70,7 +71,7 @@ public class BufferedFileTest {
         writeStringToFile(resultString, tempFile.toFile());
         assertTrue(Files.size(tempFile) > 0);
         ByteBuffer bb = ByteBuffer.allocateDirect((int) Files.size(tempFile));
-        BufferedFile bufferedFile = BufferedFile.open(tempFile.toString()).get(1000, TimeUnit.MILLISECONDS);
+        BufferedFile bufferedFile = eventExecutorGroup.openBufferedFile(tempFile.toString()).get(1000, TimeUnit.MILLISECONDS);
         Integer bytes = bufferedFile.read(0, bb).get(1000, TimeUnit.MILLISECONDS);
         assertEquals((int) Files.size(tempFile), bytes);
         assertEquals(resultString, StandardCharsets.UTF_8.decode(bb).toString());
@@ -79,7 +80,7 @@ public class BufferedFileTest {
     @Test
     void read_wrongBuffer() throws Exception {
         Path tempFile = Files.createTempFile(tmpDir, "temp-", "-file");
-        BufferedFile bufferedFile = BufferedFile.open(tempFile.toString()).get(1000, TimeUnit.MILLISECONDS);
+        BufferedFile bufferedFile = eventExecutorGroup.openBufferedFile(tempFile.toString()).get(1000, TimeUnit.MILLISECONDS);
         assertThrows(IllegalArgumentException.class, () -> bufferedFile.read(0, ByteBuffer.allocate(10)));
     }
 
@@ -90,7 +91,7 @@ public class BufferedFileTest {
         writeStringToFile(resultString, tempFile.toFile());
         int stringLength = resultString.getBytes(StandardCharsets.UTF_8).length;
         ByteBuffer byteBuffer = ByteBuffer.allocateDirect(stringLength * 2);
-        BufferedFile bufferedFile = BufferedFile.open(tempFile.toString()).get(1000, TimeUnit.MILLISECONDS);
+        BufferedFile bufferedFile = eventExecutorGroup.openBufferedFile(tempFile.toString()).get(1000, TimeUnit.MILLISECONDS);
         Integer bytes = bufferedFile.read(0, byteBuffer).get(1000, TimeUnit.MILLISECONDS);
         assertEquals(stringLength, bytes);
     }
@@ -102,7 +103,7 @@ public class BufferedFileTest {
         writeStringToFile(resultString, tempFile.toFile());
         int stringLength = resultString.getBytes(StandardCharsets.UTF_8).length;
         ByteBuffer byteBuffer = ByteBuffer.allocateDirect(stringLength / 2);
-        BufferedFile bufferedFile = BufferedFile.open(tempFile.toString()).get(1000, TimeUnit.MILLISECONDS);
+        BufferedFile bufferedFile = eventExecutorGroup.openBufferedFile(tempFile.toString()).get(1000, TimeUnit.MILLISECONDS);
         Integer bytes = bufferedFile.read(0, byteBuffer).get(1000, TimeUnit.MILLISECONDS);
         assertEquals(stringLength / 2, bytes);
     }
@@ -113,7 +114,7 @@ public class BufferedFileTest {
         String expected = TestUtils.prepareString(100);
         int readLength = 2048;
         TestUtils.writeStringToFile(expected, tempFile.toFile());
-        BufferedFile bufferedFile = BufferedFile.open(tempFile.toString()).get(1000, TimeUnit.MILLISECONDS);
+        BufferedFile bufferedFile = eventExecutorGroup.openBufferedFile(tempFile.toString()).get(1000, TimeUnit.MILLISECONDS);
         ByteBuffer byteBuffer = ByteBuffer.allocateDirect(1024);
         assertThrows(IllegalArgumentException.class, () -> bufferedFile.read(0, readLength, byteBuffer).get(1000, TimeUnit.MILLISECONDS));
     }
@@ -125,7 +126,7 @@ public class BufferedFileTest {
         writeStringToFile(resultString, tempFile.toFile());
         int stringLength = resultString.getBytes(StandardCharsets.UTF_8).length;
         ByteBuffer byteBuffer = ByteBuffer.allocateDirect(stringLength);
-        BufferedFile bufferedFile = BufferedFile.open(tempFile.toString()).get(1000, TimeUnit.MILLISECONDS);
+        BufferedFile bufferedFile = eventExecutorGroup.openBufferedFile(tempFile.toString()).get(1000, TimeUnit.MILLISECONDS);
         Integer bytes = bufferedFile.read(stringLength * 2L, byteBuffer).get(1000, TimeUnit.MILLISECONDS);
         assertEquals(0, bytes);
     }
@@ -133,7 +134,7 @@ public class BufferedFileTest {
     @Test
     void write_emptyFile() throws Exception {
         Path tempFile = Files.createTempFile(tmpDir, "temp-", "-file");
-        BufferedFile bufferedFile = BufferedFile.create(tempFile.toString()).get(1000, TimeUnit.MILLISECONDS);
+        BufferedFile bufferedFile = eventExecutorGroup.createBufferedFile(tempFile.toString()).get(1000, TimeUnit.MILLISECONDS);
         assertEquals(0, Files.size(tempFile));
         String str = prepareString(100);
         byte[] bytes = str.getBytes(StandardCharsets.UTF_8);
@@ -146,7 +147,7 @@ public class BufferedFileTest {
 
     @Test
     void write_positionGreaterThanFileSize() throws Exception {
-        BufferedFile bufferedFile = BufferedFile.create(TEMP_FILE_NAME).get(1000, TimeUnit.MILLISECONDS);
+        BufferedFile bufferedFile = eventExecutorGroup.createBufferedFile(TEMP_FILE_NAME).get(1000, TimeUnit.MILLISECONDS);
         File file = new File(bufferedFile.getPath());
         file.deleteOnExit();
         assertEquals(0, file.length());
@@ -161,7 +162,7 @@ public class BufferedFileTest {
 
     @Test
     void write_lengthZero() throws Exception {
-        BufferedFile bufferedFile = BufferedFile.create(TEMP_FILE_NAME).get(1000, TimeUnit.MILLISECONDS);
+        BufferedFile bufferedFile = eventExecutorGroup.createBufferedFile(TEMP_FILE_NAME).get(1000, TimeUnit.MILLISECONDS);
         File file = new File(bufferedFile.getPath());
         file.deleteOnExit();
         assertEquals(0, file.length());
@@ -177,7 +178,7 @@ public class BufferedFileTest {
     @Test
     void close() throws Exception {
         Path tempFile = Files.createTempFile(tmpDir, "temp-", "-file");
-        BufferedFile bufferedFile = BufferedFile.open(tempFile.toString()).get(1000, TimeUnit.MILLISECONDS);
+        BufferedFile bufferedFile = eventExecutorGroup.openBufferedFile(tempFile.toString()).get(1000, TimeUnit.MILLISECONDS);
         assertTrue(bufferedFile.getRawFd() > 0);
         bufferedFile.close().get(1000, TimeUnit.MILLISECONDS);
         CompletableFuture<Integer> read = bufferedFile.read(0, ByteBuffer.allocateDirect(10));
@@ -186,7 +187,7 @@ public class BufferedFileTest {
 
     @Test
     void size() throws Exception {
-        BufferedFile bufferedFile = BufferedFile.create(TEMP_FILE_NAME).get(1000, TimeUnit.MILLISECONDS);
+        BufferedFile bufferedFile = eventExecutorGroup.createBufferedFile(TEMP_FILE_NAME).get(1000, TimeUnit.MILLISECONDS);
         File file = new File(bufferedFile.getPath());
         file.deleteOnExit();
         String resultString = prepareString(100);
@@ -198,21 +199,21 @@ public class BufferedFileTest {
 
     @Test
     void size_zero() throws Exception {
-        BufferedFile f = BufferedFile.create(TEMP_FILE_NAME).get(1000, TimeUnit.MILLISECONDS);
+        BufferedFile f = eventExecutorGroup.createBufferedFile(TEMP_FILE_NAME).get(1000, TimeUnit.MILLISECONDS);
         deleteOnExit(f);
         assertEquals(0, f.size().get(1000, TimeUnit.MILLISECONDS));
     }
 
     @Test
     void dataSync() throws Exception {
-        BufferedFile f = BufferedFile.create(TEMP_FILE_NAME).get(1000, TimeUnit.MILLISECONDS);
+        BufferedFile f = eventExecutorGroup.createBufferedFile(TEMP_FILE_NAME).get(1000, TimeUnit.MILLISECONDS);
         deleteOnExit(f);
         assertEquals(0, f.dataSync().get(1000, TimeUnit.MILLISECONDS));
     }
 
     @Test
     void dataSync_closedFile() throws Exception {
-        BufferedFile f = BufferedFile.create(TEMP_FILE_NAME).get(1000, TimeUnit.MILLISECONDS);
+        BufferedFile f = eventExecutorGroup.createBufferedFile(TEMP_FILE_NAME).get(1000, TimeUnit.MILLISECONDS);
         deleteOnExit(f);
         f.close().get(1000, TimeUnit.MILLISECONDS);
         CompletableFuture<Integer> dataSync = f.dataSync();
@@ -221,7 +222,7 @@ public class BufferedFileTest {
 
     @Test
     void preAllocate_emptyFile() throws Exception {
-        BufferedFile f = BufferedFile.create(TEMP_FILE_NAME).get(1000, TimeUnit.MILLISECONDS);
+        BufferedFile f = eventExecutorGroup.createBufferedFile(TEMP_FILE_NAME).get(1000, TimeUnit.MILLISECONDS);
         deleteOnExit(f);
         assertEquals(0, f.size().get(1000, TimeUnit.MILLISECONDS));
         assertEquals(0, f.preAllocate(1024).get(1000, TimeUnit.MILLISECONDS));
@@ -230,7 +231,7 @@ public class BufferedFileTest {
 
     @Test
     void preAllocate_notEmptyFile() throws Exception {
-        BufferedFile bufferedFile = BufferedFile.create(TEMP_FILE_NAME).get(1000, TimeUnit.MILLISECONDS);
+        BufferedFile bufferedFile = eventExecutorGroup.createBufferedFile(TEMP_FILE_NAME).get(1000, TimeUnit.MILLISECONDS);
         File file = new File(bufferedFile.getPath());
         file.deleteOnExit();
         String resultString = prepareString(100);
@@ -243,7 +244,7 @@ public class BufferedFileTest {
 
     @Test
     void preAllocate_withOffset() throws Exception {
-        BufferedFile bufferedFile = BufferedFile.create(TEMP_FILE_NAME).get(1000, TimeUnit.MILLISECONDS);
+        BufferedFile bufferedFile = eventExecutorGroup.createBufferedFile(TEMP_FILE_NAME).get(1000, TimeUnit.MILLISECONDS);
         File file = new File(bufferedFile.getPath());
         file.deleteOnExit();
         String resultString = prepareString(100);
@@ -256,7 +257,7 @@ public class BufferedFileTest {
 
     @Test
     void preAllocate_closedFile() throws Exception {
-        BufferedFile bufferedFile = BufferedFile.create(TEMP_FILE_NAME).get(1000, TimeUnit.MILLISECONDS);
+        BufferedFile bufferedFile = eventExecutorGroup.createBufferedFile(TEMP_FILE_NAME).get(1000, TimeUnit.MILLISECONDS);
         deleteOnExit(bufferedFile);
         bufferedFile.close().get(1000, TimeUnit.MILLISECONDS);
         CompletableFuture<Integer> preAllocate = bufferedFile.preAllocate(1024);
@@ -265,7 +266,7 @@ public class BufferedFileTest {
 
     @Test
     void remove() throws Exception {
-        BufferedFile bufferedFile = BufferedFile.create(TEMP_FILE_NAME).get(1000, TimeUnit.MILLISECONDS);
+        BufferedFile bufferedFile = eventExecutorGroup.createBufferedFile(TEMP_FILE_NAME).get(1000, TimeUnit.MILLISECONDS);
         File file = new File(bufferedFile.getPath());
         assertTrue(file.exists());
         assertEquals(0, bufferedFile.remove().get(1000, TimeUnit.MILLISECONDS));
@@ -274,7 +275,7 @@ public class BufferedFileTest {
 
     @Test
     void remove_removed() throws Exception {
-        BufferedFile bufferedFile = BufferedFile.create(TEMP_FILE_NAME).get(1000, TimeUnit.MILLISECONDS);
+        BufferedFile bufferedFile = eventExecutorGroup.createBufferedFile(TEMP_FILE_NAME).get(1000, TimeUnit.MILLISECONDS);
         File file = new File(bufferedFile.getPath());
         assertTrue(file.exists());
         assertEquals(0, bufferedFile.remove().get(1000, TimeUnit.MILLISECONDS));
@@ -287,7 +288,7 @@ public class BufferedFileTest {
     void remove_readOnly() throws Exception {
         File tempFile = File.createTempFile("temp-", "-file");
         assertTrue(tempFile.exists());
-        BufferedFile bufferedFile = BufferedFile.open(tempFile.getPath()).get(1000, TimeUnit.MILLISECONDS);
+        BufferedFile bufferedFile = eventExecutorGroup.openBufferedFile(tempFile.getPath()).get(1000, TimeUnit.MILLISECONDS);
         assertEquals(0, bufferedFile.remove().get(1000, TimeUnit.MILLISECONDS));
         assertFalse(tempFile.exists());
     }
@@ -296,7 +297,7 @@ public class BufferedFileTest {
     void remove_closed() throws Exception {
         File tempFile = File.createTempFile("temp-", "-file");
         assertTrue(tempFile.exists());
-        BufferedFile bufferedFile = BufferedFile.open(tempFile.getPath()).get(1000, TimeUnit.MILLISECONDS);
+        BufferedFile bufferedFile = eventExecutorGroup.openBufferedFile(tempFile.getPath()).get(1000, TimeUnit.MILLISECONDS);
         assertEquals(0, bufferedFile.close().get(1000, TimeUnit.MILLISECONDS));
         assertEquals(0, bufferedFile.remove().get(1000, TimeUnit.MILLISECONDS));
         assertFalse(tempFile.exists());
