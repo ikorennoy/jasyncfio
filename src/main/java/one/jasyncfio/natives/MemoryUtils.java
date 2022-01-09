@@ -6,6 +6,7 @@ import java.lang.reflect.Field;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.concurrent.locks.LockSupport;
 
 public class MemoryUtils {
 

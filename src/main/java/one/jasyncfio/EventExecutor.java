@@ -28,7 +28,7 @@ public class EventExecutor {
     private final IntSupplier sequencer;
     private final Thread t;
 
-    EventExecutor() {
+    EventExecutor(int entries, int flags, int sqThreadIdle, int sqThreadCpu, int cqSize, int attachWqRingFd) {
         sequencer = new IntSupplier() {
             private int i = 0;
 
@@ -37,7 +37,7 @@ public class EventExecutor {
                 return Math.abs(i++ % 16_777_215);
             }
         };
-        ring = Native.setupIoUring(entries, 0);
+        ring = Native.setupIoUring(entries, flags, sqThreadIdle, sqThreadCpu, cqSize, attachWqRingFd);
         eventFd = Native.getEventFd();
         t = new Thread(this::run);
         t.start();
