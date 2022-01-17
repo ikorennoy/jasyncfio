@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.IntSupplier;
 
-public class EventExecutor {
+class EventExecutor {
     private static final boolean AWAKE = true;
     private static final boolean WAIT = false;
 
