@@ -20,11 +20,8 @@ public class StreamReader {
         return file.read(position, buffer);
     }
 
-    public long position() {
-        return 0;
-    }
 
-    public void position(long newPosition) {
-
+    public CompletableFuture<Integer> close() {
+        return file.close();
     }
 }
