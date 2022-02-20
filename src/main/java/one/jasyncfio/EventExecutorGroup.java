@@ -2,10 +2,6 @@ package one.jasyncfio;
 
 import one.jasyncfio.natives.MemoryUtils;
 import one.jasyncfio.natives.Native;
-
-import java.io.*;
-import java.nio.channels.AsynchronousFileChannel;
-import java.nio.channels.FileChannel;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 
