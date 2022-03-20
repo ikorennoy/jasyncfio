@@ -69,8 +69,6 @@ class AbstractFile {
     private void checkConstraints(long position, int length, ByteBuffer buffer) {
         if (buffer == null) {
             throw new IllegalArgumentException("buffer must be not null");
-        } else if (position < 0L) {
-            throw new IllegalArgumentException("position must be positive");
         } else if (length < 0L) {
             throw new IllegalArgumentException("length must be positive");
         }
@@ -147,7 +145,7 @@ class AbstractFile {
     }
 
     /**
-     * Closes this file.
+     * Asynchronously closes this file.
      */
     public CompletableFuture<Integer> close() {
         return eventExecutor.scheduleClose(fd);
