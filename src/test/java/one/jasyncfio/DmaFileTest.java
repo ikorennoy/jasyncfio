@@ -7,6 +7,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -191,7 +192,7 @@ public class DmaFileTest {
         ByteBuffer byteBuffer = MemoryUtils.allocateAlignedByteBuffer(512, DmaFile.DEFAULT_ALIGNMENT);
         byteBuffer.put(expected.substring(0, 512).getBytes(StandardCharsets.UTF_8));
         assertEquals(DmaFile.DEFAULT_ALIGNMENT, dmaFile.write(0, 512, byteBuffer).get(1000, TimeUnit.MILLISECONDS));
-        assertEquals(DmaFile.DEFAULT_ALIGNMENT, Files.size(tempFile));
+        assertEquals(512, Files.size(tempFile));
         assertEquals(expected.substring(0, 512), new String(Files.readAllBytes(tempFile)));
     }
 

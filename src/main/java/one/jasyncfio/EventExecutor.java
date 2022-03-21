@@ -48,7 +48,7 @@ class EventExecutor {
 
         addEventFdRead(submissionQueue);
 
-        for (; ; ) {
+        for (;;) {
             try {
                 state.set(WAIT);
                 if (!hasTasks() && !completionQueue.hasCompletions()) {
