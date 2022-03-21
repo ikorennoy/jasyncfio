@@ -81,7 +81,7 @@ public class SubmissionQueue {
 
     public int submitAndWait() throws Throwable {
         int submit = tail - head;
-        return submit(Math.max(submit, 0), 1, Native.IORING_ENTER_GETEVENTS);
+        return submit(Math.max(submit, 0), 0, Native.IORING_ENTER_GETEVENTS);
     }
 
     public boolean addRead(int fd, long bufferAddress, long offset, int length, int opId) throws Throwable {

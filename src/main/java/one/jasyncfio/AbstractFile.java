@@ -9,8 +9,8 @@ import java.util.concurrent.CompletableFuture;
 class AbstractFile {
     final int fd;
     final String path;
-    final long pathAddress;
-    final EventExecutor eventExecutor;
+    protected final long pathAddress;
+    protected final EventExecutor eventExecutor;
 
     AbstractFile(int fd, String path, long pathAddress, EventExecutor eventExecutor) {
         this.fd = fd;
