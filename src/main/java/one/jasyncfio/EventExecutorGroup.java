@@ -5,10 +5,15 @@ import one.jasyncfio.natives.Native;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * @author ikorennoy
+ * date 12.10.2021
+ */
 public class EventExecutorGroup {
 
     private final AtomicInteger sequencer = new AtomicInteger();
     private final EventExecutor[] executors;
+    private final EventExecutor serviceRing;
 
     EventExecutorGroup(int numberOfRings,
                        int entries,
@@ -46,6 +51,7 @@ public class EventExecutorGroup {
         for (int i = 0; i < numberOfRings; i++) {
             executors[i] = new EventExecutor(entries, flags, sqThreadIdle, sqThreadCpu, cqSize, attachWqRingFd);
         }
+        serviceRing = new EventExecutor(entries, 0, 0, 0, 0, 0);
     }
 
     public static Builder builder() {
@@ -76,11 +82,10 @@ public class EventExecutorGroup {
         }
         long pathPtr = MemoryUtils.getStringPtr(path);
         int flags = Native.O_RDONLY | Native.O_CLOEXEC | Native.O_DIRECT;
-        EventExecutor eventExecutor = get();
         CompletableFuture<Integer> futureFd =
-                eventExecutor.scheduleOpenAt(-1, pathPtr, flags, 0);
+                serviceRing.scheduleOpenAt(-1, pathPtr, flags, 0);
         return futureFd
-                .thenApply((fd) -> new DmaFile(fd, path, pathPtr, eventExecutor));
+                .thenApply((fd) -> new DmaFile(fd, path, pathPtr, get()));
     }
 
     /**
@@ -96,11 +101,10 @@ public class EventExecutorGroup {
         }
         long pathPtr = MemoryUtils.getStringPtr(path);
         int flags = Native.O_RDWR | Native.O_CREAT | Native.O_TRUNC | Native.O_DIRECT;
-        EventExecutor eventExecutor = get();
         CompletableFuture<Integer> futureFd =
-                eventExecutor.scheduleOpenAt(-1, pathPtr, flags, 0666);
+                serviceRing.scheduleOpenAt(-1, pathPtr, flags, 0666);
         return futureFd
-                .thenApply(fd -> new DmaFile(fd, path, pathPtr, eventExecutor));
+                .thenApply(fd -> new DmaFile(fd, path, pathPtr,  get()));
     }
 
     /**
@@ -114,11 +118,10 @@ public class EventExecutorGroup {
             throw new IllegalArgumentException("path must be not null");
         }
         long pathPtr = MemoryUtils.getStringPtr(path);
-        EventExecutor eventExecutor = get();
         CompletableFuture<Integer> futureFd =
-                eventExecutor.scheduleOpenAt(-1, pathPtr, Native.O_RDONLY, 0);
+                serviceRing.scheduleOpenAt(-1, pathPtr, Native.O_RDONLY, 0);
         return futureFd
-                .thenApply((fd) -> new BufferedFile(fd, path, pathPtr, eventExecutor));
+                .thenApply((fd) -> new BufferedFile(fd, path, pathPtr, get()));
     }
 
     /**
@@ -134,11 +137,10 @@ public class EventExecutorGroup {
         }
         long pathPtr = MemoryUtils.getStringPtr(path);
         int flags = Native.O_RDWR | Native.O_CREAT | Native.O_TRUNC;
-        EventExecutor eventExecutor = get();
         CompletableFuture<Integer> futureFd =
-                eventExecutor.scheduleOpenAt(-1, pathPtr, flags, 0666);
+                serviceRing.scheduleOpenAt(-1, pathPtr, flags, 0666);
         return futureFd
-                .thenApply((fd) -> new BufferedFile(fd, path, pathPtr, eventExecutor));
+                .thenApply((fd) -> new BufferedFile(fd, path, pathPtr, get()));
     }
 
 
