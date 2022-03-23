@@ -21,7 +21,7 @@ public class BufferedFileBenchmark {
     @State(Scope.Benchmark)
     public static class Data {
         public final int sizeBytes = 512;
-        public final int jasyncfioIterations = 128;
+        public static final int jasyncfioIterations = 128;
         public final String tmpDirName = "tmp-dir-";
         private final String readTestFileName = "read-test-file";
         private final String writeTestFileName = "write-test-file";
@@ -69,13 +69,12 @@ public class BufferedFileBenchmark {
     }
 
 //    @Benchmark
-    // must be the same value with Data.jasyncfioIterations
-//    @OperationsPerInvocation(128)
+//    @OperationsPerInvocation(Data.jasyncfioIterations)
 //    @Fork(1)
     public Integer jasyncfioRead(Data data) throws Exception {
         BufferedFile readTestFile = data.eventExecutorGroup.openBufferedFile(data.readTestFile.toString()).join();
 
-        for (int i = 0; i < data.jasyncfioIterations; i++) {
+        for (int i = 0; i < Data.jasyncfioIterations; i++) {
             data.futures[i] = readTestFile.read(0, data.readBuffers[i]);
         }
         CompletableFuture.allOf(data.futures).get();
@@ -84,15 +83,15 @@ public class BufferedFileBenchmark {
     }
 
     @Benchmark
+    @OperationsPerInvocation(Data.jasyncfioIterations)
     @Fork(1)
     public int jasyncfioWrite(Data data) throws Exception {
-        data.eventExecutorGroup.createBufferedFile(data.writeTestFile.toString())
-                .thenApply((bf) -> {
-                    bf.write(-1, data.writeBuffers[0]).join();
-                    return bf;
-                }).thenAccept(AbstractFile::close).get();
-        return 1;
-//        return integerCompletableFuture;
+        BufferedFile writeTestFile = data.eventExecutorGroup.createBufferedFile(data.writeTestFile.toString()).get();
+        for (int i = 0; i < Data.jasyncfioIterations; i++) {
+            data.futures[i] = writeTestFile.write(-1, data.writeBuffers[i]);
+        }
+        CompletableFuture.allOf(data.futures).get();
+        return writeTestFile.close().get();
     }
 
 //    @Benchmark
