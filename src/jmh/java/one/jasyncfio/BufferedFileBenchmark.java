@@ -86,9 +86,13 @@ public class BufferedFileBenchmark {
     @Benchmark
     @Fork(1)
     public int jasyncfioWrite(Data data) throws Exception {
-        BufferedFile bufferedFile = data.eventExecutorGroup.createBufferedFile(data.writeTestFile.toString()).get();
-        bufferedFile.write(-1, data.writeBuffers[0]);
-        return bufferedFile.close().get();
+        data.eventExecutorGroup.createBufferedFile(data.writeTestFile.toString())
+                .thenApply((bf) -> {
+                    bf.write(-1, data.writeBuffers[0]).join();
+                    return bf;
+                }).thenAccept(AbstractFile::close).get();
+        return 1;
+//        return integerCompletableFuture;
     }
 
 //    @Benchmark
