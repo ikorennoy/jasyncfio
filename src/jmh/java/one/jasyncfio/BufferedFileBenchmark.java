@@ -68,10 +68,10 @@ public class BufferedFileBenchmark {
         }
     }
 
-    @Benchmark
+//    @Benchmark
     // must be the same value with Data.jasyncfioIterations
-    @OperationsPerInvocation(128)
-    @Fork(1)
+//    @OperationsPerInvocation(128)
+//    @Fork(1)
     public Integer jasyncfioRead(Data data) throws Exception {
         BufferedFile readTestFile = data.eventExecutorGroup.openBufferedFile(data.readTestFile.toString()).join();
 
@@ -91,8 +91,8 @@ public class BufferedFileBenchmark {
         return bufferedFile.close().get();
     }
 
-    @Benchmark
-    @Fork(1)
+//    @Benchmark
+//    @Fork(1)
     public int nioRead(Data data) throws Exception {
         try (FileChannel readTestFileChannel = FileChannel.open(data.readTestFile, StandardOpenOption.READ)) {
             int read = readTestFileChannel.read(data.readBuffers[0]);
@@ -101,8 +101,8 @@ public class BufferedFileBenchmark {
         }
     }
 
-    @Benchmark
-    @Fork(1)
+//    @Benchmark
+//    @Fork(1)
     public int nioWrite(Data data) throws Exception {
         try (FileChannel writeTestFileChannel = FileChannel.open(data.writeTestFile, StandardOpenOption.WRITE)) {
             int written = writeTestFileChannel.write(data.writeBuffers[0]);
