@@ -63,7 +63,7 @@ public class BufferedFileBenchmark {
     @Benchmark
     @OperationsPerInvocation(128)
     @Fork(1)
-    public void jasyncfioRead(Data data) throws Exception {
+    public Integer jasyncfioRead(Data data) throws Exception {
         BufferedFile sourceFile = data.eventExecutorGroup.openBufferedFile(data.src.toString()).join();
 
         for (int i = 0; i < data.jasyncfioIterations; i++) {
@@ -71,7 +71,7 @@ public class BufferedFileBenchmark {
         }
         CompletableFuture.allOf(data.futures).get();
 
-        sourceFile.close().get();
+        return sourceFile.close().get();
     }
 
     @Benchmark
