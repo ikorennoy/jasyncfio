@@ -19,28 +19,31 @@ public class BufferedFileBenchmark {
 
     @State(Scope.Benchmark)
     public static class Data {
-        public final int sizeBytes = 512;
-        public static final int jasyncfioIterations = 128;
-        public final String tmpDirName = "tmp-dir-";
-        private final String readTestFileName = "read-test-file";
-        private final String writeTestFileName = "write-test-file";
+        private static final int sizeBytes = 512;
+        private static final int jasyncfioIterations = 128;
+
         public ByteBuffer[] readBuffers = new ByteBuffer[jasyncfioIterations];
         public ByteBuffer[] writeBuffers = new ByteBuffer[jasyncfioIterations];
         public EventExecutorGroup eventExecutorGroup = EventExecutorGroup.initDefault();
         public CompletableFuture<Integer>[] futures = new CompletableFuture[jasyncfioIterations];
 
+        Path tmpDir;
         Path readTestFile;
         Path writeTestFile;
-        Path tmpDir;
+
+        {
+            try {
+                tmpDir = Files.createTempDirectory("tmp-dir-");
+                readTestFile = Files.createFile(tmpDir.resolve("read-test-file"));
+                writeTestFile = Files.createFile(tmpDir.resolve("write-test-file"));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
 
 
         @Setup
         public void prepare() throws IOException {
-            tmpDir = Files.createTempDirectory(tmpDirName);
-            readTestFile = tmpDir.resolve(readTestFileName);
-            writeTestFile = tmpDir.resolve(writeTestFileName);
-            Files.createFile(readTestFile);
-            Files.createFile(writeTestFile);
             Files.write(readTestFile, generateContent(sizeBytes), StandardOpenOption.WRITE);
             Random random = new Random();
             byte[] bytes = new byte[sizeBytes];
@@ -55,8 +58,8 @@ public class BufferedFileBenchmark {
 
         @TearDown
         public void tearDown() throws IOException {
-            Files.delete(tmpDir.resolve(readTestFileName));
-            Files.delete(tmpDir.resolve(writeTestFileName));
+            Files.delete(readTestFile);
+            Files.delete(writeTestFile);
             Files.delete(tmpDir);
         }
 
