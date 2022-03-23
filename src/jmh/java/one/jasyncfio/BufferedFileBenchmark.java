@@ -23,8 +23,8 @@ public class BufferedFileBenchmark {
         public final int sizeBytes = 512;
         public final int jasyncfioIterations = 128;
         public final String tmpDirName = "tmp-dir-";
-        public final String readTestFileName = "read-test-file";
-        public final String writeTestFileName = "write-test-file";
+        private final String readTestFileName = "read-test-file";
+        private final String writeTestFileName = "write-test-file";
         public ByteBuffer[] readBuffers = new ByteBuffer[jasyncfioIterations];
         public ByteBuffer[] writeBuffers = new ByteBuffer[jasyncfioIterations];
         public EventExecutorGroup eventExecutorGroup = EventExecutorGroup.initDefault();
@@ -41,6 +41,7 @@ public class BufferedFileBenchmark {
             readTestFile = tmpDir.resolve(readTestFileName);
             writeTestFile = tmpDir.resolve(writeTestFileName);
             Files.createFile(readTestFile);
+            Files.createFile(writeTestFile);
             Files.write(readTestFile, generateContent(sizeBytes), StandardOpenOption.WRITE);
             Random random = new Random();
             byte[] bytes = new byte[sizeBytes];
@@ -101,7 +102,7 @@ public class BufferedFileBenchmark {
     @Fork(1)
     public int nioRead(Data data) throws Exception {
         try (FileChannel readTestFileChannel = FileChannel.open(data.readTestFile, StandardOpenOption.READ)) {
-            int read = readTestFileChannel.read(data.readBuffers[0], 0);
+            int read = readTestFileChannel.read(data.readBuffers[0]);
             data.readBuffers[0].flip();
             return read;
         }
