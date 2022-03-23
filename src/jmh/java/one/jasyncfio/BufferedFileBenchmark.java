@@ -1,7 +1,6 @@
 package one.jasyncfio;
 
 import org.openjdk.jmh.annotations.*;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -68,17 +67,15 @@ public class BufferedFileBenchmark {
         }
     }
 
-//    @Benchmark
-//    @OperationsPerInvocation(Data.jasyncfioIterations)
-//    @Fork(1)
+    @Benchmark
+    @OperationsPerInvocation(Data.jasyncfioIterations)
+    @Fork(1)
     public Integer jasyncfioRead(Data data) throws Exception {
         BufferedFile readTestFile = data.eventExecutorGroup.openBufferedFile(data.readTestFile.toString()).join();
-
         for (int i = 0; i < Data.jasyncfioIterations; i++) {
             data.futures[i] = readTestFile.read(0, data.readBuffers[i]);
         }
         CompletableFuture.allOf(data.futures).get();
-
         return readTestFile.close().get();
     }
 
@@ -94,8 +91,8 @@ public class BufferedFileBenchmark {
         return writeTestFile.close().get();
     }
 
-//    @Benchmark
-//    @Fork(1)
+    @Benchmark
+    @Fork(1)
     public int nioRead(Data data) throws Exception {
         try (FileChannel readTestFileChannel = FileChannel.open(data.readTestFile, StandardOpenOption.READ)) {
             int read = readTestFileChannel.read(data.readBuffers[0]);
@@ -104,8 +101,8 @@ public class BufferedFileBenchmark {
         }
     }
 
-//    @Benchmark
-//    @Fork(1)
+    @Benchmark
+    @Fork(1)
     public int nioWrite(Data data) throws Exception {
         try (FileChannel writeTestFileChannel = FileChannel.open(data.writeTestFile, StandardOpenOption.WRITE)) {
             int written = writeTestFileChannel.write(data.writeBuffers[0]);
