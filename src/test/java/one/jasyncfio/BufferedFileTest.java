@@ -140,9 +140,27 @@ public class BufferedFileTest {
         byte[] bytes = str.getBytes(StandardCharsets.UTF_8);
         ByteBuffer byteBuffer = ByteBuffer.allocateDirect(bytes.length);
         byteBuffer.put(bytes);
-        Integer wrote = bufferedFile.write(0, bytes.length, byteBuffer).get(1000, TimeUnit.MILLISECONDS);
-        assertEquals((int) Files.size(tempFile), wrote);
+        Integer written = bufferedFile.write(0, bytes.length, byteBuffer).get(1000, TimeUnit.MILLISECONDS);
+        assertEquals((int) Files.size(tempFile), written);
         assertEquals(str, new String(Files.readAllBytes(tempFile)));
+    }
+
+    @Test
+    void write_trackPosition() throws Exception {
+        Path tempFile = Files.createTempFile(tmpDir, "temp-", "-file");
+        BufferedFile bufferedFile = eventExecutorGroup.createBufferedFile(tempFile.toString()).get(1000, TimeUnit.MILLISECONDS);
+        assertEquals(0, Files.size(tempFile));
+        String str = prepareString(100);
+        byte[] bytes = str.getBytes(StandardCharsets.UTF_8);
+        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(bytes.length);
+        byteBuffer.put(bytes);
+        Integer written = bufferedFile.write(-1, bytes.length, byteBuffer).get(1000, TimeUnit.MILLISECONDS);
+        assertEquals((int) Files.size(tempFile), written);
+        assertEquals(str, new String(Files.readAllBytes(tempFile)));
+
+        bufferedFile.write(-1, bytes.length, byteBuffer).get(1000, TimeUnit.MILLISECONDS);
+        assertEquals((int) Files.size(tempFile), written * 2);
+        assertEquals(str + str, new String(Files.readAllBytes(tempFile)));
     }
 
     @Test
@@ -155,9 +173,9 @@ public class BufferedFileTest {
         byte[] bytes = str.getBytes(StandardCharsets.UTF_8);
         ByteBuffer byteBuffer = ByteBuffer.allocateDirect(bytes.length);
         byteBuffer.put(bytes);
-        Integer wrote = bufferedFile.write(100, bytes.length, byteBuffer).get(1000, TimeUnit.MILLISECONDS);
-        assertEquals(file.length(), wrote + 100);
-        assertEquals(bytes.length, wrote);
+        Integer written = bufferedFile.write(100, bytes.length, byteBuffer).get(1000, TimeUnit.MILLISECONDS);
+        assertEquals(file.length(), written + 100);
+        assertEquals(bytes.length, written);
     }
 
     @Test
@@ -170,8 +188,8 @@ public class BufferedFileTest {
         byte[] bytes = str.getBytes(StandardCharsets.UTF_8);
         ByteBuffer byteBuffer = ByteBuffer.allocateDirect(bytes.length);
         byteBuffer.put(bytes);
-        Integer wrote = bufferedFile.write(0, 0, byteBuffer).get(1000, TimeUnit.MILLISECONDS);
-        assertEquals(0, wrote);
+        Integer written = bufferedFile.write(0, 0, byteBuffer).get(1000, TimeUnit.MILLISECONDS);
+        assertEquals(0, written);
         assertEquals(0, file.length());
     }
 
