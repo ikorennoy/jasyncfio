@@ -2,6 +2,7 @@ plugins {
     java
     id("dev.nokee.jni-library")
     id("dev.nokee.c-language")
+    id("me.champeau.jmh") version "0.6.1"
 }
 
 group = "one.jasyncfio"
