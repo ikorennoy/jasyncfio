@@ -29,6 +29,9 @@ public class BufferedFileBenchmark {
         public ByteBuffer[] writeBuffers = new ByteBuffer[jasyncfioIterations];
         public EventExecutorGroup eventExecutorGroup = EventExecutorGroup.initDefault();
         public CompletableFuture<Integer>[] futures = new CompletableFuture[jasyncfioIterations];
+        public CompletableFuture<BufferedFile>[] bufferedFilesFutures = new CompletableFuture[jasyncfioIterations];
+
+        public Path[] writeFiles = new Path[jasyncfioIterations];
 
         Path readTestFile;
         Path writeTestFile;
@@ -51,6 +54,10 @@ public class BufferedFileBenchmark {
                 random.nextBytes(bytes);
                 writeBuffer.put(bytes);
                 writeBuffers[i] = writeBuffer;
+
+                Path writeFile = tmpDir.resolve(writeTestFileName + "-" + i);
+                Files.createFile(writeFile);
+                writeFiles[i] = writeFile;
             }
         }
 
@@ -58,6 +65,9 @@ public class BufferedFileBenchmark {
         public void tearDown() throws IOException {
             Files.delete(tmpDir.resolve(readTestFileName));
             Files.delete(tmpDir.resolve(writeTestFileName));
+            for (Path f: writeFiles) {
+                Files.delete(f);
+            }
             Files.delete(tmpDir);
         }
 
@@ -69,7 +79,7 @@ public class BufferedFileBenchmark {
     }
 
     @Benchmark
-    // must be same value with Data.jasyncfioIterations
+    // must be the same value with Data.jasyncfioIterations
     @OperationsPerInvocation(128)
     @Fork(1)
     public Integer jasyncfioRead(Data data) throws Exception {
@@ -84,18 +94,20 @@ public class BufferedFileBenchmark {
     }
 
     @Benchmark
-    // must be same value with Data.jasyncfioIterations
+    // must be the same value with Data.jasyncfioIterations
     @OperationsPerInvocation(128)
     @Fork(1)
-    public int jasyncfioWrite(Data data) throws Exception {
-        BufferedFile writeTestFile = data.eventExecutorGroup.createBufferedFile(data.writeTestFile.toString()).get();
+    public void jasyncfioWrite(Data data) throws Exception {
+        for (int i = 0; i < data.jasyncfioIterations; i++) {
+            data.bufferedFilesFutures[i] = data.eventExecutorGroup.createBufferedFile(data.writeFiles[i].toString());
+        }
+
+        CompletableFuture.allOf(data.bufferedFilesFutures).get();
 
         for (int i = 0; i < data.jasyncfioIterations; i++) {
-            data.futures[i] = writeTestFile.write(-1, data.readBuffers[i]);
+            data.futures[i] = data.bufferedFilesFutures[i].get().write(-1, data.readBuffers[i]);
         }
         CompletableFuture.allOf(data.futures).get();
-
-        return writeTestFile.close().get();
     }
 
     @Benchmark
