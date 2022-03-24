@@ -163,6 +163,26 @@ abstract class AbstractEventExecutor {
         return f;
     }
 
+    public CompletableFuture<Integer> scheduleWritev(int fd, long iovecArrAddress, long offset, int iovecArrSize) {
+        CompletableFuture<Integer> f = new CompletableFuture<>();
+        execute(() -> {
+            int opId = sequencer.getAsInt();
+            pendingFutures.put(opId, f);
+            ring.getSubmissionQueue().addWritev(fd, iovecArrAddress, offset, iovecArrSize, opId);
+        });
+        return f;
+    }
+
+    public CompletableFuture<Integer> scheduleReadv(int fd, long iovecArrAddress, long offset, int iovecArrSize) {
+        CompletableFuture<Integer> f = new CompletableFuture<>();
+        execute(() -> {
+            int opId = sequencer.getAsInt();
+            pendingFutures.put(opId, f);
+            ring.getSubmissionQueue().addReadv(fd, iovecArrAddress, offset, iovecArrSize, opId);
+        });
+        return f;
+    }
+
     public CompletableFuture<Integer> scheduleOpenAt(int dirFd, long pathAddress, int openFlags, int mode) {
         CompletableFuture<Integer> f = new CompletableFuture<>();
         execute(() -> {

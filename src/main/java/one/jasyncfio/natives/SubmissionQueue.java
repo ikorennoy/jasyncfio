@@ -128,6 +128,30 @@ public class SubmissionQueue {
         );
     }
 
+    public void addWritev(int fd, long iovecArrAddress, long offset, int iovecArrSize, int opId) throws Throwable {
+        enqueueSqe(Native.IORING_OP_WRITEV,
+                0,
+                0,
+                fd,
+                iovecArrAddress,
+                iovecArrSize,
+                offset,
+                opId
+        );
+    }
+
+    public void addReadv(int fd, long iovecArrAddress, long offset, int iovecArrSize, int opId) throws Throwable {
+        enqueueSqe(Native.IORING_OP_READV,
+                0,
+                0,
+                fd,
+                iovecArrAddress,
+                iovecArrSize,
+                offset,
+                opId
+        );
+    }
+
     public void addStatx(int dirfd, long pathAddress, int statxFlags, int mask, long statxBufferAddress, int opId) throws Throwable {
         enqueueSqe(Native.IORING_OP_STATX,
                 0,
