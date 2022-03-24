@@ -109,7 +109,7 @@ public class BufferedFileBenchmark {
     @Benchmark
     @Fork(1)
     public int jasyncfioWritev(Data data) throws Exception {
-        BufferedFile bufferedFile = data.eventExecutorGroup.openBufferedFile(data.readTestFile.toString()).get();
+        BufferedFile bufferedFile = data.eventExecutorGroup.createBufferedFile(data.readTestFile.toString()).get();
         bufferedFile.write(-1, data.writeBuffers).get();
         return bufferedFile.close().get();
     }
