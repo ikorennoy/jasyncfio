@@ -321,22 +321,22 @@ public class BufferedFileTest {
         assertFalse(tempFile.exists());
     }
 
-    @Test
-    void read_ioPoll() throws Exception {
-        EventExecutorGroup eventExecutorGroup = EventExecutorGroup.builder()
-                .ioRingSetupSqPoll(2000)
-                .build();
-        Path tempFile = Files.createTempFile(tmpDir, "temp-", "-file");
-        BufferedFile bufferedFile = eventExecutorGroup.createBufferedFile(tempFile.toString()).get(1000, TimeUnit.MILLISECONDS);
-        assertEquals(0, Files.size(tempFile));
-        String str = prepareString(100);
-        byte[] bytes = str.getBytes(StandardCharsets.UTF_8);
-        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(bytes.length);
-        byteBuffer.put(bytes);
-        Integer written = bufferedFile.write(0, bytes.length, byteBuffer).get(1000, TimeUnit.MILLISECONDS);
-        assertEquals((int) Files.size(tempFile), written);
-        assertEquals(str, new String(Files.readAllBytes(tempFile)));
-    }
+//    @Test
+//    void read_ioPoll() throws Exception {
+//        EventExecutorGroup eventExecutorGroup = EventExecutorGroup.builder()
+//                .ioRingSetupSqPoll(500_000)
+//                .build();
+//        Path tempFile = Files.createTempFile(tmpDir, "temp-", "-file");
+//        BufferedFile bufferedFile = eventExecutorGroup.createBufferedFile(tempFile.toString()).get(1000, TimeUnit.MILLISECONDS);
+//        assertEquals(0, Files.size(tempFile));
+//        String str = prepareString(100);
+//        byte[] bytes = str.getBytes(StandardCharsets.UTF_8);
+//        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(bytes.length);
+//        byteBuffer.put(bytes);
+//        Integer written = bufferedFile.write(0, bytes.length, byteBuffer).get(1000, TimeUnit.MILLISECONDS);
+//        assertEquals((int) Files.size(tempFile), written);
+//        assertEquals(str, new String(Files.readAllBytes(tempFile)));
+//    }
 
     private void deleteOnExit(BufferedFile f) {
         new File(f.getPath()).deleteOnExit();
