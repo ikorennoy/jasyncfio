@@ -321,6 +321,53 @@ public class BufferedFileTest {
         assertFalse(tempFile.exists());
     }
 
+    @Test
+    void writev() throws Exception {
+        Path tempFile = Files.createTempFile(tmpDir, "temp-", "-file");
+        BufferedFile bufferedFile = eventExecutorGroup.createBufferedFile(tempFile.toString()).get(1000, TimeUnit.MILLISECONDS);
+        assertEquals(0, Files.size(tempFile));
+        ByteBuffer[] buffers = new ByteBuffer[10];
+        StringBuilder strings = new StringBuilder();
+        String str = prepareString(100);
+        byte[] bytes = str.getBytes(StandardCharsets.UTF_8);
+        for (int i = 0; i < buffers.length; i++) {
+            ByteBuffer byteBuffer = ByteBuffer.allocateDirect(bytes.length);
+            byteBuffer.put(bytes);
+            byteBuffer.flip();
+            buffers[i] = byteBuffer;
+            strings.append(str);
+        }
+        Integer written = bufferedFile.write(0, buffers).get(1000, TimeUnit.MILLISECONDS);
+        assertEquals((int) Files.size(tempFile), written);
+        assertEquals(strings.toString(), new String(Files.readAllBytes(tempFile)));
+    }
+
+    @Test
+    void readv() throws Exception {
+        Path tempFile = Files.createTempFile(tmpDir, "temp-", "-file");
+        String resultString = prepareString(100);
+        writeStringToFile(resultString, tempFile.toFile());
+        int length = resultString.getBytes(StandardCharsets.UTF_8).length;
+
+        ByteBuffer[] buffers = new ByteBuffer[10];
+
+        for (int i = 0; i < buffers.length; i++) {
+            buffers[i] = ByteBuffer.allocateDirect(length / 10);
+        }
+
+        assertTrue(Files.size(tempFile) > 0);
+        BufferedFile bufferedFile = eventExecutorGroup.openBufferedFile(tempFile.toString()).get(1000, TimeUnit.MILLISECONDS);
+        Integer bytes = bufferedFile.read(0, buffers).get(1000, TimeUnit.MILLISECONDS);
+
+        StringBuilder strings = new StringBuilder();
+        for (ByteBuffer bb : buffers) {
+            strings.append(StandardCharsets.UTF_8.decode(bb));
+        }
+        assertEquals((int) Files.size(tempFile), bytes);
+        assertEquals(resultString, strings.toString());
+    }
+
+
 //    @Test
 //    void read_ioPoll() throws Exception {
 //        EventExecutorGroup eventExecutorGroup = EventExecutorGroup.builder()

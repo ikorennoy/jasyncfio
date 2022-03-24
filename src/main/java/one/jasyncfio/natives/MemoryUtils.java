@@ -28,6 +28,10 @@ public class MemoryUtils {
         unsafe.park(isAbsolute, time);
     }
 
+    public static int addressSize() {
+        return unsafe.addressSize();
+    }
+
     public static void unpark(Object thread) {
         unsafe.unpark(thread);
     }
