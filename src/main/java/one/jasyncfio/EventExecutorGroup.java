@@ -12,8 +12,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class EventExecutorGroup {
 
     private final AtomicInteger sequencer = new AtomicInteger();
-    private final EventExecutor[] executors;
-    private final EventExecutor serviceRing;
+    private final AbstractEventExecutor[] executors;
+    private final AbstractEventExecutor serviceRing;
 
     EventExecutorGroup(int numberOfRings,
                        int entries,
@@ -47,11 +47,15 @@ public class EventExecutorGroup {
         if (ioRingSetupAttachWq) {
             flags |= Native.IORING_SETUP_ATTACH_WQ;
         }
-        executors = new EventExecutor[numberOfRings];
+        executors = new AbstractEventExecutor[numberOfRings];
         for (int i = 0; i < numberOfRings; i++) {
-            executors[i] = new EventExecutor(entries, flags, sqThreadIdle, sqThreadCpu, cqSize, attachWqRingFd);
+            if (ioRingSetupSqPoll) {
+                executors[i] = new SqPollEventExecutor(entries, flags, sqThreadIdle, sqThreadCpu, cqSize, attachWqRingFd);
+            } else {
+                executors[i] = new DefaultEventExecutor(entries, flags, sqThreadIdle, sqThreadCpu, cqSize, attachWqRingFd);
+            }
         }
-        serviceRing = new EventExecutor(entries, 0, 0, 0, 0, 0);
+        serviceRing = new DefaultEventExecutor(entries, 0, 0, 0, 0, 0);
     }
 
     public static Builder builder() {
@@ -62,7 +66,7 @@ public class EventExecutorGroup {
         return new Builder().build();
     }
 
-    private EventExecutor get() {
+    private AbstractEventExecutor get() {
         if (executors.length == 1) {
             return executors[0];
         } else {
@@ -200,15 +204,15 @@ public class EventExecutorGroup {
          * By using the submission queue to fill in new submission queue entries and watching for completions on the completion queue,
          * the application can submit and reap I/Os without doing a single system call.
          *
-         * @param sqThreadIdle max kernel thread idle time in milliseconds
+         * @param sqThreadIdleMillis max kernel thread idle time in milliseconds
          */
 
-        public Builder ioRingSetupSqPoll(int sqThreadIdle) {
-            if (sqThreadIdle < 0) {
-                throw new IllegalArgumentException("sqThreadIdle < 0");
+        public Builder ioRingSetupSqPoll(int sqThreadIdleMillis) {
+            if (sqThreadIdleMillis < 0) {
+                throw new IllegalArgumentException("sqThreadIdleMillis < 0");
             }
             this.ioRingSetupSqPoll = true;
-            this.sqThreadIdle = sqThreadIdle;
+            this.sqThreadIdle = sqThreadIdleMillis;
             return this;
         }
 

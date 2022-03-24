@@ -157,16 +157,16 @@ int setup_iouring(JNIEnv *env, struct io_uring *ring, int entries, int flags, in
     int ring_fd;
 
     memset(&p, 0, sizeof(p));
-    if ((flags &IORING_SETUP_SQPOLL) == IORING_SETUP_SQPOLL) {
+    if (flags & IORING_SETUP_SQPOLL) {
         p.sq_thread_idle = sq_thread_idle;
     }
-    if ((flags & IORING_SETUP_SQ_AFF) == IORING_SETUP_SQ_AFF) {
+    if (flags & IORING_SETUP_SQ_AFF) {
         p.sq_thread_cpu = sq_thread_cpu;
     }
-    if ((flags & IORING_SETUP_CQSIZE) == IORING_SETUP_CQSIZE) {
+    if (flags & IORING_SETUP_CQSIZE) {
         p.cq_entries = cq_size;
     }
-    if ((flags & IORING_SETUP_ATTACH_WQ) == IORING_SETUP_ATTACH_WQ) {
+    if (flags & IORING_SETUP_ATTACH_WQ) {
         p.wq_fd = attach_wq_ring_fd;
     }
     p.flags = flags;

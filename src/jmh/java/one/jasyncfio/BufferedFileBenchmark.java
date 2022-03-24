@@ -24,7 +24,10 @@ public class BufferedFileBenchmark {
 
         public ByteBuffer[] readBuffers = new ByteBuffer[jasyncfioIterations];
         public ByteBuffer[] writeBuffers = new ByteBuffer[jasyncfioIterations];
-        public EventExecutorGroup eventExecutorGroup = EventExecutorGroup.initDefault();
+        public EventExecutorGroup eventExecutorGroup = EventExecutorGroup.
+                builder()
+                .entries(jasyncfioIterations)
+                .build();
         public CompletableFuture<Integer>[] futures = new CompletableFuture[jasyncfioIterations];
 
         Path tmpDir;
