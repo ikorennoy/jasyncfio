@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.IntSupplier;
 
-class EventExecutor {
+class DefaultEventExecutor {
     private static final boolean AWAKE = true;
     private static final boolean WAIT = false;
 
@@ -27,7 +27,7 @@ class EventExecutor {
     private final IntSupplier sequencer;
     private final Thread t;
 
-    EventExecutor(int entries, int flags, int sqThreadIdle, int sqThreadCpu, int cqSize, int attachWqRingFd) {
+    DefaultEventExecutor(int entries, int flags, int sqThreadIdle, int sqThreadCpu, int cqSize, int attachWqRingFd) {
         sequencer = new IntSupplier() {
             private int i = 0;
 
