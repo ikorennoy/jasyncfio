@@ -43,7 +43,7 @@ public class BufferedFileBenchmark {
 
 
         @Setup
-        public void prepare() throws IOException {
+        public void setup() throws IOException {
             Files.write(readTestFile, generateContent(sizeBytes), StandardOpenOption.WRITE);
             Random random = new Random();
             byte[] bytes = new byte[sizeBytes];
