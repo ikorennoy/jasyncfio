@@ -43,7 +43,7 @@ public class DmaFileBenchmark {
 
 
         @Setup
-        public void prepare() throws Exception {
+        public void setup() throws Exception {
             Files.write(readTestFile, generateContent(sizeBytes), StandardOpenOption.WRITE);
             Random random = new Random();
             byte[] bytes = new byte[sizeBytes];
