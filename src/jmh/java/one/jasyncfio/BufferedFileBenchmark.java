@@ -46,8 +46,8 @@ public class BufferedFileBenchmark {
 
 
         @Setup
-        public void setup() throws IOException {
-            Files.write(readTestFile, generateContent(sizeBytes), StandardOpenOption.WRITE);
+        public void setup() throws Exception {
+            Files.write(readTestFile, generateContent(sizeBytes * jasyncfioIterations), StandardOpenOption.WRITE);
             Random random = new Random();
             byte[] bytes = new byte[sizeBytes];
             for (int i = 0; i < jasyncfioIterations; i++) {
@@ -60,10 +60,11 @@ public class BufferedFileBenchmark {
         }
 
         @TearDown
-        public void tearDown() throws IOException {
+        public void tearDown() throws Exception {
             Files.delete(readTestFile);
             Files.delete(writeTestFile);
             Files.delete(tmpDir);
+
         }
 
         private static byte[] generateContent(int sizeBytes) {
@@ -77,9 +78,9 @@ public class BufferedFileBenchmark {
     @OperationsPerInvocation(Data.jasyncfioIterations)
     @Fork(1)
     public Integer jasyncfioRead(Data data) throws Exception {
-        BufferedFile readTestFile = data.eventExecutorGroup.openBufferedFile(data.readTestFile.toString()).join();
+        BufferedFile readTestFile = data.eventExecutorGroup.openBufferedFile(data.readTestFile.toString()).get();
         for (int i = 0; i < Data.jasyncfioIterations; i++) {
-            data.futures[i] = readTestFile.read(0, data.readBuffers[i]);
+            data.futures[i] = readTestFile.read(-1, data.readBuffers[i]);
         }
         CompletableFuture.allOf(data.futures).get();
         return readTestFile.close().get();
@@ -95,6 +96,22 @@ public class BufferedFileBenchmark {
         }
         CompletableFuture.allOf(data.futures).get();
         return writeTestFile.close().get();
+    }
+
+    @Benchmark
+    @Fork(1)
+    public int jasyncfioReadv(Data data) throws Exception {
+        BufferedFile bufferedFile = data.eventExecutorGroup.openBufferedFile(data.readTestFile.toString()).get();
+        bufferedFile.read(0, data.readBuffers).get();
+        return bufferedFile.close().get();
+    }
+
+    @Benchmark
+    @Fork(1)
+    public int jasyncfioWritev(Data data) throws Exception {
+        BufferedFile bufferedFile = data.eventExecutorGroup.openBufferedFile(data.readTestFile.toString()).get();
+        bufferedFile.write(-1, data.writeBuffers).get();
+        return bufferedFile.close().get();
     }
 
     @Benchmark
