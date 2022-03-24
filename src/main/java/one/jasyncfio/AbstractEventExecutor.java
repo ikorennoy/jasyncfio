@@ -99,6 +99,19 @@ abstract class AbstractEventExecutor {
         }
     }
 
+    void drain() {
+        boolean moreWork = true;
+        do {
+            try {
+                int processed = ring.getCompletionQueue().processEvents(callback);
+                boolean run = runAllTasks();
+                moreWork = processed != 0 || run;
+            } catch (Throwable t) {
+                handleLoopException(t);
+            }
+        } while (moreWork);
+    }
+
     private static void safeExec(ExtRunnable task) {
         try {
             task.run();

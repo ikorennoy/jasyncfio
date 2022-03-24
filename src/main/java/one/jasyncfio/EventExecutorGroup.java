@@ -47,9 +47,13 @@ public class EventExecutorGroup {
         if (ioRingSetupAttachWq) {
             flags |= Native.IORING_SETUP_ATTACH_WQ;
         }
-        executors = new DefaultEventExecutor[numberOfRings];
+        executors = new AbstractEventExecutor[numberOfRings];
         for (int i = 0; i < numberOfRings; i++) {
-            executors[i] = new DefaultEventExecutor(entries, flags, sqThreadIdle, sqThreadCpu, cqSize, attachWqRingFd);
+            if (ioRingSetupSqPoll) {
+                executors[i] = new SqPollEventExecutor(entries, flags, sqThreadIdle, sqThreadCpu, cqSize, attachWqRingFd);
+            } else {
+                executors[i] = new DefaultEventExecutor(entries, flags, sqThreadIdle, sqThreadCpu, cqSize, attachWqRingFd);
+            }
         }
         serviceRing = new DefaultEventExecutor(entries, 0, 0, 0, 0, 0);
     }
@@ -200,15 +204,15 @@ public class EventExecutorGroup {
          * By using the submission queue to fill in new submission queue entries and watching for completions on the completion queue,
          * the application can submit and reap I/Os without doing a single system call.
          *
-         * @param sqThreadIdle max kernel thread idle time in milliseconds
+         * @param sqThreadIdleMillis max kernel thread idle time in milliseconds
          */
 
-        public Builder ioRingSetupSqPoll(int sqThreadIdle) {
-            if (sqThreadIdle < 0) {
-                throw new IllegalArgumentException("sqThreadIdle < 0");
+        public Builder ioRingSetupSqPoll(int sqThreadIdleMillis) {
+            if (sqThreadIdleMillis < 0) {
+                throw new IllegalArgumentException("sqThreadIdleMillis < 0");
             }
             this.ioRingSetupSqPoll = true;
-            this.sqThreadIdle = sqThreadIdle;
+            this.sqThreadIdle = sqThreadIdleMillis;
             return this;
         }
 

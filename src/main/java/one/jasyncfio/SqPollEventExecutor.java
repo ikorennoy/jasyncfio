@@ -1,11 +1,11 @@
 package one.jasyncfio;
 
 import one.jasyncfio.natives.CompletionQueue;
-import one.jasyncfio.natives.Native;
+import one.jasyncfio.natives.MemoryUtils;
 import one.jasyncfio.natives.SubmissionQueue;
 
-class DefaultEventExecutor extends AbstractEventExecutor {
-    DefaultEventExecutor(int entries, int flags, int sqThreadIdle, int sqThreadCpu, int cqSize, int attachWqRingFd) {
+public class SqPollEventExecutor extends AbstractEventExecutor {
+    SqPollEventExecutor(int entries, int flags, int sqThreadIdle, int sqThreadCpu, int cqSize, int attachWqRingFd) {
         super(entries, flags, sqThreadIdle, sqThreadCpu, cqSize, attachWqRingFd);
     }
 
@@ -14,29 +14,27 @@ class DefaultEventExecutor extends AbstractEventExecutor {
         CompletionQueue completionQueue = ring.getCompletionQueue();
         SubmissionQueue submissionQueue = ring.getSubmissionQueue();
 
-        addEventFdRead(submissionQueue);
-
         for (;;) {
             try {
+                submissionQueue.submitPooled();
                 state.set(WAIT);
-                if (!hasTasks() && !completionQueue.hasCompletions()) {
-                    submissionQueue.submitAndWait();
+                if (!hasTasks() && !(completionQueue.hasCompletions() || submissionQueue.hasSubmitted())) {
+                    while (state.get() == WAIT) {
+                        MemoryUtils.park(false, 0);
+                    }
                 }
             } catch (Throwable t) {
                 handleLoopException(t);
-            } finally {
-                state.set(AWAKE);
             }
             drain();
         }
     }
 
-
     @Override
     protected void wakeup(boolean inEventLoop) {
         if (!inEventLoop && state.get() != AWAKE) {
-            // write to the eventfd which will then wake-up submitAndWait
-            Native.eventFdWrite(eventFd, 1L);
+           state.set(AWAKE);
+           MemoryUtils.unpark(t);
         }
     }
 }

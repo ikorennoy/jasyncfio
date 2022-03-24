@@ -24,8 +24,8 @@ public class MemoryUtils {
         unsafe.putOrderedInt(null, address, newValue);
     }
 
-    public static void park() {
-        unsafe.park(true, 0);
+    public static void park(boolean isAbsolute, long time) {
+        unsafe.park(isAbsolute, time);
     }
 
     public static void unpark(Object thread) {
