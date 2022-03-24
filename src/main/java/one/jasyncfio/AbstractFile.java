@@ -1,5 +1,6 @@
 package one.jasyncfio;
 
+import one.jasyncfio.natives.IovecArray;
 import one.jasyncfio.natives.MemoryUtils;
 import one.jasyncfio.natives.Native;
 
@@ -65,6 +66,17 @@ class AbstractFile {
         checkConstraints(position, length, buffer);
         return defaultEventExecutor.scheduleWrite(fd, MemoryUtils.getDirectBufferAddress(buffer), position, length);
     }
+
+    public CompletableFuture<Integer> write(long position, ByteBuffer[] buffers) {
+        IovecArray iovecArray = new IovecArray(buffers);
+        return defaultEventExecutor.scheduleWritev(fd, iovecArray.getIovecArrayAddress(), position, iovecArray.getCount());
+    }
+
+    public CompletableFuture<Integer> read(long position, ByteBuffer[] buffers) {
+        IovecArray iovecArray = new IovecArray(buffers);
+        return defaultEventExecutor.scheduleReadv(fd, iovecArray.getIovecArrayAddress(), position, iovecArray.getCount());
+    }
+
 
     private void checkConstraints(long position, int length, ByteBuffer buffer) {
         if (buffer == null) {
