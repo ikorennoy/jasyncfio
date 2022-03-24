@@ -10,13 +10,13 @@ class AbstractFile {
     final int fd;
     final String path;
     protected final long pathAddress;
-    protected final DefaultEventExecutor defaultEventExecutor;
+    protected final AbstractEventExecutor defaultEventExecutor;
 
-    AbstractFile(int fd, String path, long pathAddress, DefaultEventExecutor defaultEventExecutor) {
+    AbstractFile(int fd, String path, long pathAddress, AbstractEventExecutor abstractEventExecutor) {
         this.fd = fd;
         this.path = path;
         this.pathAddress = pathAddress;
-        this.defaultEventExecutor = defaultEventExecutor;
+        this.defaultEventExecutor = abstractEventExecutor;
     }
 
     public int getRawFd() {

@@ -12,8 +12,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class EventExecutorGroup {
 
     private final AtomicInteger sequencer = new AtomicInteger();
-    private final DefaultEventExecutor[] executors;
-    private final DefaultEventExecutor serviceRing;
+    private final AbstractEventExecutor[] executors;
+    private final AbstractEventExecutor serviceRing;
 
     EventExecutorGroup(int numberOfRings,
                        int entries,
@@ -62,7 +62,7 @@ public class EventExecutorGroup {
         return new Builder().build();
     }
 
-    private DefaultEventExecutor get() {
+    private AbstractEventExecutor get() {
         if (executors.length == 1) {
             return executors[0];
         } else {

@@ -218,6 +218,10 @@ public class SubmissionQueue {
         );
     }
 
+    public boolean hasSubmitted() {
+        return tail != MemoryUtils.getIntVolatile(kHead);
+    }
+
     private boolean enqueueSqe(byte op, int flags, int rwFlags, int fd,
                                long bufferAddress, int length, long offset, int data) throws Throwable {
         int pending = tail - head;
@@ -255,5 +259,9 @@ public class SubmissionQueue {
             throw new IOException(String.format("Error code: %d; message: %s", -ret, Native.decodeErrno(ret)));
         }
         return ret;
+    }
+
+    public void submitPooled() {
+        MemoryUtils.putIntOrdered(kTail, tail);
     }
 }

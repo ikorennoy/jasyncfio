@@ -8,7 +8,7 @@ import static one.jasyncfio.natives.MemoryUtils.allocateAlignedByteBuffer;
 public class DmaFile extends AbstractFile {
     public static final int DEFAULT_ALIGNMENT = 512;
 
-    DmaFile(int fd, String path, long pathAddress, DefaultEventExecutor defaultEventExecutor) {
+    DmaFile(int fd, String path, long pathAddress, AbstractEventExecutor defaultEventExecutor) {
         super(fd, path, pathAddress, defaultEventExecutor);
     }
 

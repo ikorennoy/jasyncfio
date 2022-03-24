@@ -24,6 +24,14 @@ public class MemoryUtils {
         unsafe.putOrderedInt(null, address, newValue);
     }
 
+    public static void park() {
+        unsafe.park(true, 0);
+    }
+
+    public static void unpark(Object thread) {
+        unsafe.unpark(thread);
+    }
+
     public static int getIntVolatile(long address) {
         return unsafe.getIntVolatile(null, address);
     }
