@@ -2,6 +2,8 @@ package one.jasyncfio.natives;
 
 import java.io.IOException;
 
+import static one.jasyncfio.natives.Native.IORING_SQ_NEED_WAKEUP;
+
 public class SubmissionQueue {
     private static final long SQE_SIZE = 64;
 
@@ -71,6 +73,10 @@ public class SubmissionQueue {
 
     public int getFlags() {
         return MemoryUtils.getIntVolatile(kFlags);
+    }
+
+    public void wakeup() {
+        Native.ioUringEnter(ringFd, 0, 0, Native.IORING_ENTER_SQ_WAKEUP);
     }
 
 
@@ -218,6 +224,10 @@ public class SubmissionQueue {
         );
     }
 
+    public boolean hasSubmitted() {
+        return tail != MemoryUtils.getIntVolatile(kHead);
+    }
+
     private boolean enqueueSqe(byte op, int flags, int rwFlags, int fd,
                                long bufferAddress, int length, long offset, int data) throws Throwable {
         int pending = tail - head;
@@ -255,5 +265,12 @@ public class SubmissionQueue {
             throw new IOException(String.format("Error code: %d; message: %s", -ret, Native.decodeErrno(ret)));
         }
         return ret;
+    }
+
+    public void submitPooled() {
+        if ((getFlags() & IORING_SQ_NEED_WAKEUP) == IORING_SQ_NEED_WAKEUP) {
+            wakeup();
+        }
+        MemoryUtils.putIntOrdered(kTail, tail);
     }
 }

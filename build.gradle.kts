@@ -21,8 +21,12 @@ tasks.jar {
     }
 }
 
+tasks.withType(Test::class) {
+    useJUnitPlatform()
+}
+
 tasks.withType(CCompile::class.java) {
-//    compilerArgs.add("-ggdb")
+    compilerArgs.add("-ggdb")
     compilerArgs.add("-D_GNU_SOURCE")
 }
 

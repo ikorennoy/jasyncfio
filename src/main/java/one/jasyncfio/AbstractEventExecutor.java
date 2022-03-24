@@ -11,23 +11,23 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.IntSupplier;
 
-class EventExecutor {
-    private static final boolean AWAKE = true;
-    private static final boolean WAIT = false;
+abstract class AbstractEventExecutor {
+    static final boolean AWAKE = true;
+    static final boolean WAIT = false;
 
-    private final AtomicBoolean state = new AtomicBoolean(WAIT);
-    private final Queue<ExtRunnable> tasks = new ConcurrentLinkedDeque<>();
-    private final Map<Integer, CompletableFuture<Integer>> pendingFutures = new HashMap<>();
-    private final long eventfdReadBuf = MemoryUtils.allocateMemory(8);
-    private final CompletionCallback callback = this::handle;
+    final AtomicBoolean state = new AtomicBoolean(WAIT);
+    final Queue<ExtRunnable> tasks = new ConcurrentLinkedDeque<>();
+    final Map<Integer, CompletableFuture<Integer>> pendingFutures = new HashMap<>();
+    final long eventfdReadBuf = MemoryUtils.allocateMemory(8);
+    final CompletionCallback callback = this::handle;
 
 
-    private final int eventFd;
-    private final Uring ring;
-    private final IntSupplier sequencer;
-    private final Thread t;
+    final int eventFd;
+    final Uring ring;
+    final IntSupplier sequencer;
+    final Thread t;
 
-    EventExecutor(int entries, int flags, int sqThreadIdle, int sqThreadCpu, int cqSize, int attachWqRingFd) {
+    AbstractEventExecutor(int entries, int flags, int sqThreadIdle, int sqThreadCpu, int cqSize, int attachWqRingFd) {
         sequencer = new IntSupplier() {
             private int i = 0;
 
@@ -42,35 +42,7 @@ class EventExecutor {
         t.start();
     }
 
-    private void run() {
-        CompletionQueue completionQueue = ring.getCompletionQueue();
-        SubmissionQueue submissionQueue = ring.getSubmissionQueue();
-
-        addEventFdRead(submissionQueue);
-
-        for (;;) {
-            try {
-                state.set(WAIT);
-                if (!hasTasks() && !completionQueue.hasCompletions()) {
-                    submissionQueue.submitAndWait();
-                }
-            } catch (Throwable t) {
-                handleLoopException(t);
-            } finally {
-                state.set(AWAKE);
-            }
-            boolean moreWork = true;
-            do {
-                try {
-                    int processed = completionQueue.processEvents(callback);
-                    boolean run = runAllTasks();
-                    moreWork = processed != 0 || run;
-                } catch (Throwable t) {
-                    handleLoopException(t);
-                }
-            } while (moreWork);
-        }
-    }
+    abstract void run();
 
 
     private void handle(int fd, int res, int flags, byte op, int data) {
@@ -89,7 +61,7 @@ class EventExecutor {
         }
     }
 
-    private void addEventFdRead(SubmissionQueue submissionQueue) {
+    void addEventFdRead(SubmissionQueue submissionQueue) {
         try {
             submissionQueue.addEventFdRead(eventFd, eventfdReadBuf, 0, 8, 0);
         } catch (Throwable e) {
@@ -107,29 +79,37 @@ class EventExecutor {
         tasks.add(task);
     }
 
-    private void wakeup(boolean inEventLoop) {
-        if (!inEventLoop && state.get() != AWAKE) {
-            // write to the eventfd which will then wake-up submitAndWait
-            Native.eventFdWrite(eventFd, 1L);
-        }
-    }
+    protected abstract void wakeup(boolean inEventLoop);
 
-    private boolean hasTasks() {
+    boolean hasTasks() {
         return !tasks.isEmpty();
     }
 
-    private boolean runAllTasks() {
+    boolean runAllTasks() {
         ExtRunnable t = tasks.poll();
         if (t == null) {
             return false;
         }
-        for (; ; ) {
+        for (;;) {
             safeExec(t);
             t = tasks.poll();
             if (t == null) {
                 return true;
             }
         }
+    }
+
+    void drain() {
+        boolean moreWork = true;
+        do {
+            try {
+                int processed = ring.getCompletionQueue().processEvents(callback);
+                boolean run = runAllTasks();
+                moreWork = processed != 0 || run;
+            } catch (Throwable t) {
+                handleLoopException(t);
+            }
+        } while (moreWork);
     }
 
     private static void safeExec(ExtRunnable task) {
