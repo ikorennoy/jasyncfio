@@ -2,10 +2,7 @@ package one.jasyncfio;
 
 import one.jasyncfio.natives.CompletionQueue;
 import one.jasyncfio.natives.MemoryUtils;
-import one.jasyncfio.natives.Native;
 import one.jasyncfio.natives.SubmissionQueue;
-
-import static one.jasyncfio.natives.Native.IORING_SQ_NEED_WAKEUP;
 
 public class SqPollEventExecutor extends AbstractEventExecutor {
     SqPollEventExecutor(int entries, int flags, int sqThreadIdle, int sqThreadCpu, int cqSize, int attachWqRingFd) {

@@ -269,7 +269,6 @@ public class SubmissionQueue {
 
     public void submitPooled() {
         if ((getFlags() & IORING_SQ_NEED_WAKEUP) == IORING_SQ_NEED_WAKEUP) {
-            System.out.println("NEED WAKE");
             wakeup();
         }
         MemoryUtils.putIntOrdered(kTail, tail);
