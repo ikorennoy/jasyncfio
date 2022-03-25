@@ -6,7 +6,15 @@ plugins {
     id("me.champeau.jmh") version "0.6.1"
 }
 
+val jvmTargetVersion = "8"
+
 group = "one.jasyncfio"
+
+tasks.filterIsInstance<JavaCompile>().forEach { compileJava ->
+    compileJava.targetCompatibility = jvmTargetVersion
+    compileJava.sourceCompatibility = jvmTargetVersion
+}
+
 
 repositories {
     mavenCentral()
