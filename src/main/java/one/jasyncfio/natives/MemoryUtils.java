@@ -107,7 +107,6 @@ public class MemoryUtils {
         if (!buffer.isDirect()) {
             throw new IllegalArgumentException("buffer is not direct");
         }
-//        return ((DirectBuffer) buffer).address();
         return Native.getDirectBufferAddress(buffer);
     }
 

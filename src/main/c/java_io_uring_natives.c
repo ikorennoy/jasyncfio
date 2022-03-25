@@ -181,6 +181,15 @@ int setup_iouring(JNIEnv *env, struct io_uring *ring, int entries, int flags, in
     return io_uring_mmap(ring, &p, &ring->sq, &ring->cq);
 }
 
+static void java_io_uring_register(JNIEnv *env, jclass clazz, jint fd, jint opcode, jlong arg, jint nr_args) {
+    int result;
+
+    result = sys_io_uring_register(fd, opcode, arg, nr_args);
+    if (result < 0) {
+        throwRuntimeExceptionErrorNo(env, "failed to call sys_io_uring_register", errno);
+    }
+}
+
 static jobjectArray java_io_uring_setup_iouring(JNIEnv *env, jclass clazz, jint entries, jint flags, jint sq_thread_idle, jint sq_thread_cpu, jint cq_size, jint attach_wq_ring_fd) {
     jclass longArrayClass = (*env)->FindClass(env, "[J");
 
@@ -300,6 +309,7 @@ static JNINativeMethod method_table[] = {
     {"getStringPointer", "(Ljava/lang/String;)J", (void *) get_string_ptr},
     {"releaseString", "(Ljava/lang/String;J)V", (void *) release_string},
     {"getDirectBufferAddress", "(Ljava/nio/Buffer;)J", (void *) get_direct_buffer_address},
+    {"ioUringRegister", "(IIJI)V", (void *) java_io_uring_register},
     {"getEventFd", "()I", (void *) jasyncfio_get_event_fd},
     {"eventFdWrite", "(IJ)I", (void *) jasyncfio_event_fd_write},
     {"setupIoUring0", "(IIIIII)[[J", (void *) java_io_uring_setup_iouring},
