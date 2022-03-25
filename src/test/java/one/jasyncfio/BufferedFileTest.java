@@ -1,5 +1,6 @@
 package one.jasyncfio;
 
+import one.jasyncfio.natives.Native;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
