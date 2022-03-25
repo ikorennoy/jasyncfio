@@ -11,7 +11,7 @@ public class Utils {
             if (file.exists())
                 in = new FileInputStream(file);
             else
-                in = new FileInputStream("build/libs/main/" + name);
+                in = new FileInputStream("build/" + name);
         }
         fileOut = File.createTempFile(name, "lib");
 

@@ -1,14 +1,13 @@
 plugins {
     java
     `maven-publish`
-    id("dev.nokee.jni-library")
-    id("dev.nokee.c-language")
     id("me.champeau.jmh") version "0.6.1"
 }
 
 val jvmTargetVersion = "8"
 
 group = "one.jasyncfio"
+version = "0.0.1"
 
 tasks.filterIsInstance<JavaCompile>().forEach { compileJava ->
     compileJava.targetCompatibility = jvmTargetVersion
@@ -16,27 +15,55 @@ tasks.filterIsInstance<JavaCompile>().forEach { compileJava ->
 }
 
 
+val cWorkDir = "src/main/c"
+val jdkPath = System.getenv("JAVA_HOME") ?: "/home/ikorennoy/.jdks/temurin-1.8.0_322"
+val jdkHome = File(jdkPath).normalize()
+val sharedLib = "build/libjasyncfio.so"
+
+
 repositories {
     mavenCentral()
 }
 
+task("compileLib", Exec::class) {
+    workingDir = File(cWorkDir).absoluteFile
+    println("JDK: $jdkHome")
+    println("Working dir: $workingDir")
+    println("Shared lib: ${File(sharedLib).absolutePath}")
+
+    commandLine = listOf(
+        "gcc",
+        "-g",
+        "-Ofast",
+        "-shared",
+        "-fpic",
+        "-o",
+        File(sharedLib).absolutePath,
+        "-I",
+        "$jdkHome/include/",
+        "-I",
+        "$jdkHome/include/linux/",
+        "java_io_uring_natives.c"
+    )
+}
+
 tasks.jar {
+    dependsOn.add(tasks.getByName("compileLib"))
+    from(sharedLib)
     archiveClassifier.set("linux-x86_64")
     manifest {
-        attributes(mapOf("Implementation-Title" to project.name,
-            "Implementation-Version" to project.version,
-            "Bundle-Description" to "jasyncfio provides an API for working with files through the Linux io_uring interface"),
+        attributes(
+            mapOf(
+                "Implementation-Title" to project.name,
+                "Implementation-Version" to project.version,
+                "Bundle-Description" to "jasyncfio provides an API for working with files through the Linux io_uring interface"
+            ),
         )
     }
 }
 
 tasks.withType(Test::class) {
     useJUnitPlatform()
-}
-
-tasks.withType(CCompile::class.java) {
-//    compilerArgs.add("-ggdb")
-    compilerArgs.add("-D_GNU_SOURCE")
 }
 
 publishing {
