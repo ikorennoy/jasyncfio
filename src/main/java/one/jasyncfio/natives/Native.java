@@ -67,13 +67,15 @@ public class Native {
 
     static native long getDirectBufferAddress(java.nio.Buffer buffer);
 
-    public static native long getStringPointer(String str);
+    static native long getStringPointer(String str);
 
-    public static native void releaseString(String str, long ptr);
+    static native void releaseString(String str, long ptr);
 
-    public static native String kernelVersion();
+    static native String kernelVersion();
 
     public static native String decodeErrno(int errorCode);
+
+    public static native void ioUringRegister(int fd, int opcode, long argPtr, int nrArgs);
 
     /**
      * took from netty io uring project
