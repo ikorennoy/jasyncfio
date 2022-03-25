@@ -67,13 +67,15 @@ public class Native {
 
     static native long getDirectBufferAddress(java.nio.Buffer buffer);
 
-    public static native long getStringPointer(String str);
+    static native long getStringPointer(String str);
 
-    public static native void releaseString(String str, long ptr);
+    static native void releaseString(String str, long ptr);
 
-    public static native String kernelVersion();
+    static native String kernelVersion();
 
     public static native String decodeErrno(int errorCode);
+
+    public static native void ioUringRegister(int fd, int opcode, long argPtr, int nrArgs);
 
     /**
      * took from netty io uring project
@@ -121,7 +123,13 @@ public class Native {
     public static final byte IORING_OP_RENAMEAT = UringConstants.ioRingOpRenameAt();
     public static final byte IORING_OP_READV = UringConstants.ioRingOpReadv();
     public static final byte IORING_OP_WRITEV = UringConstants.ioRingOpWritev();
+    public static final byte IORING_OP_READ_FIXED = UringConstants.ioRingOpReadFixed();
+    public static final byte IORING_OP_WRITE_FIXED = UringConstants.ioRingOpWriteFixed();
 
+    public static final int IORING_REGISTER_BUFFERS = UringConstants.ioRingRegisterBuffers();
+    public static final int IORING_UNREGISTER_BUFFERS = UringConstants.ioRingUnregisterBuffers();
+    public static final int IORING_REGISTER_FILES = UringConstants.ioRingRegisterFiles();
+    public static final int IORING_UNREGISTER_FILES = UringConstants.ioRingUnregisterFiles();
     public static final int IORING_ENTER_GETEVENTS = UringConstants.ioRingEnterGetEvents();
     public static final int IORING_ENTER_SQ_WAKEUP = UringConstants.ioRingEnterSqWakeup();
     public static final int IORING_SQ_NEED_WAKEUP = UringConstants.ioRingSqNeedWakeup();

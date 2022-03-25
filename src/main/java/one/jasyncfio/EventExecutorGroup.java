@@ -267,6 +267,9 @@ public class EventExecutorGroup {
 
 
         public EventExecutorGroup build() {
+            if (numberOfRings < 1) {
+                throw new IllegalArgumentException("num of rings must be at least 1");
+            }
             if (entries > 4096 || !isPowerOfTwo(entries)) {
                 throw new IllegalArgumentException("entries must be power of 2 and less than 4096");
             }
