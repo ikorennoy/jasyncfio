@@ -22,11 +22,12 @@ public class IovecArray {
     // todo support max capacity
 
     private final long iovecArrayAddress;
+    private final ByteBuffer iovecArray;
     private final int count;
     private final long size;
 
     public IovecArray(ByteBuffer[] buffers) {
-        ByteBuffer iovecArray = ByteBuffer.allocateDirect(buffers.length * IOV_SIZE);
+        iovecArray = ByteBuffer.allocateDirect(buffers.length * IOV_SIZE);
         iovecArrayAddress = MemoryUtils.getDirectBufferAddress(iovecArray);
         int count = 0;
         int size = 0;
@@ -48,7 +49,6 @@ public class IovecArray {
         this.count = count;
         this.size = size;
     }
-
 
     public long getIovecArrayAddress() {
         return iovecArrayAddress;

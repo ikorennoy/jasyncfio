@@ -13,10 +13,11 @@ public class SubmissionQueue {
     private static final int SQE_FD_FIELD = 4; // s32
     private static final int SQE_OFFSET_FIELD = 8;
     private static final int SQE_ADDRESS_FIELD = 16;
-    private static final int SQE_LEN_FIELD = 24;
-    private static final int SQE_RW_FLAGS_FIELD = 28;
-    private static final int SQE_USER_DATA_FIELD = 32;
-    private static final int SQE_PAD_FIELD = 40;
+    private static final int SQE_LEN_FIELD = 24; // u32
+    private static final int SQE_RW_FLAGS_FIELD = 28; // u32
+    private static final int SQE_USER_DATA_FIELD = 32; // u64
+    private static final int SQE_BUF_INDEX = 40; // u16
+
 
     private final long kHead;
     private final long kTail;

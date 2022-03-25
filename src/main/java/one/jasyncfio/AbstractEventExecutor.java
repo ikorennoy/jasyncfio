@@ -21,7 +21,6 @@ abstract class AbstractEventExecutor {
     final long eventfdReadBuf = MemoryUtils.allocateMemory(8);
     final CompletionCallback callback = this::handle;
 
-
     final int eventFd;
     final Uring ring;
     final IntSupplier sequencer;
