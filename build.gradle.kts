@@ -23,18 +23,17 @@ repositories {
 // compile shared lib
 
 val cWorkDir = File("src/main/c")
-val objectsOutputDir: File = File("build/generated/objectFiles")
 
-val generatedHeaders = File("build/generated/headers").absolutePath
+val objectsOutputDir: File = File("build/generated/objectFiles")
 val objectFiles = File("build/generated/objectFiles")
 if (!objectFiles.exists()) {
     objectFiles.mkdirs()
 }
+
 val jdkPath = File(System.getenv("JAVA_HOME") ?: "/usr/lib/jvm/java-8-openjdk-amd64")
-val fileIoConstantsSource = File("src/main/c/file_io_constants.c")
 val sharedLib = File("build/libjasyncfio.so").absolutePath
 
-
+// all targets
 val syscallTarget = File(objectsOutputDir, "syscall.o")
 val javaIoUringNativesTarget = File(objectsOutputDir, "java_io_uring_natives.o")
 val ioUringConstantsTarget = File(objectsOutputDir, "io_uring_constants.o")
