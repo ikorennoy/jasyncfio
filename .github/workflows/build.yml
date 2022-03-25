@@ -19,9 +19,6 @@ jobs:
 #          - arm64
     name: Linux binary ${{ matrix.arch }}
     steps:
-    - uses: actions/checkout@v2
-    - uses: satackey/action-docker-layer-caching@v0.0.11
-      continue-on-error: true
     - name: Update System
       run: sudo apt-get update -y
     - name: Install qemu
@@ -34,8 +31,10 @@ jobs:
       run: docker pull --platform $(echo ${{ matrix.arch }} | sed 's|-|/|g') ubuntu:20.04 || true
     - name: build in docker
       run: docker run --rm --ulimit memlock=-1:-1 -v $GITHUB_WORKSPACE:/work ubuntu:20.04 /work/.github/workflows/build.sh
+    - name: list dir
+      run: ls
     - name: Upload
       uses: actions/upload-artifact@v2
       with:
         name: jasyncfio-${{ matrix.arch }}
-        path: build/libs/main/*.jar
+        path: /work/build/libs/main/*.jar
