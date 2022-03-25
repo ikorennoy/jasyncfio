@@ -309,7 +309,7 @@ static JNINativeMethod method_table[] = {
     {"getStringPointer", "(Ljava/lang/String;)J", (void *) get_string_ptr},
     {"releaseString", "(Ljava/lang/String;J)V", (void *) release_string},
     {"getDirectBufferAddress", "(Ljava/nio/Buffer;)J", (void *) get_direct_buffer_address},
-    {"ioUringRegister", "(IIJI)", (void *) java_io_uring_register},
+    {"ioUringRegister", "(IIJI)V", (void *) java_io_uring_register},
     {"getEventFd", "()I", (void *) jasyncfio_get_event_fd},
     {"eventFdWrite", "(IJ)I", (void *) jasyncfio_event_fd_write},
     {"setupIoUring0", "(IIIIII)[[J", (void *) java_io_uring_setup_iouring},
