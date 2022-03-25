@@ -20,7 +20,7 @@ jobs:
     name: Linux binary ${{ matrix.arch }}
     steps:
     - name: list dir
-      run: ls
+      run: ls -l
     - name: Update System
       run: sudo apt-get update -y
     - name: Install qemu
