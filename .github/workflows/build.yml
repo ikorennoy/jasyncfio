@@ -10,7 +10,8 @@ on:
     branches: [ master ]
 
 jobs:
-  native:
+  build:
+    timeout-minutes: 10
     runs-on: ubuntu-20.04
     strategy:
       matrix:
@@ -19,8 +20,8 @@ jobs:
 #          - arm64
     name: Linux binary ${{ matrix.arch }}
     steps:
-    - name: list dir
-      run: /usr/bin/bash ls -l
+    - name: Git checkout
+      uses: actions/checkout@v2
     - name: Update System
       run: sudo apt-get update -y
     - name: Install qemu
@@ -37,4 +38,4 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: jasyncfio-${{ matrix.arch }}
-        path: /work/build/libs/main/*.jar
+        path: $GITHUB_WORKSPACE/build/libs/main/*.jar
