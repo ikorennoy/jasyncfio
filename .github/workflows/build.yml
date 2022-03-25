@@ -16,7 +16,7 @@ jobs:
       matrix:
         arch:
           - amd64
-          - arm64
+#          - arm64
     name: Linux binary ${{ matrix.arch }}
     steps:
     - uses: actions/checkout@v2
