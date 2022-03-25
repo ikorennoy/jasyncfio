@@ -16,8 +16,8 @@ tasks.filterIsInstance<JavaCompile>().forEach { compileJava ->
 
 
 val cWorkDir = "src/main/c"
-val jdkPath = System.getenv("JAVA_HOME") ?: "/home/ikorennoy/.jdks/temurin-1.8.0_322"
-val jdkHome = File(jdkPath).normalize()
+val generatedHeaders = "build/generated/headers"
+val jdkPath = System.getenv("JAVA_HOME") ?: "/usr/lib/jvm/java-8-openjdk-amd64"
 val sharedLib = "build/libjasyncfio.so"
 
 
@@ -25,9 +25,25 @@ repositories {
     mavenCentral()
 }
 
+task("prepareHeaders", Exec::class) {
+    commandLine = listOf(
+        "javah",
+        "-classpath",
+        "build/classes/java/main",
+        "-jni",
+        "-v",
+        "-d",
+        generatedHeaders,
+        "one.jasyncfio.natives.FileIoConstants",
+        "one.jasyncfio.natives.Native",
+        "one.jasyncfio.natives.UringConstants"
+    )
+}
+
 task("compileLib", Exec::class) {
+    dependsOn.add(tasks.getByName("prepareHeaders"))
     workingDir = File(cWorkDir).absoluteFile
-    println("JDK: $jdkHome")
+    println("JDK: $jdkPath")
     println("Working dir: $workingDir")
     println("Shared lib: ${File(sharedLib).absolutePath}")
 
@@ -40,9 +56,13 @@ task("compileLib", Exec::class) {
         "-o",
         File(sharedLib).absolutePath,
         "-I",
-        "$jdkHome/include/",
+        generatedHeaders,
         "-I",
-        "$jdkHome/include/linux/",
+        "$jdkPath/include",
+        "-I",
+        "$jdkPath/include/linux/",
+        "-I",
+        cWorkDir,
         "java_io_uring_natives.c"
     )
 }
