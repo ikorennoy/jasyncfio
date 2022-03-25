@@ -53,4 +53,13 @@ public class UringConstants {
     static native byte ioRingOpPollAdd();
 
     static native byte ioRingOpPollRemove();
+
+    static native int ioRingRegisterBuffers();
+
+    static native int ioRingUnregisterBuffers();
+
+    static native int ioRingRegisterFiles();
+
+    static native int ioRingUnregisterFiles();
+
 }

@@ -82,6 +82,19 @@ static jint get_ioring_setup_clamp() {
 static jint get_ioring_setup_attach_wq() {
     return IORING_SETUP_ATTACH_WQ;
 }
+static jint get_ioring_register_buffers() {
+    return IORING_REGISTER_BUFFERS;
+}
+static jint get_ioring_unregister_buffers() {
+    return IORING_UNREGISTER_BUFFERS;
+}
+static jint get_ioring_register_files() {
+    return IORING_REGISTER_FILES;
+}
+static jint get_ioring_unregister_files() {
+    return IORING_UNREGISTER_FILES;
+}
+
 
 
 static JNINativeMethod method_table[] = {
@@ -111,6 +124,10 @@ static JNINativeMethod method_table[] = {
     {"ioRingOpFallocate", "()B", (void *) get_ioring_op_fallocate},
     {"ioRingOpUnlinkAt", "()B", (void *) get_ioring_op_unlinkat},
     {"ioRingOpRenameAt", "()B", (void *) get_ioring_op_renameat},
+    {"ioRingRegisterBuffers", "()I", (void *) get_ioring_register_buffers},
+    {"ioRingUnregisterBuffers", "()I", (void *) get_ioring_unregister_buffers},
+    {"ioRingRegisterFiles", "()I", (void *) get_ioring_register_files},
+    {"ioRingUnregisterFiles", "()I", (void *) get_ioring_unregister_files},
 };
 
 jint jni_io_uring_constants_on_load(JNIEnv *env) {
