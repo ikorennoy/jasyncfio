@@ -80,7 +80,7 @@ public class DmaFileBenchmark {
         DmaFile readTestFile = data.eventExecutorGroup.openDmaFile(data.readTestFile.toString()).join();
 
         for (int i = 0; i < Data.jasyncfioIterations; i++) {
-            data.futures[i] = readTestFile.read(-1, 512, data.readBuffers[i]);
+            data.futures[i] = readTestFile.read(0, 512, data.readBuffers[i]);
         }
         CompletableFuture.allOf(data.futures).get();
         return readTestFile.close().get();
