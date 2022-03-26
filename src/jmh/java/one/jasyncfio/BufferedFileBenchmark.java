@@ -156,10 +156,10 @@ public class BufferedFileBenchmark {
     @Benchmark
     @Fork(1)
     public int nioWritev(Data data) throws Exception {
-        int read = 0;
+        int written = 0;
         FileChannel fileChannel = FileChannel.open(data.readTestFile, StandardOpenOption.WRITE);
-        read += fileChannel.write(data.readBuffers);
+        written += fileChannel.write(data.readBuffers);
         fileChannel.close();
-        return read;
+        return written;
     }
 }
