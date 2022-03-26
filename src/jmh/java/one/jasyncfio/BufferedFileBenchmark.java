@@ -110,7 +110,7 @@ public class BufferedFileBenchmark {
     @Benchmark
     @Fork(1)
     public int jasyncfioWritev(Data data) throws Exception {
-        BufferedFile bufferedFile = data.eventExecutorGroup.createBufferedFile(data.readTestFile.toString()).get();
+        BufferedFile bufferedFile = data.eventExecutorGroup.createBufferedFile(data.writeTestFile.toString()).get();
         bufferedFile.write(-1, data.writeBuffers).get();
         return bufferedFile.close().get();
     }
@@ -157,7 +157,7 @@ public class BufferedFileBenchmark {
     @Fork(1)
     public int nioWritev(Data data) throws Exception {
         int written = 0;
-        FileChannel fileChannel = FileChannel.open(data.readTestFile, StandardOpenOption.WRITE);
+        FileChannel fileChannel = FileChannel.open(data.writeTestFile, StandardOpenOption.WRITE);
         written += fileChannel.write(data.readBuffers);
         fileChannel.close();
         return written;

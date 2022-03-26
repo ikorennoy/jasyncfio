@@ -90,7 +90,7 @@ public class DmaFileBenchmark {
     @OperationsPerInvocation(Data.jasyncfioIterations)
     @Fork(value = 1)
     public Integer jasyncfioWrite(Data data) throws Exception {
-        DmaFile readTestFile = data.eventExecutorGroup.openDmaFile(data.readTestFile.toString()).join();
+        DmaFile readTestFile = data.eventExecutorGroup.createDmaFile(data.writeTestFile.toString()).join();
 
         for (int i = 0; i < Data.jasyncfioIterations; i++) {
             data.futures[i] = readTestFile.write(-1, 512, data.readBuffers[i]);
