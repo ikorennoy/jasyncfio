@@ -4,10 +4,15 @@
 name: Build
 
 on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version"
+        required: true
+      passphrase:
+        description: "GPG passphrase"
+        required: true
+
 
 jobs:
   build:
