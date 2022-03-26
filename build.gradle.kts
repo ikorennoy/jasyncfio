@@ -31,6 +31,8 @@ if (!objectFiles.exists()) {
 }
 
 val jdkPath = File(System.getenv("JAVA_HOME") ?: "/usr/lib/jvm/java-8-openjdk-amd64")
+println("JAVA_HOME: $jdkPath")
+
 val sharedLib = File("build/libjasyncfio.so").absolutePath
 
 // all targets
