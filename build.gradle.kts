@@ -55,25 +55,25 @@ val fileIoConstantsTarget = File(objectsOutputDir, "file_io_constants.o")
 
 
 task("fileIoConstants", Exec::class) {
-    val fileIoConstantsSource = File("src/main/c/file_io_constants.c")
+    val fileIoConstantsSource = project.file("src/main/c/file_io_constants.c")
     workingDir = cWorkDir
     commandLine = getCompileObjectArgs(fileIoConstantsSource, fileIoConstantsTarget)
 }
 
 task("ioUringConstants", Exec::class) {
-    val ioUringConstantsSrc = File("src/main/c/io_uring_constants.c")
+    val ioUringConstantsSrc = project.file("src/main/c/io_uring_constants.c")
     workingDir = cWorkDir
     commandLine = getCompileObjectArgs(ioUringConstantsSrc, ioUringConstantsTarget)
 }
 
 task("javaIoUringNatives", Exec::class) {
-    val javaIoUringNativesSource = File("src/main/c/java_io_uring_natives.c")
+    val javaIoUringNativesSource = project.file("src/main/c/java_io_uring_natives.c")
     workingDir = cWorkDir
     commandLine = getCompileObjectArgs(javaIoUringNativesSource, javaIoUringNativesTarget)
 }
 
 task("syscall", Exec::class) {
-    val syscallSource = File("src/main/c/syscall.c")
+    val syscallSource = project.file("src/main/c/syscall.c")
     workingDir = cWorkDir
     commandLine = getCompileObjectArgs(syscallSource, syscallTarget)
 }
