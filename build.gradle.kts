@@ -22,15 +22,6 @@ repositories {
 
 // compile shared lib
 
-val cWorkDir = File("src/main/c")
-
-val objectsOutputDir: File = File("build/generated/objectFiles")
-val objectFiles = File("build/generated/objectFiles")
-if (!objectFiles.exists()) {
-    objectFiles.mkdirs()
-}
-
-
 val arch: String
     get() {
         val archString = System.getProperty("os.arch")
@@ -52,6 +43,8 @@ val jdkPath: File
 println("JAVA_HOME: $jdkPath")
 println("ARCH: $arch")
 
+val cWorkDir = File("src/main/c")
+val objectsOutputDir: File = File("build/generated")
 val sharedLib = File("build/libjasyncfio.so").absolutePath
 
 // all targets
