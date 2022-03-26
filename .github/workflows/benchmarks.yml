@@ -1,0 +1,31 @@
+# This workflow will build a Java project with Gradle and cache/restore any dependencies to improve the workflow execution time
+# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-gradle
+
+name: Build
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    name: Benchmarks
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v2
+      - name: Update System
+        run: sudo apt-get update -q -y
+      - name: Install deps
+        run: sudo apt-get install -y --no-install-recommends openjdk-8-jdk make gcc g++ libc6-dev
+      - name: Build
+        run: ./gradlew assemble
+      - name: Run benchmarks
+        run: ./gradlew jmh
+      - name: Upload
+        uses: actions/upload-artifact@v2
+        with:
+          name: jasyncfio-benchmark-results
+          path: build/results/jmh/*.txt
