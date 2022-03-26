@@ -30,8 +30,27 @@ if (!objectFiles.exists()) {
     objectFiles.mkdirs()
 }
 
-val jdkPath = File(System.getenv("JAVA_HOME") ?: "/usr/lib/jvm/java-8-openjdk-amd64")
+
+val arch: String
+    get() {
+        val archString = System.getProperty("os.arch")
+        return if ("x86_64".equals(archString, true) || "amd64".equals(archString, true)) {
+            "X86_64"
+        } else if ("aarch64".equals(archString, true)) {
+            "aarch64"
+        } else {
+            throw IllegalArgumentException("Architecture $archString is not supported")
+        }
+    }
+
+val jdkPath: File
+    get() {
+        val javaHome = System.getenv("JAVA_HOME") ?: "/usr/lib/jvm/java-8-openjdk-amd64"
+        return File(javaHome)
+    }
+
 println("JAVA_HOME: $jdkPath")
+println("ARCH: $arch")
 
 val sharedLib = File("build/libjasyncfio.so").absolutePath
 
@@ -107,7 +126,7 @@ fun getCompileObjectArgs(sourceFile: File, outputFile: File): List<String> {
 tasks.jar {
     dependsOn.add(tasks.getByName("sharedLib"))
     from(sharedLib)
-    archiveClassifier.set("linux-x86_64")
+    archiveClassifier.set("linux-$arch")
     manifest {
         attributes(
             mapOf(
