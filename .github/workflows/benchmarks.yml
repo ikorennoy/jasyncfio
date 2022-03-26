@@ -7,11 +7,8 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Release version"
-        required: true
-      passphrase:
-        description: "GPG passphrase"
-        required: true
+        description: "Benchmarks for version"
+        required: false
 
 jobs:
   build:
