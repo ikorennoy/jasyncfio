@@ -43,9 +43,9 @@ val jdkPath: File
 println("JAVA_HOME: $jdkPath")
 println("ARCH: $arch")
 
-val cWorkDir = File("src/main/c")
-val objectsOutputDir: File = File("build/generated")
-val sharedLib = File("build/libjasyncfio.so").absolutePath
+val cWorkDir = project.file("src/main/c")
+val objectsOutputDir = project.file("build/generated")
+val sharedLib = project.file("build/libjasyncfio.so").absolutePath
 
 // all targets
 val syscallTarget = File(objectsOutputDir, "syscall.o")
