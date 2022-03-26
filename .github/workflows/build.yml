@@ -22,9 +22,11 @@ jobs:
     - name: Git checkout
       uses: actions/checkout@v2
     - name: Update System
-      run: sudo apt-get update -y
+      run: sudo apt-get update -q -y
     - name: Install qemu
-      run: sudo apt-get install -y --no-install-recommends qemu-user-static
+      run: sudo apt-get -qq install -y qemu qemu-user-static
+    - name: Docker deps
+      run: docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
     - name: Experimental Docker
       run: sudo cp .github/experimental-docker.json /etc/docker/daemon.json
     - name: Restart Docker
