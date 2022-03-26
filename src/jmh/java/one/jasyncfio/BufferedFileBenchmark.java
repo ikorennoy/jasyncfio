@@ -1,6 +1,7 @@
 package one.jasyncfio;
 
 import org.openjdk.jmh.annotations.*;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -80,7 +81,7 @@ public class BufferedFileBenchmark {
     public Integer jasyncfioRead(Data data) throws Exception {
         BufferedFile readTestFile = data.eventExecutorGroup.openBufferedFile(data.readTestFile.toString()).get();
         for (int i = 0; i < Data.jasyncfioIterations; i++) {
-            data.futures[i] = readTestFile.read(-1, data.readBuffers[i]);
+            data.futures[i] = readTestFile.read(0, data.readBuffers[i]);
         }
         CompletableFuture.allOf(data.futures).get();
         return readTestFile.close().get();
@@ -115,22 +116,50 @@ public class BufferedFileBenchmark {
     }
 
     @Benchmark
+    @OperationsPerInvocation(Data.jasyncfioIterations)
     @Fork(1)
     public int nioRead(Data data) throws Exception {
+        int read = 0;
         try (FileChannel readTestFileChannel = FileChannel.open(data.readTestFile, StandardOpenOption.READ)) {
-            int read = readTestFileChannel.read(data.readBuffers[0]);
-            data.readBuffers[0].flip();
+            for (int i = 0; i < Data.jasyncfioIterations; i++) {
+                read += readTestFileChannel.read(data.readBuffers[i], 0);
+                data.readBuffers[i].flip();
+            }
+            return read;
+        }
+    }
+
+    @Benchmark
+    @OperationsPerInvocation(Data.jasyncfioIterations)
+    @Fork(1)
+    public int nioWrite(Data data) throws Exception {
+        int written = 0;
+        try (FileChannel writeTestFileChannel = FileChannel.open(data.writeTestFile, StandardOpenOption.WRITE)) {
+            for (int i = 0; i < Data.jasyncfioIterations; i++) {
+                written += writeTestFileChannel.write(data.readBuffers[i]);
+                data.readBuffers[i].flip();
+            }
+            return written;
+        }
+    }
+
+    @Benchmark
+    @Fork(1)
+    public int nioReadv(Data data) throws Exception {
+        int read = 0;
+        try (FileChannel readTestFileChannel = FileChannel.open(data.readTestFile, StandardOpenOption.READ)) {
+            read += readTestFileChannel.read(data.readBuffers);
             return read;
         }
     }
 
     @Benchmark
     @Fork(1)
-    public int nioWrite(Data data) throws Exception {
-        try (FileChannel writeTestFileChannel = FileChannel.open(data.writeTestFile, StandardOpenOption.WRITE)) {
-            int written = writeTestFileChannel.write(data.writeBuffers[0]);
-            data.writeBuffers[0].flip();
-            return written;
+    public int nioWritev(Data data) throws Exception {
+        int read = 0;
+        try (FileChannel readTestFileChannel = FileChannel.open(data.readTestFile, StandardOpenOption.READ)) {
+            read += readTestFileChannel.write(data.readBuffers);
+            return read;
         }
     }
 }
