@@ -22,13 +22,11 @@ jobs:
         distro: ubuntu20.04
         githubToken: ${{ github.token }}
         shell: /bin/sh
-#        install: |
-        run: |
+        install: |
           apt-get update -y
           apt-get install -y --no-install-recommends openjdk-8-jdk make gcc g++ libc6-dev
-          echo JAVA_HOME:
-          echo $JAVA_HOME
-#          ./gradlew build --no-daemon
+        run: |
+          ./gradlew build --no-daemon
     - name: Show
       run: |
         ls -al "${PWD}"

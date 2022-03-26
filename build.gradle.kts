@@ -26,9 +26,9 @@ val arch: String
     get() {
         val archString = System.getProperty("os.arch")
         return if ("x86_64".equals(archString, true) || "amd64".equals(archString, true)) {
-            "X86_64"
+            "amd64"
         } else if ("aarch64".equals(archString, true)) {
-            "aarch64"
+            "arm64"
         } else {
             throw IllegalArgumentException("Architecture $archString is not supported")
         }
@@ -36,7 +36,7 @@ val arch: String
 
 val jdkPath: File
     get() {
-        val javaHome = System.getenv("JAVA_HOME") ?: "/usr/lib/jvm/java-8-openjdk-amd64"
+        val javaHome = System.getenv("JAVA_HOME") ?: "/usr/lib/jvm/java-8-openjdk-$arch"
         return File(javaHome)
     }
 
