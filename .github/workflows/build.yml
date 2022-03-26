@@ -16,7 +16,7 @@ jobs:
       matrix:
         arch:
           - amd64
-          - arm64
+#          - arm64
     name: Build on ${{ matrix.arch }}
     steps:
     - name: Git checkout
