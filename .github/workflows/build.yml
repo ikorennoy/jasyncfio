@@ -12,7 +12,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-20.04
-    name: Build on amd64
+    name: Build on arm64
     steps:
     - name: Git checkout
       uses: actions/checkout@v2
@@ -22,6 +22,8 @@ jobs:
         distro: ubuntu20.04
         githubToken: ${{ github.token }}
         shell: /bin/sh
+        dockerRunArgs: |
+          --ulimit memlock=-1:-1
         install: |
           apt-get update -y
           apt-get install -y --no-install-recommends openjdk-8-jdk make gcc g++ libc6-dev
