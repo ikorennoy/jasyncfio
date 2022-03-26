@@ -22,10 +22,10 @@ jobs:
         distro: ubuntu20.04
         githubToken: ${{ github.token }}
         shell: /bin/sh
-        install: |
+#        install: |
+        run: |
           apt-get update -y
           apt-get install -y --no-install-recommends openjdk-8-jdk make gcc g++ libc6-dev
-        run: |
           echo JAVA_HOME:
           echo $JAVA_HOME
 #          ./gradlew build --no-daemon
