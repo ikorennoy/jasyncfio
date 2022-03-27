@@ -98,15 +98,13 @@ abstract class AbstractEventExecutor {
         }
     }
 
-    void drain(int minComplete) {
-        int toComplete = minComplete;
+    void drain() {
         boolean moreWork = true;
         do {
             try {
                 int processed = ring.getCompletionQueue().processEvents(callback);
-                toComplete -= processed;
                 boolean run = runAllTasks();
-                moreWork = processed != 0 || run || toComplete > 0;
+                moreWork = processed != 0 || run;
             } catch (Throwable t) {
                 handleLoopException(t);
             }

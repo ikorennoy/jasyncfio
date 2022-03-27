@@ -59,14 +59,20 @@ public class CompletionQueue {
         int i = 0;
         while (ringHead != tail) {
             long cqeAddress = kCompletionArray + (ringHead & ringMask) * CQE_SIZE;
+
             long userData = MemoryUtils.getLong(cqeAddress + CQE_USER_DATA_FIELD);
             int res = MemoryUtils.getInt(cqeAddress + CQE_RES_FIELD);
             int flags = MemoryUtils.getInt(cqeAddress + CQE_FLAGS_FIELD);
+
             ringHead += 1;
             MemoryUtils.putIntOrdered(kHead, ringHead);
             i++;
             UserDataUtils.decode(res, flags, userData, callback);
         }
         return i;
+    }
+
+    public int getHead() {
+        return ringHead;
     }
 }

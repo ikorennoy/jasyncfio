@@ -31,7 +31,8 @@ public class DmaFileBenchmark {
         public static final long pageSize = Native.getPageSize();
         public static final EventExecutorGroup eventExecutors = EventExecutorGroup.builder()
                 .entries(ioDepth)
-//                .ioRingSetupIoPoll()
+//                .ioRingSetupSqPoll(2000)
+                .ioRingSetupIoPoll()
                 .build();
 
         public final Random random = new Random();
@@ -63,13 +64,13 @@ public class DmaFileBenchmark {
 
         @TearDown
         public void tearDown() throws Exception {
-            file.close().get();
+//            file.close().get();
         }
     }
 
 
     /**
-     * close analogue to t/io_uring -d128 -s32 -c32 -b512 -p0 -B0 -D0 -F0 -n1 -O1 -R1 <block-device>
+     * close analogue to t/io_uring -d128 -s32 -c32 -b512 -p1 -B0 -D0 -F0 -n1 -O1 -R1 <block-device>
      */
     @Benchmark
     @OperationsPerInvocation(Data.batchSubmit)
@@ -86,7 +87,7 @@ public class DmaFileBenchmark {
     }
 
     /**
-     * close analogue to t/io_uring -d128 -s32 -c32 -b512 -p0 -B0 -D0 -F0 -n1 -O1 -R0 <block-device>
+     * close analogue to t/io_uring -d128 -s32 -c32 -b512 -p1 -B0 -D0 -F0 -n1 -O1 -R0 <block-device>
      */
     @Benchmark
     @OperationsPerInvocation(Data.batchSubmit)
