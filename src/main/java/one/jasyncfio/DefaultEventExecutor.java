@@ -27,7 +27,7 @@ class DefaultEventExecutor extends AbstractEventExecutor {
             } finally {
                 state.set(AWAKE);
             }
-            drain();
+            drain(0);
         }
     }
 
