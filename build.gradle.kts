@@ -1,7 +1,7 @@
 plugins {
     java
     `maven-publish`
-    id("me.champeau.jmh") version "0.6.1"
+    id("me.champeau.jmh") version "0.6.4"
 }
 
 val jvmTargetVersion = "8"
@@ -172,4 +172,5 @@ publishing {
 dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.2")
     testImplementation("org.junit.jupiter:junit-jupiter-engine:5.8.2")
+    testImplementation("org.openjdk.jmh:jmh-core:1.34")
 }

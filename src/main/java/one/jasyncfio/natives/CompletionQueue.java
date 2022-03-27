@@ -23,16 +23,18 @@ public class CompletionQueue {
     private int ringHead;
     private final int ringMask;
     private final int ringFd;
+    private final long ringFlags;
 
     public CompletionQueue(long kHead,
-                                  long kTail,
-                                  long kRingMask,
-                                  long kRingEntries,
-                                  long kOverflow,
-                                  long kCompletionArray,
-                                  long kRingPointer,
-                                  int ringSize,
-                                  int ringFd) {
+                           long kTail,
+                           long kRingMask,
+                           long kRingEntries,
+                           long kOverflow,
+                           long kCompletionArray,
+                           long kRingPointer,
+                           int ringSize,
+                           int ringFd,
+                           long ringFlags) {
         this.kHead = kHead;
         this.kTail = kTail;
         this.kRingMask = kRingMask;
@@ -42,6 +44,7 @@ public class CompletionQueue {
         this.kRingPointer = kRingPointer;
         this.ringSize = ringSize;
         this.ringFd = ringFd;
+        this.ringFlags = ringFlags;
 
         this.ringHead = MemoryUtils.getIntVolatile(kHead);
         this.ringMask = MemoryUtils.getIntVolatile(kRingMask);
