@@ -61,7 +61,6 @@ public class SubmissionQueue {
         this.kRingPointer = kRingPointer;
         this.ringFd = ringFd;
         this.ringFlags = ringFlags;
-        System.out.println("Constructor ring flags: " + ringFlags);
 
         this.ringEntries = MemoryUtils.getIntVolatile(kRingEntries);
         this.ringMask = MemoryUtils.getIntVolatile(kRingMask);
@@ -79,11 +78,6 @@ public class SubmissionQueue {
     public int getFlags() {
         return MemoryUtils.getIntVolatile(kFlags);
     }
-
-    public void wakeup() {
-        Native.ioUringEnter(ringFd, 0, 0, Native.IORING_ENTER_SQ_WAKEUP);
-    }
-
 
     public int submit() throws Throwable {
         int submit = tail - head;
@@ -297,18 +291,10 @@ public class SubmissionQueue {
         } else {
             ret = toSubmit;
         }
-
         head = MemoryUtils.getIntVolatile(kHead);
         if (ret < 0) {
             throw new IOException(String.format("Error code: %d; message: %s", -ret, Native.decodeErrno(ret)));
         }
         return ret;
-    }
-
-    public void submitPooled() {
-        if ((getFlags() & IORING_SQ_NEED_WAKEUP) == IORING_SQ_NEED_WAKEUP) {
-            wakeup();
-        }
-        MemoryUtils.putIntOrdered(kTail, tail);
     }
 }
