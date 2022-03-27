@@ -5,8 +5,8 @@ import one.jasyncfio.natives.SubmissionQueue;
 
 import java.util.concurrent.locks.LockSupport;
 
-public class SqPollEventExecutor extends AbstractEventExecutor {
-    SqPollEventExecutor(int entries, int flags, int sqThreadIdle, int sqThreadCpu, int cqSize, int attachWqRingFd) {
+public class ParkEventExecutor extends AbstractEventExecutor {
+    ParkEventExecutor(int entries, int flags, int sqThreadIdle, int sqThreadCpu, int cqSize, int attachWqRingFd) {
         super(entries, flags, sqThreadIdle, sqThreadCpu, cqSize, attachWqRingFd);
     }
 
@@ -16,12 +16,10 @@ public class SqPollEventExecutor extends AbstractEventExecutor {
         SubmissionQueue submissionQueue = ring.getSubmissionQueue();
 
         for (;;) {
-            int submit = 0;
             try {
-                submit = submissionQueue.submit();
-                boolean submitted = submit != 0;
+                submissionQueue.submit();
                 state.set(WAIT);
-                if (!hasTasks() && !(completionQueue.hasCompletions() || submitted)) {
+                if (!hasTasks() && !(completionQueue.hasCompletions() || (submissionQueue.getTail() != completionQueue.getHead()))) {
                     while (state.get() == WAIT) {
                         LockSupport.park();
                     }
@@ -31,7 +29,7 @@ public class SqPollEventExecutor extends AbstractEventExecutor {
             } finally {
                 state.set(AWAKE);
             }
-            drain(submit);
+            drain();
         }
     }
 
