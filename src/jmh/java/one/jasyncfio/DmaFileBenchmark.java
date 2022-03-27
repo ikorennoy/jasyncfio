@@ -31,6 +31,7 @@ public class DmaFileBenchmark {
         public static final long pageSize = Native.getPageSize();
         public static final EventExecutorGroup eventExecutors = EventExecutorGroup.builder()
                 .entries(ioDepth)
+//                .ioRingSetupSqPoll(2000)
                 .ioRingSetupIoPoll()
                 .build();
 
@@ -73,8 +74,8 @@ public class DmaFileBenchmark {
      */
     @Benchmark
     @OperationsPerInvocation(Data.batchSubmit)
-    @Fork(value = 1, jvmArgsAppend = "-agentpath:/home/ikorennoy/Downloads/async-profiler-2.7-linux-x64/build/libasyncProfiler.so=start,event=cpu,file=jasyncfioRandomRead.jfr,jfr")
-    @Threads(4)
+    @Fork(value = 1)
+    @Threads(1)
     public void jasyncfioRandomRead(Data data) throws Exception {
         for (int i = 0; i < Data.batchSubmit; i++) {
             long position = (Math.abs(data.random.nextLong()) % (data.maxBlocks - 1)) * Data.blockSize;
@@ -90,8 +91,8 @@ public class DmaFileBenchmark {
      */
     @Benchmark
     @OperationsPerInvocation(Data.batchSubmit)
-    @Fork(value = 1, jvmArgsAppend = "-agentpath:/home/ikorennoy/Downloads/async-profiler-2.7-linux-x64/build/libasyncProfiler.so=start,event=cpu,file=jasyncfioSequentialRead.jfr,jfr")
-    @Threads(4)
+    @Fork(value = 1)
+    @Threads(1)
     public void jasyncfioSequentialRead(Data data) throws Exception {
         // start at some random position and do sequential read
         long currentOffset = (Math.abs(data.random.nextLong()) % (data.maxBlocks - 1)) * Data.blockSize;
