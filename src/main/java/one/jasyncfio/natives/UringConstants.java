@@ -8,6 +8,8 @@ public class UringConstants {
 
     static native int ioRingSqNeedWakeup();
 
+    static native int ioRingSqCqOverflow();
+
     static native int ioRingSetupSqPoll();
 
     static native int ioRingSetupIoPoll();

@@ -140,6 +140,7 @@ public class Native {
     public static final int IORING_ENTER_GETEVENTS = UringConstants.ioRingEnterGetEvents();
     public static final int IORING_ENTER_SQ_WAKEUP = UringConstants.ioRingEnterSqWakeup();
     public static final int IORING_SQ_NEED_WAKEUP = UringConstants.ioRingSqNeedWakeup();
+    public static final int IORING_SQ_CQ_OVERFLOW = UringConstants.ioRingSqCqOverflow();
     public static final int IORING_FSYNC_DATASYNC = UringConstants.ioRingFsyncDatasync();
     public static final int IORING_SETUP_SQPOLL = UringConstants.ioRingSetupSqPoll();
     public static final int IORING_SETUP_IOPOLL = UringConstants.ioRingSetupIoPoll();
