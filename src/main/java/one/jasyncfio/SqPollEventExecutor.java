@@ -15,26 +15,30 @@ public class SqPollEventExecutor extends AbstractEventExecutor {
         SubmissionQueue submissionQueue = ring.getSubmissionQueue();
 
         for (;;) {
+            int submit = 0;
             try {
-                submissionQueue.submitPooled();
+                submit = submissionQueue.submit();
+                boolean submitted = submit != 0;
                 state.set(WAIT);
-                if (!hasTasks() && !(completionQueue.hasCompletions() || submissionQueue.hasSubmitted())) {
+                if (!hasTasks() && !(completionQueue.hasCompletions() || submitted)) {
                     while (state.get() == WAIT) {
                         MemoryUtils.park(false, 0);
                     }
                 }
             } catch (Throwable t) {
                 handleLoopException(t);
+            } finally {
+                state.set(AWAKE);
             }
-            drain();
+            drain(submit);
         }
     }
 
     @Override
     protected void wakeup(boolean inEventLoop) {
-        if (!inEventLoop && state.get() != AWAKE) {
-           state.set(AWAKE);
-           MemoryUtils.unpark(t);
+        boolean localState = state.get();
+        if (!inEventLoop && (localState != AWAKE && state.compareAndSet(WAIT, AWAKE))) {
+            MemoryUtils.unpark(t);
         }
     }
 }

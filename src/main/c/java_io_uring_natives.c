@@ -5,6 +5,9 @@
 #include <sys/eventfd.h>
 #include <sys/utsname.h>
 #include <stdlib.h>
+#include <sys/stat.h>
+#include <sys/ioctl.h>
+#include <unistd.h>
 
 #include "syscall.h"
 #include "java_io_uring_natives.h"
@@ -305,6 +308,38 @@ static jstring decode_errno(JNIEnv* env, jclass clazz, jint error_code) {
     return result;
 }
 
+static jlong get_file_size(JNIEnv* env, jclass clazz, jint fd) {
+    struct stat st;
+    unsigned long long bytes;
+    jlong result = -1;
+
+    if (fstat(fd, &st) < 0) {
+        throwRuntimeExceptionErrorNo(env, "failed to call fstat; ", errno);
+    }
+    if (S_ISBLK(st.st_mode)) {
+        if (ioctl(fd, BLKGETSIZE64, &bytes) != 0) {
+            throwRuntimeExceptionErrorNo(env, "failed to call ioctl; ", errno);
+        }
+        result = bytes;
+    } else if (S_ISREG(st.st_mode)) {
+        result = st.st_size;
+    }
+    return result;
+}
+
+static jlong get_page_size(JNIEnv* env, jclass clazz) {
+    long page_size;
+    jlong result;
+
+    page_size = sysconf(_SC_PAGESIZE);
+    if (page_size < 0)
+        page_size = 4096;
+
+    result = page_size;
+    return result;
+
+}
+
 static JNINativeMethod method_table[] = {
     {"getStringPointer", "(Ljava/lang/String;)J", (void *) get_string_ptr},
     {"releaseString", "(Ljava/lang/String;J)V", (void *) release_string},
@@ -316,6 +351,8 @@ static JNINativeMethod method_table[] = {
     {"ioUringEnter0", "(IIII)I", (void *) asyncfio_io_uring_enter},
     {"kernelVersion", "()Ljava/lang/String;", (void *) get_kernel_version},
     {"decodeErrno", "(I)Ljava/lang/String;", (void *) decode_errno},
+    {"getFileSize", "(I)J", (void *) get_file_size},
+    {"getPageSize", "()J", (void *) get_page_size},
 };
 
 jint jni_iouring_on_load(JNIEnv *env) {
