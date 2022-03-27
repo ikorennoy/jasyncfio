@@ -15,7 +15,6 @@ class DefaultEventExecutor extends AbstractEventExecutor {
         SubmissionQueue submissionQueue = ring.getSubmissionQueue();
 
         addEventFdRead(submissionQueue);
-
         for (;;) {
             try {
                 state.set(WAIT);

@@ -24,16 +24,8 @@ public class MemoryUtils {
         unsafe.putOrderedInt(null, address, newValue);
     }
 
-    public static void park(boolean isAbsolute, long time) {
-        unsafe.park(isAbsolute, time);
-    }
-
     public static int addressSize() {
         return unsafe.addressSize();
-    }
-
-    public static void unpark(Object thread) {
-        unsafe.unpark(thread);
     }
 
     public static int getIntVolatile(long address) {
