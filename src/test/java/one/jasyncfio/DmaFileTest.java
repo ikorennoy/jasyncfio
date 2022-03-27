@@ -51,7 +51,7 @@ public class DmaFileTest {
         String expected = TestUtils.prepareString(100);
         int resultStringLength = 1024;
         TestUtils.writeStringToFile(expected, tempFile.toFile());
-        DmaFile dmaFile = eventExecutorGroup.openDmaFile(tempFile.toAbsolutePath().toString()).get(1000, TimeUnit.MILLISECONDS);
+        DmaFile dmaFile = eventExecutorGroup.openDmaFile(tempFile.toAbsolutePath().toString()).get();
         ByteBuffer byteBuffer = dmaFile.readAligned(0, resultStringLength).get();
         assertEquals(resultStringLength, byteBuffer.limit());
         String actual = StandardCharsets.UTF_8.decode(byteBuffer).toString();

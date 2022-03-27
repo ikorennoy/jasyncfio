@@ -84,6 +84,7 @@ int io_uring_mmap(struct io_uring *ring, struct io_uring_params *p, struct io_ur
     cq->overflow = cq->ring_ptr + p->cq_off.overflow;
     cq->cqes = cq->ring_ptr + p->cq_off.cqes;
 
+    ring->flags = p->flags;
 
     return 0;
 }
