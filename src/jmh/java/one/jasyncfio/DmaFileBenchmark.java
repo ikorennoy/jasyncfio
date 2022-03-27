@@ -7,7 +7,6 @@ import org.openjdk.jmh.annotations.*;
 import java.nio.ByteBuffer;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 @Warmup(iterations = 1)
@@ -16,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 @OutputTimeUnit(TimeUnit.SECONDS)
 public class DmaFileBenchmark {
 
-    @State(Scope.Benchmark)
+    @State(Scope.Thread)
     public static class Data {
         // can't provide this via System.getProperty because annotations require constants
         public static final int batchSubmit = 32;
@@ -66,8 +65,8 @@ public class DmaFileBenchmark {
     @Benchmark
     @OperationsPerInvocation(Data.batchSubmit)
     @Fork(value = 1)
-    @Threads(2)
-    public void jasyncfioRandomRead(Data data) throws ExecutionException, InterruptedException {
+    @Threads(1)
+    public void jasyncfioRandomRead(Data data) throws Exception {
         for (int i = 0; i < Data.batchSubmit; i++) {
             long position = (Math.abs(data.random.nextLong()) % (data.maxBlocks - 1)) * Data.blockSize;
             if (i < Data.batchComplete) {
@@ -76,12 +75,25 @@ public class DmaFileBenchmark {
         }
         CompletableFuture.allOf(data.futures).get();
     }
-//
-//    @Benchmark
-//    @OperationsPerInvocation(Data.jasyncfioIterations)
-//    @Fork(value = 1)
-//    public void jasyncfioSequentialRead(Data data) throws Exception {
-//        //nvme0 - samsung
-//        // nvme1 - micron
-//    }
+
+    //nvme0 - samsung
+    // nvme1 - micron
+    @Benchmark
+    @OperationsPerInvocation(Data.batchSubmit)
+    @Fork(value = 1)
+    @Threads(1)
+    public void jasyncfioSequentialRead(Data data) throws Exception {
+        // start at some random position and do sequential read
+        long currentOffset = (Math.abs(data.random.nextLong()) % (data.maxBlocks - 1)) * Data.blockSize;
+
+        for (int i = 0; i < Data.batchSubmit; i++) {
+            long position = currentOffset;
+            if (currentOffset + Data.blockSize > data.maxSize) {
+                currentOffset = 0;
+            }
+            currentOffset += Data.blockSize;
+            data.futures[i] = data.file.read(position, Data.blockSize, data.buffers[i]);
+        }
+        CompletableFuture.allOf(data.futures).get();
+    }
 }
