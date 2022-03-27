@@ -2,7 +2,7 @@ package one.jasyncfio.natives;
 
 import java.io.IOException;
 
-import static one.jasyncfio.natives.Native.IORING_SQ_NEED_WAKEUP;
+import static one.jasyncfio.natives.Native.*;
 
 public class SubmissionQueue {
     private static final long SQE_SIZE = 64;
@@ -36,6 +36,7 @@ public class SubmissionQueue {
     private int head;
     private int tail;
     private final int ringFd;
+    private final long ringFlags;
 
     public SubmissionQueue(long kHead,
                            long kTail,
@@ -47,7 +48,8 @@ public class SubmissionQueue {
                            long submissionArrayQueueAddress,
                            int ringSize,
                            long kRingPointer,
-                           int ringFd) {
+                           int ringFd,
+                           long ringFlags) {
         this.kHead = kHead;
         this.kTail = kTail;
         this.kRingEntries = kRingEntries;
@@ -58,6 +60,7 @@ public class SubmissionQueue {
         this.ringSize = ringSize;
         this.kRingPointer = kRingPointer;
         this.ringFd = ringFd;
+        this.ringFlags = ringFlags;
 
         this.ringEntries = MemoryUtils.getIntVolatile(kRingEntries);
         this.ringMask = MemoryUtils.getIntVolatile(kRingMask);
@@ -75,11 +78,6 @@ public class SubmissionQueue {
     public int getFlags() {
         return MemoryUtils.getIntVolatile(kFlags);
     }
-
-    public void wakeup() {
-        Native.ioUringEnter(ringFd, 0, 0, Native.IORING_ENTER_SQ_WAKEUP);
-    }
-
 
     public int submit() throws Throwable {
         int submit = tail - head;
@@ -279,20 +277,24 @@ public class SubmissionQueue {
     }
 
     private int submit(int toSubmit, int minComplete, int flags) throws Throwable {
-        // todo add need enter check
+        int ret;
+        boolean needEnter = false;
         MemoryUtils.putIntOrdered(kTail, tail);
-        int ret = Native.ioUringEnter(ringFd, toSubmit, minComplete, flags);
+        if (!((ringFlags & IORING_SETUP_SQPOLL) == IORING_SETUP_SQPOLL)) {
+            needEnter = true;
+            if ((getFlags() & IORING_SQ_NEED_WAKEUP) == IORING_SQ_NEED_WAKEUP) {
+                flags |= IORING_ENTER_SQ_WAKEUP;
+            }
+        }
+        if (needEnter) {
+            ret = Native.ioUringEnter(ringFd, toSubmit, minComplete, flags);
+        } else {
+            ret = toSubmit;
+        }
         head = MemoryUtils.getIntVolatile(kHead);
         if (ret < 0) {
             throw new IOException(String.format("Error code: %d; message: %s", -ret, Native.decodeErrno(ret)));
         }
         return ret;
-    }
-
-    public void submitPooled() {
-        if ((getFlags() & IORING_SQ_NEED_WAKEUP) == IORING_SQ_NEED_WAKEUP) {
-            wakeup();
-        }
-        MemoryUtils.putIntOrdered(kTail, tail);
     }
 }

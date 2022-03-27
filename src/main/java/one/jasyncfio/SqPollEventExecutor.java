@@ -1,8 +1,9 @@
 package one.jasyncfio;
 
 import one.jasyncfio.natives.CompletionQueue;
-import one.jasyncfio.natives.MemoryUtils;
 import one.jasyncfio.natives.SubmissionQueue;
+
+import java.util.concurrent.locks.LockSupport;
 
 public class SqPollEventExecutor extends AbstractEventExecutor {
     SqPollEventExecutor(int entries, int flags, int sqThreadIdle, int sqThreadCpu, int cqSize, int attachWqRingFd) {
@@ -22,7 +23,7 @@ public class SqPollEventExecutor extends AbstractEventExecutor {
                 state.set(WAIT);
                 if (!hasTasks() && !(completionQueue.hasCompletions() || submitted)) {
                     while (state.get() == WAIT) {
-                        MemoryUtils.park(false, 0);
+                        LockSupport.park();
                     }
                 }
             } catch (Throwable t) {
@@ -38,7 +39,7 @@ public class SqPollEventExecutor extends AbstractEventExecutor {
     protected void wakeup(boolean inEventLoop) {
         boolean localState = state.get();
         if (!inEventLoop && (localState != AWAKE && state.compareAndSet(WAIT, AWAKE))) {
-            MemoryUtils.unpark(t);
+            LockSupport.unpark(t);
         }
     }
 }
