@@ -1,14 +1,13 @@
 package one.jasyncfio;
 
 import one.jasyncfio.natives.MemoryUtils;
+import one.jasyncfio.natives.Native;
 import org.openjdk.jmh.annotations.*;
-import java.io.IOException;
+
 import java.nio.ByteBuffer;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 @Warmup(iterations = 1)
@@ -19,78 +18,70 @@ public class DmaFileBenchmark {
 
     @State(Scope.Benchmark)
     public static class Data {
-        private static final int sizeBytes = 512;
-        private static final int jasyncfioIterations = 128;
+        // can't provide this via System.getProperty because annotations require constants
+        public static final int batchSubmit = 32;
+        public static final int batchComplete = 32;
 
-        public ByteBuffer[] readBuffers = new ByteBuffer[jasyncfioIterations];
-        public ByteBuffer[] writeBuffers = new ByteBuffer[jasyncfioIterations];
-        public EventExecutorGroup eventExecutorGroup = EventExecutorGroup.
-                builder()
-                .entries(jasyncfioIterations)
+        public static final int blockSize = Integer.parseInt(System.getProperty("BLOCK_SIZE", "512"));
+        public static final int ioDepth = Integer.parseInt(System.getProperty("IO_DEPTH", "128"));
+        public static final long pageSize = Native.getPageSize();
+        public static final EventExecutorGroup eventExecutors = EventExecutorGroup.builder()
+                .entries(ioDepth)
+//                .ioRingSetupIoPoll()
                 .build();
-        public CompletableFuture<Integer>[] futures = new CompletableFuture[jasyncfioIterations];
 
-        Path tmpDir;
-        Path readTestFile;
-        Path writeTestFile;
-        DmaFile dmaFile;
+        public final Random random = new Random();
+        public final ByteBuffer[] buffers = new ByteBuffer[ioDepth];
 
-        {
-            try {
-                tmpDir = Files.createTempDirectory("tmp-dir-");
-                readTestFile = Files.createFile(tmpDir.resolve("read-test-file"));
-                writeTestFile = Files.createFile(tmpDir.resolve("write-test-file"));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
 
+        public String device;
+        public DmaFile file;
+        public long maxSize;
+        public long maxBlocks;
+        public CompletableFuture<Integer>[] futures = new CompletableFuture[batchComplete];
 
         @Setup
         public void setup() throws Exception {
-            Files.write(readTestFile, generateContent(sizeBytes), StandardOpenOption.WRITE);
-            dmaFile = eventExecutorGroup.openDmaFile(readTestFile.toString()).get();
-            Random random = new Random();
-            byte[] bytes = new byte[sizeBytes];
-            for (int i = 0; i < jasyncfioIterations; i++) {
-                readBuffers[i] = MemoryUtils.allocateAlignedByteBuffer(sizeBytes, DmaFile.DEFAULT_ALIGNMENT);
-                ByteBuffer writeBuffer = MemoryUtils.allocateAlignedByteBuffer(sizeBytes, DmaFile.DEFAULT_ALIGNMENT);
-                random.nextBytes(bytes);
-                writeBuffer.put(bytes);
-                writeBuffers[i] = writeBuffer;
+            device = System.getProperty("BLOCK_DEVICE");
+            if (device == null) {
+
+                throw new IllegalArgumentException("BLOCK_DEVICE system property must be specified");
             }
+            for (int i = 0; i < ioDepth; i++) {
+                buffers[i] = MemoryUtils.allocateAlignedByteBuffer(blockSize, pageSize);
+            }
+            file = eventExecutors.openDmaFile(device).get();
+
+            maxSize = Native.getFileSize(file.fd);
+            maxBlocks = maxSize / blockSize;
+
         }
 
         @TearDown
         public void tearDown() throws Exception {
-            Files.delete(readTestFile);
-            Files.delete(writeTestFile);
-            Files.delete(tmpDir);
-            dmaFile.close().get();
-        }
-
-        private static byte[] generateContent(int sizeBytes) {
-            byte[] content = new byte[sizeBytes];
-            new Random().nextBytes(content);
-            return content;
+            file.close().get();
         }
     }
 
     @Benchmark
-    @OperationsPerInvocation(Data.jasyncfioIterations)
+    @OperationsPerInvocation(Data.batchSubmit)
     @Fork(value = 1)
-    public void jasyncfioRandomRead(Data data) throws Exception {
-        for (int i = 0; i < Data.jasyncfioIterations; i++) {
-            data.futures[i] = data.dmaFile.read(0, 512, data.readBuffers[i]);
+    @Threads(2)
+    public void jasyncfioRandomRead(Data data) throws ExecutionException, InterruptedException {
+        for (int i = 0; i < Data.batchSubmit; i++) {
+            long position = (Math.abs(data.random.nextLong()) % (data.maxBlocks - 1)) * Data.blockSize;
+            if (i < Data.batchComplete) {
+                data.futures[i] = data.file.read(position, Data.blockSize, data.buffers[i]);
+            }
         }
         CompletableFuture.allOf(data.futures).get();
     }
-
-    @Benchmark
-    @OperationsPerInvocation(Data.jasyncfioIterations)
-    @Fork(value = 1)
-    public void jasyncfioSequentialRead(Data data) throws Exception {
-        //nvme0 - samsung
-        // nvme1 - micron
-    }
+//
+//    @Benchmark
+//    @OperationsPerInvocation(Data.jasyncfioIterations)
+//    @Fork(value = 1)
+//    public void jasyncfioSequentialRead(Data data) throws Exception {
+//        //nvme0 - samsung
+//        // nvme1 - micron
+//    }
 }
