@@ -79,14 +79,29 @@ public class SubmissionQueue {
         return MemoryUtils.getIntVolatile(kFlags);
     }
 
+    public boolean isIoPoll() {
+        return (ringFlags & Native.IORING_SETUP_IOPOLL) == Native.IORING_SETUP_IOPOLL;
+    }
+
     public int submit() throws Throwable {
         int submit = tail - head;
-        return submit > 0 ? submit(submit, 0, 0) : 0;
+        if (!isIoPoll()) {
+            return submit > 0 ? submit(submit, submit, Native.IORING_ENTER_GETEVENTS) : 0;
+        } else {
+            return submit(submit, submit, Native.IORING_ENTER_GETEVENTS);
+        }
     }
 
     public int submitAndWait() throws Throwable {
         int submit = tail - head;
-        return submit(Math.max(submit, 0), 0, Native.IORING_ENTER_GETEVENTS);
+        if (submit > 0) {
+            return submit(submit, 0, Native.IORING_ENTER_GETEVENTS);
+        }
+        int ret = Native.ioUringEnter(ringFd, 0, 1, IORING_ENTER_GETEVENTS);
+        if (ret < 0) {
+            throw new RuntimeException("ioUringEnter syscall returned " + ret);
+        }
+        return ret;
     }
 
     public boolean addRead(int fd, long bufferAddress, long offset, int length, int opId) throws Throwable {
@@ -296,5 +311,9 @@ public class SubmissionQueue {
             throw new IOException(String.format("Error code: %d; message: %s", -ret, Native.decodeErrno(ret)));
         }
         return ret;
+    }
+
+    public int getTail() {
+        return tail;
     }
 }

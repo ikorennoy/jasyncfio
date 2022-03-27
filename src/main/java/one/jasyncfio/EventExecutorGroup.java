@@ -50,12 +50,12 @@ public class EventExecutorGroup {
         executors = new AbstractEventExecutor[numberOfRings];
         for (int i = 0; i < numberOfRings; i++) {
             if (ioRingSetupSqPoll) {
-                executors[i] = new SqPollEventExecutor(entries, flags, sqThreadIdle, sqThreadCpu, cqSize, attachWqRingFd);
+                executors[i] = new ParkEventExecutor(entries, flags, sqThreadIdle, sqThreadCpu, cqSize, attachWqRingFd);
             } else {
-                executors[i] = new DefaultEventExecutor(entries, flags, sqThreadIdle, sqThreadCpu, cqSize, attachWqRingFd);
+                executors[i] = new ParkEventExecutor(entries, flags, sqThreadIdle, sqThreadCpu, cqSize, attachWqRingFd);
             }
         }
-        serviceRing = new DefaultEventExecutor(entries, 0, 0, 0, 0, 0);
+        serviceRing = new ParkEventExecutor(entries, 0, 0, 0, 0, 0);
     }
 
     public static Builder builder() {
