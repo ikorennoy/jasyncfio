@@ -33,6 +33,7 @@ public class DmaFileBenchmark {
         Path tmpDir;
         Path readTestFile;
         Path writeTestFile;
+        DmaFile dmaFile;
 
         {
             try {
@@ -48,6 +49,7 @@ public class DmaFileBenchmark {
         @Setup
         public void setup() throws Exception {
             Files.write(readTestFile, generateContent(sizeBytes), StandardOpenOption.WRITE);
+            dmaFile = eventExecutorGroup.openDmaFile(readTestFile.toString()).get();
             Random random = new Random();
             byte[] bytes = new byte[sizeBytes];
             for (int i = 0; i < jasyncfioIterations; i++) {
@@ -60,10 +62,11 @@ public class DmaFileBenchmark {
         }
 
         @TearDown
-        public void tearDown() throws IOException {
+        public void tearDown() throws Exception {
             Files.delete(readTestFile);
             Files.delete(writeTestFile);
             Files.delete(tmpDir);
+            dmaFile.close().get();
         }
 
         private static byte[] generateContent(int sizeBytes) {
@@ -76,26 +79,18 @@ public class DmaFileBenchmark {
     @Benchmark
     @OperationsPerInvocation(Data.jasyncfioIterations)
     @Fork(value = 1)
-    public Integer jasyncfioRead(Data data) throws Exception {
-        DmaFile readTestFile = data.eventExecutorGroup.openDmaFile(data.readTestFile.toString()).join();
-
+    public void jasyncfioRandomRead(Data data) throws Exception {
         for (int i = 0; i < Data.jasyncfioIterations; i++) {
-            data.futures[i] = readTestFile.read(0, 512, data.readBuffers[i]);
+            data.futures[i] = data.dmaFile.read(0, 512, data.readBuffers[i]);
         }
         CompletableFuture.allOf(data.futures).get();
-        return readTestFile.close().get();
     }
 
     @Benchmark
     @OperationsPerInvocation(Data.jasyncfioIterations)
     @Fork(value = 1)
-    public Integer jasyncfioWrite(Data data) throws Exception {
-        DmaFile readTestFile = data.eventExecutorGroup.createDmaFile(data.writeTestFile.toString()).join();
-
-        for (int i = 0; i < Data.jasyncfioIterations; i++) {
-            data.futures[i] = readTestFile.write(-1, 512, data.readBuffers[i]);
-        }
-        CompletableFuture.allOf(data.futures).get();
-        return readTestFile.close().get();
+    public void jasyncfioSequentialRead(Data data) throws Exception {
+        //nvme0 - samsung
+        // nvme1 - micron
     }
 }
