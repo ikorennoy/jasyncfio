@@ -76,8 +76,6 @@ public class DmaFileBenchmark {
         CompletableFuture.allOf(data.futures).get();
     }
 
-    // nvme0 - samsung
-    // nvme1 - micron
     @Benchmark
     @OperationsPerInvocation(Data.batchSubmit)
     @Fork(value = 1)
