@@ -36,6 +36,7 @@ public class SubmissionQueue {
     private int head;
     private int tail;
     private final int ringFd;
+    private final long ringFlags;
 
     public SubmissionQueue(long kHead,
                            long kTail,
@@ -47,7 +48,8 @@ public class SubmissionQueue {
                            long submissionArrayQueueAddress,
                            int ringSize,
                            long kRingPointer,
-                           int ringFd) {
+                           int ringFd,
+                           long ringFlags) {
         this.kHead = kHead;
         this.kTail = kTail;
         this.kRingEntries = kRingEntries;
@@ -58,6 +60,7 @@ public class SubmissionQueue {
         this.ringSize = ringSize;
         this.kRingPointer = kRingPointer;
         this.ringFd = ringFd;
+        this.ringFlags = ringFlags;
 
         this.ringEntries = MemoryUtils.getIntVolatile(kRingEntries);
         this.ringMask = MemoryUtils.getIntVolatile(kRingMask);

@@ -201,12 +201,12 @@ static jobjectArray java_io_uring_setup_iouring(JNIEnv *env, jclass clazz, jint 
         return NULL;
     }
 
-    jlongArray submissionArray = (*env)->NewLongArray(env, 11);
+    jlongArray submissionArray = (*env)->NewLongArray(env, 12);
     if (submissionArray == NULL) {
         return NULL;
     }
 
-    jlongArray completionArray = (*env)->NewLongArray(env, 9);
+    jlongArray completionArray = (*env)->NewLongArray(env, 10);
     if (completionArray == NULL) {
         // This will put an OOME on the stack
         return NULL;
@@ -226,9 +226,10 @@ static jobjectArray java_io_uring_setup_iouring(JNIEnv *env, jclass clazz, jint 
         (jlong) ring.sq.sqes,
         (jlong) ring.sq.ring_sz,
         (jlong) ring.sq.ring_ptr,
-        (jlong) ring.ring_fd
+        (jlong) ring.ring_fd,
+        (jlong) ring.flags
     };
-    (*env)->SetLongArrayRegion(env, submissionArray, 0, 11, submissionArrayElements);
+    (*env)->SetLongArrayRegion(env, submissionArray, 0, 12, submissionArrayElements);
 
     jlong completionArrayElements[] = {
         (jlong) ring.cq.head,
@@ -239,9 +240,10 @@ static jobjectArray java_io_uring_setup_iouring(JNIEnv *env, jclass clazz, jint 
         (jlong) ring.cq.cqes,
         (jlong) ring.cq.ring_ptr,
         (jlong) ring.cq.ring_sz,
-        (jlong) ring.ring_fd
+        (jlong) ring.ring_fd,
+        (jlong) ring.flags
     };
-    (*env)->SetLongArrayRegion(env, completionArray, 0, 9, completionArrayElements);
+    (*env)->SetLongArrayRegion(env, completionArray, 0, 10, completionArrayElements);
     (*env)->SetObjectArrayElement(env, array, 0, submissionArray);
     (*env)->SetObjectArrayElement(env, array, 1, completionArray);
     return array;
