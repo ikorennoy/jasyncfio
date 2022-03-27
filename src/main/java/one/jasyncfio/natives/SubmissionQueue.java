@@ -249,10 +249,6 @@ public class SubmissionQueue {
         );
     }
 
-    public boolean hasSubmitted() {
-        return tail != MemoryUtils.getIntVolatile(kHead);
-    }
-
     private boolean enqueueSqe(byte op, int flags, int rwFlags, int fd,
                                long bufferAddress, int length, long offset, int data) throws Throwable {
         int pending = tail - head;
@@ -283,6 +279,7 @@ public class SubmissionQueue {
     }
 
     private int submit(int toSubmit, int minComplete, int flags) throws Throwable {
+        // todo add need enter check
         MemoryUtils.putIntOrdered(kTail, tail);
         int ret = Native.ioUringEnter(ringFd, toSubmit, minComplete, flags);
         head = MemoryUtils.getIntVolatile(kHead);
