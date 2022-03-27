@@ -8,7 +8,7 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 
 class AbstractFile {
-    final int fd;
+    public final int fd;
     final String path;
     protected final long pathAddress;
     protected final AbstractEventExecutor defaultEventExecutor;

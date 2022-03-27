@@ -26,15 +26,14 @@ class DefaultEventExecutor extends AbstractEventExecutor {
             } finally {
                 state.set(AWAKE);
             }
-            drain(0);
+            drain();
         }
     }
 
-
     @Override
     protected void wakeup(boolean inEventLoop) {
-        if (!inEventLoop && state.get() != AWAKE) {
-            // write to the eventfd which will then wake-up submitAndWait
+        boolean localState = state.get();
+        if (!inEventLoop && (localState != AWAKE && state.compareAndSet(WAIT, AWAKE))) {
             Native.eventFdWrite(eventFd, 1L);
         }
     }

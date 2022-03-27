@@ -224,9 +224,13 @@ public class BufferedFileTest {
 
     @Test
     void dataSync() throws Exception {
+        System.out.println("create file");
         BufferedFile f = eventExecutorGroup.createBufferedFile(TEMP_FILE_NAME).get(1000, TimeUnit.MILLISECONDS);
+        System.out.println("file created");
         deleteOnExit(f);
+        System.out.println("datasync");
         assertEquals(0, f.dataSync().get(1000, TimeUnit.MILLISECONDS));
+        System.out.println("datasync executed");
     }
 
     @Test
