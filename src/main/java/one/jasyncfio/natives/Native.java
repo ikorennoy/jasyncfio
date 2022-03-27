@@ -77,6 +77,11 @@ public class Native {
 
     public static native void ioUringRegister(int fd, int opcode, long argPtr, int nrArgs);
 
+    public static native long getFileSize(int fd);
+
+    public static native long getPageSize();
+
+
     /**
      * took from netty io uring project
      */
