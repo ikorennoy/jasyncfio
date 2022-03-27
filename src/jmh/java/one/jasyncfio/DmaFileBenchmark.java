@@ -9,8 +9,13 @@ import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * jvmArgsAppend = "-agentpath:/libasyncProfiler.so=start,event=cpu,file=sqpoll.jfr,jfr" - profiler
+ * sudo java -Xmx3g -Djmh.ignoreLock=true -DBLOCK_DEVICE=/dev/nvme0n1 -jar build/libs/jasyncfio-0.0.1-jmh.jar
+ *
+ */
 @Warmup(iterations = 1)
-@Measurement(iterations = 2)
+@Measurement(iterations = 1)
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.SECONDS)
 public class DmaFileBenchmark {
@@ -62,12 +67,14 @@ public class DmaFileBenchmark {
         }
     }
 
+
+    /**
+     * close analogue to t/io_uring -d128 -s32 -c32 -b512 -p0 -B0 -D0 -F0 -n1 -O1 -R1 <block-device>
+     */
     @Benchmark
     @OperationsPerInvocation(Data.batchSubmit)
     @Fork(value = 1)
     @Threads(1)
-    // jvmArgsAppend = "-agentpath:/libasyncProfiler.so=start,event=cpu,file=sqpoll.jfr,jfr"
-    // sudo java -Xmx3g -Djmh.ignoreLock=true -DBLOCK_DEVICE=/dev/nvme0n1 -jar build/libs/jasyncfio-0.0.1-jmh.jar
     public void jasyncfioRandomRead(Data data) throws Exception {
         for (int i = 0; i < Data.batchSubmit; i++) {
             long position = (Math.abs(data.random.nextLong()) % (data.maxBlocks - 1)) * Data.blockSize;
@@ -78,6 +85,9 @@ public class DmaFileBenchmark {
         CompletableFuture.allOf(data.futures).get();
     }
 
+    /**
+     * close analogue to t/io_uring -d128 -s32 -c32 -b512 -p0 -B0 -D0 -F0 -n1 -O1 -R0 <block-device>
+     */
     @Benchmark
     @OperationsPerInvocation(Data.batchSubmit)
     @Fork(value = 1)

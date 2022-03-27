@@ -41,7 +41,8 @@ public class Native {
                 pointers[0][7],
                 (int) pointers[0][8],
                 pointers[0][9],
-                (int) pointers[0][10]
+                (int) pointers[0][10],
+                pointers[0][11]
         );
         final CompletionQueue completionQueue = new CompletionQueue(
                 pointers[1][0],
@@ -52,7 +53,8 @@ public class Native {
                 pointers[1][5],
                 pointers[1][6],
                 (int) pointers[1][7],
-                (int) pointers[1][8]
+                (int) pointers[1][8],
+                pointers[1][9]
         );
         return new Uring(completionQueue, submissionQueue);
     }
