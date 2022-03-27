@@ -66,6 +66,8 @@ public class DmaFileBenchmark {
     @OperationsPerInvocation(Data.batchSubmit)
     @Fork(value = 1)
     @Threads(1)
+    // jvmArgsAppend = "-agentpath:/libasyncProfiler.so=start,event=cpu,file=sqpoll.jfr,jfr"
+    // sudo java -Xmx3g -Djmh.ignoreLock=true -DBLOCK_DEVICE=/dev/nvme0n1 -jar build/libs/jasyncfio-0.0.1-jmh.jar
     public void jasyncfioRandomRead(Data data) throws Exception {
         for (int i = 0; i < Data.batchSubmit; i++) {
             long position = (Math.abs(data.random.nextLong()) % (data.maxBlocks - 1)) * Data.blockSize;
