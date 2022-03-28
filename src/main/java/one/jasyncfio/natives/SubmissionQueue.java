@@ -293,12 +293,13 @@ public class SubmissionQueue {
 
     private int submit(int toSubmit, int minComplete, int flags) throws Throwable {
         int ret;
-        boolean needEnter = false;
+        boolean needEnter = true;
         MemoryUtils.putIntOrdered(kTail, tail);
-        if (!((ringFlags & IORING_SETUP_SQPOLL) == IORING_SETUP_SQPOLL)) {
-            needEnter = true;
+        if ((ringFlags & IORING_SETUP_SQPOLL) == IORING_SETUP_SQPOLL) {
+            needEnter = false;
             if ((getFlags() & IORING_SQ_NEED_WAKEUP) == IORING_SQ_NEED_WAKEUP) {
                 flags |= IORING_ENTER_SQ_WAKEUP;
+                needEnter = true;
             }
         }
         if (needEnter) {
