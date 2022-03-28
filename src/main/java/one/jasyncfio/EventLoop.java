@@ -1,7 +1,6 @@
 package one.jasyncfio;
 
 import one.jasyncfio.natives.*;
-
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -9,24 +8,22 @@ import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.LockSupport;
 import java.util.function.IntSupplier;
 
-abstract class AbstractEventExecutor {
+public class EventLoop {
     static final boolean AWAKE = true;
     static final boolean WAIT = false;
 
     final AtomicBoolean state = new AtomicBoolean(WAIT);
     final Queue<ExtRunnable> tasks = new ConcurrentLinkedDeque<>();
     final Map<Integer, CompletableFuture<Integer>> pendingFutures = new HashMap<>();
-    final long eventfdReadBuf = MemoryUtils.allocateMemory(8);
     final CompletionCallback callback = this::handle;
-
-    final int eventFd;
     final Uring ring;
     final IntSupplier sequencer;
     final Thread t;
 
-    AbstractEventExecutor(int entries, int flags, int sqThreadIdle, int sqThreadCpu, int cqSize, int attachWqRingFd) {
+    EventLoop(int entries, int flags, int sqThreadIdle, int sqThreadCpu, int cqSize, int attachWqRingFd) {
         sequencer = new IntSupplier() {
             private int i = 0;
 
@@ -36,35 +33,42 @@ abstract class AbstractEventExecutor {
             }
         };
         ring = Native.setupIoUring(entries, flags, sqThreadIdle, sqThreadCpu, cqSize, attachWqRingFd);
-        eventFd = Native.getEventFd();
         t = new Thread(this::run);
         t.start();
     }
 
-    abstract void run();
+    void run() {
+        CompletionQueue completionQueue = ring.getCompletionQueue();
+        SubmissionQueue submissionQueue = ring.getSubmissionQueue();
 
-
-    private void handle(int fd, int res, int flags, byte op, int data) {
-        if (op == Native.IORING_OP_READ && fd == eventFd) {
-            addEventFdRead(ring.getSubmissionQueue());
-        } else {
-            CompletableFuture<Integer> userCallback = pendingFutures.remove(data);
-            if (userCallback != null) {
-                if (res >= 0) {
-                    userCallback.complete(res);
-                } else {
-                    userCallback.completeExceptionally(
-                            new IOException(String.format("Error code: %d; message: %s", -res, Native.decodeErrno(res))));
+        for (;;) {
+            try {
+                submissionQueue.submit();
+                state.set(WAIT);
+                if (!hasTasks() && !(completionQueue.hasCompletions() || (submissionQueue.getTail() != completionQueue.getHead()))) {
+                    while (state.get() == WAIT) {
+                        LockSupport.park();
+                    }
                 }
+            } catch (Throwable t) {
+                handleLoopException(t);
+            } finally {
+                state.set(AWAKE);
             }
+            drain();
         }
     }
 
-    void addEventFdRead(SubmissionQueue submissionQueue) {
-        try {
-            submissionQueue.addEventFdRead(eventFd, eventfdReadBuf, 0, 8, 0);
-        } catch (Throwable e) {
-            e.printStackTrace();
+
+    private void handle(int fd, int res, int flags, byte op, int data) {
+        CompletableFuture<Integer> userCallback = pendingFutures.remove(data);
+        if (userCallback != null) {
+            if (res >= 0) {
+                userCallback.complete(res);
+            } else {
+                userCallback.completeExceptionally(
+                        new IOException(String.format("Error code: %d; message: %s", -res, Native.decodeErrno(res))));
+            }
         }
     }
 
@@ -78,7 +82,12 @@ abstract class AbstractEventExecutor {
         tasks.add(task);
     }
 
-    protected abstract void wakeup(boolean inEventLoop);
+    protected void wakeup(boolean inEventLoop) {
+        boolean localState = state.get();
+        if (!inEventLoop && (localState != AWAKE && state.compareAndSet(WAIT, AWAKE))) {
+            LockSupport.unpark(t);
+        }
+    }
 
     boolean hasTasks() {
         return !tasks.isEmpty();
