@@ -1,0 +1,48 @@
+128 32/32
+
+Benchmark                                  Mode  Cnt       Score   Error  Units
+DmaFileBenchmark.jasyncfioRandomRead      thrpt       123821.143          ops/s
+DmaFileBenchmark.jasyncfioSequentialRead  thrpt        28847.616          ops/s
+
+256 64/64
+
+Benchmark                                  Mode  Cnt       Score   Error  Units
+DmaFileBenchmark.jasyncfioRandomRead      thrpt       126453.470          ops/s
+DmaFileBenchmark.jasyncfioSequentialRead  thrpt        63541.058          ops/s
+
+512 128/128
+
+Benchmark                                  Mode  Cnt       Score   Error  Units
+DmaFileBenchmark.jasyncfioRandomRead      thrpt       186368.869          ops/s
+DmaFileBenchmark.jasyncfioSequentialRead  thrpt       128078.035          ops/s
+
+1024 256/256
+
+Benchmark                                  Mode  Cnt       Score   Error  Units
+DmaFileBenchmark.jasyncfioRandomRead      thrpt       219943.006          ops/s
+DmaFileBenchmark.jasyncfioSequentialRead  thrpt       202178.395          ops/s
+
+2048 512/512
+
+Benchmark                                  Mode  Cnt       Score   Error  Units
+DmaFileBenchmark.jasyncfioRandomRead      thrpt       383922.329          ops/s
+DmaFileBenchmark.jasyncfioSequentialRead  thrpt       331255.080          ops/s
+
+4096 1024/1024
+
+Benchmark                                  Mode  Cnt       Score   Error  Units
+DmaFileBenchmark.jasyncfioRandomRead      thrpt       444533.674          ops/s
+DmaFileBenchmark.jasyncfioSequentialRead  thrpt       393769.350          ops/s
+
+4096 2048/2048
+
+
+Benchmark                                  Mode  Cnt       Score   Error  Units
+DmaFileBenchmark.jasyncfioRandomRead      thrpt       485601.471          ops/s
+DmaFileBenchmark.jasyncfioSequentialRead  thrpt       433724.423          ops/s
+
+4096 4096/4096
+
+Benchmark                                  Mode  Cnt       Score   Error  Units
+DmaFileBenchmark.jasyncfioRandomRead      thrpt       493248.790          ops/s
+DmaFileBenchmark.jasyncfioSequentialRead  thrpt       453653.098          ops/s

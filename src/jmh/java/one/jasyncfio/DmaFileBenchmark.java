@@ -31,11 +31,10 @@ public class DmaFileBenchmark {
         public static final long pageSize = Native.getPageSize();
         public static final EventExecutorGroup eventExecutors = EventExecutorGroup.builder()
                 .entries(ioDepth)
-//                .ioRingSetupSqPoll(2000)
+                .ioRingSetupSqPoll(2000)
                 .ioRingSetupIoPoll()
                 .build();
 
-        public final Random random = new Random();
         public final ByteBuffer[] buffers = new ByteBuffer[ioDepth];
 
 
@@ -44,22 +43,24 @@ public class DmaFileBenchmark {
         public long maxSize;
         public long maxBlocks;
         public CompletableFuture<Integer>[] futures = new CompletableFuture[batchComplete];
+        public long[] positions = new long[batchSubmit];
 
         @Setup
         public void setup() throws Exception {
             device = System.getProperty("BLOCK_DEVICE");
             if (device == null) {
-
                 throw new IllegalArgumentException("BLOCK_DEVICE system property must be specified");
             }
+            file = eventExecutors.openDmaFile(device).get();
+            Random random = new Random();
+            maxSize = Native.getFileSize(file.fd);
+            maxBlocks = maxSize / blockSize;
             for (int i = 0; i < ioDepth; i++) {
                 buffers[i] = MemoryUtils.allocateAlignedByteBuffer(blockSize, pageSize);
             }
-            file = eventExecutors.openDmaFile(device).get();
-
-            maxSize = Native.getFileSize(file.fd);
-            maxBlocks = maxSize / blockSize;
-
+            for (int i = 0; i < batchSubmit; i++) {
+                positions[i] = (Math.abs(random.nextLong()) % (maxBlocks - 1)) * Data.blockSize;
+            }
         }
 
         @TearDown
@@ -67,7 +68,6 @@ public class DmaFileBenchmark {
 //            file.close().get();
         }
     }
-
 
     /**
      * close analogue to t/io_uring -d128 -s32 -c32 -b512 -p1 -B0 -D0 -F0 -n1 -O1 -R1 <block-device>
@@ -78,9 +78,9 @@ public class DmaFileBenchmark {
     @Threads(1)
     public void jasyncfioRandomRead(Data data) throws Exception {
         for (int i = 0; i < Data.batchSubmit; i++) {
-            long position = (Math.abs(data.random.nextLong()) % (data.maxBlocks - 1)) * Data.blockSize;
+            CompletableFuture<Integer> read = data.file.read(data.positions[i], Data.blockSize, data.buffers[i]);
             if (i < Data.batchComplete) {
-                data.futures[i] = data.file.read(position, Data.blockSize, data.buffers[i]);
+                data.futures[i] = read;
             }
         }
         CompletableFuture.allOf(data.futures).get();
@@ -94,16 +94,18 @@ public class DmaFileBenchmark {
     @Fork(value = 1)
     @Threads(1)
     public void jasyncfioSequentialRead(Data data) throws Exception {
-        // start at some random position and do sequential read
-        long currentOffset = (Math.abs(data.random.nextLong()) % (data.maxBlocks - 1)) * Data.blockSize;
-
+        long currentOffset = 0;
         for (int i = 0; i < Data.batchSubmit; i++) {
             long position = currentOffset;
             if (currentOffset + Data.blockSize > data.maxSize) {
                 currentOffset = 0;
             }
             currentOffset += Data.blockSize;
-            data.futures[i] = data.file.read(position, Data.blockSize, data.buffers[i]);
+
+            CompletableFuture<Integer> read = data.file.read(position, Data.blockSize, data.buffers[i]);
+            if (i < Data.batchComplete) {
+                data.futures[i] = read;
+            }
         }
         CompletableFuture.allOf(data.futures).get();
     }
