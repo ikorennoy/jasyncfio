@@ -12,8 +12,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class EventExecutorGroup {
 
     private final AtomicInteger sequencer = new AtomicInteger();
-    private final AbstractEventExecutor[] executors;
-    private final AbstractEventExecutor serviceRing;
+    private final EventLoop[] executors;
+    private final EventLoop serviceRing;
 
     EventExecutorGroup(int numberOfRings,
                        int entries,
@@ -47,15 +47,11 @@ public class EventExecutorGroup {
         if (ioRingSetupAttachWq) {
             flags |= Native.IORING_SETUP_ATTACH_WQ;
         }
-        executors = new AbstractEventExecutor[numberOfRings];
+        executors = new EventLoop[numberOfRings];
         for (int i = 0; i < numberOfRings; i++) {
-            if (ioRingSetupSqPoll) {
-                executors[i] = new ParkEventExecutor(entries, flags, sqThreadIdle, sqThreadCpu, cqSize, attachWqRingFd);
-            } else {
-                executors[i] = new ParkEventExecutor(entries, flags, sqThreadIdle, sqThreadCpu, cqSize, attachWqRingFd);
-            }
+            executors[i] = new EventLoop(entries, flags, sqThreadIdle, sqThreadCpu, cqSize, attachWqRingFd);
         }
-        serviceRing = new ParkEventExecutor(entries, 0, 0, 0, 0, 0);
+        serviceRing = new EventLoop(entries, 0, 0, 0, 0, 0);
     }
 
     public static Builder builder() {
@@ -66,7 +62,7 @@ public class EventExecutorGroup {
         return new Builder().build();
     }
 
-    private AbstractEventExecutor get() {
+    private EventLoop get() {
         if (executors.length == 1) {
             return executors[0];
         } else {

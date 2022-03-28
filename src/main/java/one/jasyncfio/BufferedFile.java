@@ -5,8 +5,8 @@ import java.util.concurrent.CompletableFuture;
 
 public class BufferedFile extends AbstractFile {
 
-    BufferedFile(int fd, String path, long pathAddress, AbstractEventExecutor abstractEventExecutor) {
-        super(fd, path, pathAddress, abstractEventExecutor);
+    BufferedFile(int fd, String path, long pathAddress, EventLoop eventLoop) {
+        super(fd, path, pathAddress, eventLoop);
     }
 
     /**
