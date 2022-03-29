@@ -170,6 +170,7 @@ publishing {
 }
 
 dependencies {
+    implementation("org.jctools:jctools-core:3.3.0")
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.2")
     testImplementation("org.junit.jupiter:junit-jupiter-engine:5.8.2")
     testImplementation("org.openjdk.jmh:jmh-core:1.34")
