@@ -1,21 +1,3 @@
-DmaFileBenchmark32.randomRead           true      true  thrpt       183471.198          ops/s
-DmaFileBenchmark32.randomRead           true     false  thrpt       140756.717          ops/s
-DmaFileBenchmark32.randomRead          false      true  thrpt       159876.345          ops/s
-DmaFileBenchmark32.randomRead          false     false  thrpt       101334.507          ops/s
-DmaFileBenchmark32.sequentialRead       true      true  thrpt        51220.768          ops/s
-DmaFileBenchmark32.sequentialRead       true     false  thrpt        31315.501          ops/s
-DmaFileBenchmark32.sequentialRead      false      true  thrpt        51142.032          ops/s
-DmaFileBenchmark32.sequentialRead      false     false  thrpt        28677.575          ops/s
-
-DmaFileBenchmark32.randomRead          true      true  thrpt       107932.071          ops/s
-DmaFileBenchmark32.randomRead          true     false  thrpt        97461.824          ops/s
-DmaFileBenchmark32.randomRead         false      true  thrpt       100940.660          ops/s
-DmaFileBenchmark32.randomRead         false     false  thrpt       112054.535          ops/s
-DmaFileBenchmark32.sequentialRead      true      true  thrpt        45076.218          ops/s
-DmaFileBenchmark32.sequentialRead      true     false  thrpt        29579.684          ops/s
-DmaFileBenchmark32.sequentialRead     false      true  thrpt        44463.694          ops/s
-DmaFileBenchmark32.sequentialRead     false     false  thrpt        27928.660          ops/s
-
 
 Benchmark                 (ioPoll)  (sqPoll)   Mode  Cnt       Score   Error  Units
 Read_1024.randomRead          true      true  thrpt       168761.489          ops/s
@@ -82,3 +64,73 @@ Read_64.sequentialRead        true      true  thrpt        85138.313          op
 Read_64.sequentialRead        true     false  thrpt        61808.661          ops/s
 Read_64.sequentialRead       false      true  thrpt        85113.915          ops/s
 Read_64.sequentialRead       false     false  thrpt        52628.382          ops/s
+
+
+
+// mpsc queue and array instead of map
+
+Benchmark                    (ioPoll)  (sqPoll)   Mode  Cnt       Score   Error  Units
+Read_1024.randomRead             true      true  thrpt       213234.861          ops/s
+Read_1024.randomRead             true     false  thrpt       213096.998          ops/s
+Read_1024.randomRead            false      true  thrpt       205613.669          ops/s
+Read_1024.randomRead            false     false  thrpt       210195.427          ops/s
+Read_1024.sequentialRead         true      true  thrpt       227060.365          ops/s
+Read_1024.sequentialRead         true     false  thrpt       213342.704          ops/s
+Read_1024.sequentialRead        false      true  thrpt       231872.941          ops/s
+Read_1024.sequentialRead        false     false  thrpt       217859.245          ops/s
+Read_128.randomRead              true      true  thrpt       195828.773          ops/s
+Read_128.randomRead              true     false  thrpt       151170.311          ops/s
+Read_128.randomRead             false      true  thrpt       186553.186          ops/s
+Read_128.randomRead             false     false  thrpt       150616.521          ops/s
+Read_128.sequentialRead          true      true  thrpt       183042.971          ops/s
+Read_128.sequentialRead          true     false  thrpt       129264.750          ops/s
+Read_128.sequentialRead         false      true  thrpt       187337.192          ops/s
+Read_128.sequentialRead         false     false  thrpt       128161.972          ops/s
+Read_2048.randomRead             true      true  thrpt       210987.130          ops/s
+Read_2048.randomRead             true     false  thrpt       212863.633          ops/s
+Read_2048.randomRead            false      true  thrpt       211502.189          ops/s
+Read_2048.randomRead            false     false  thrpt       215210.452          ops/s
+Read_2048.sequentialRead         true      true  thrpt       227878.125          ops/s
+Read_2048.sequentialRead         true     false  thrpt       221273.342          ops/s
+Read_2048.sequentialRead        false      true  thrpt       233186.404          ops/s
+Read_2048.sequentialRead        false     false  thrpt       224933.550          ops/s
+Read_256.randomRead              true      true  thrpt       208403.368          ops/s
+Read_256.randomRead              true     false  thrpt       185111.919          ops/s
+Read_256.randomRead             false      true  thrpt       201533.116          ops/s
+Read_256.randomRead             false     false  thrpt       181152.278          ops/s
+Read_256.sequentialRead          true      true  thrpt       223745.130          ops/s
+Read_256.sequentialRead          true     false  thrpt       163738.518          ops/s
+Read_256.sequentialRead         false      true  thrpt       218241.106          ops/s
+Read_256.sequentialRead         false     false  thrpt       157437.883          ops/s
+Read_32.jasyncfioRandomRead      true      true  thrpt       145312.851          ops/s
+Read_32.jasyncfioRandomRead      true     false  thrpt       111587.370          ops/s
+Read_32.jasyncfioRandomRead     false      true  thrpt       107592.663          ops/s
+Read_32.jasyncfioRandomRead     false     false  thrpt        86549.787          ops/s
+Read_32.sequentialRead           true      true  thrpt        45667.707          ops/s
+Read_32.sequentialRead           true     false  thrpt        37571.097          ops/s
+Read_32.sequentialRead          false      true  thrpt        46108.042          ops/s
+Read_32.sequentialRead          false     false  thrpt        36418.560          ops/s
+Read_4096.randomRead             true      true  thrpt       208315.096          ops/s
+Read_4096.randomRead             true     false  thrpt       213822.025          ops/s
+Read_4096.randomRead            false      true  thrpt       218164.852          ops/s
+Read_4096.randomRead            false     false  thrpt       214541.770          ops/s
+Read_4096.sequentialRead         true      true  thrpt       226259.258          ops/s
+Read_4096.sequentialRead         true     false  thrpt       222457.244          ops/s
+Read_4096.sequentialRead        false      true  thrpt       236430.865          ops/s
+Read_4096.sequentialRead        false     false  thrpt       230883.081          ops/s
+Read_512.randomRead              true      true  thrpt       200743.325          ops/s
+Read_512.randomRead              true     false  thrpt       196650.294          ops/s
+Read_512.randomRead             false      true  thrpt       205050.534          ops/s
+Read_512.randomRead             false     false  thrpt       186586.832          ops/s
+Read_512.sequentialRead          true      true  thrpt       222541.944          ops/s
+Read_512.sequentialRead          true     false  thrpt       212168.402          ops/s
+Read_512.sequentialRead         false      true  thrpt       226054.672          ops/s
+Read_512.sequentialRead         false     false  thrpt       202703.562          ops/s
+Read_64.randomRead               true      true  thrpt       172031.650          ops/s
+Read_64.randomRead               true     false  thrpt       145906.780          ops/s
+Read_64.randomRead              false      true  thrpt       145386.569          ops/s
+Read_64.randomRead              false     false  thrpt       153601.512          ops/s
+Read_64.sequentialRead           true      true  thrpt        91258.674          ops/s
+Read_64.sequentialRead           true     false  thrpt        84046.809          ops/s
+Read_64.sequentialRead          false      true  thrpt        90361.096          ops/s
+Read_64.sequentialRead          false     false  thrpt        79202.674          ops/s
