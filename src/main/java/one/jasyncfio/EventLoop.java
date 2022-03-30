@@ -1,7 +1,9 @@
 package one.jasyncfio;
 
+import one.jasyncfio.collections.IntObjectHashMap;
 import one.jasyncfio.natives.*;
 import org.jctools.queues.MpscChunkedArrayQueue;
+
 import java.io.IOException;
 import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
@@ -14,7 +16,7 @@ public class EventLoop {
 
     final AtomicBoolean state = new AtomicBoolean(WAIT);
     final Queue<ExtRunnable> tasks = new MpscChunkedArrayQueue<>(131073);
-    final CompletableFuture<Integer>[] futures;
+    final IntObjectHashMap<CompletableFuture<Integer>> futures = new IntObjectHashMap<>(1024);
     final CompletionCallback callback = this::handle;
     final Uring ring;
     final PrimitiveIntSupplier sequencer;
@@ -29,7 +31,6 @@ public class EventLoop {
                 return Math.abs(i++ % 16_777_215);
             }
         };
-        futures = new CompletableFuture[entries];
         ring = Native.setupIoUring(entries, flags, sqThreadIdle, sqThreadCpu, cqSize, attachWqRingFd);
         t = new Thread(this::run);
         t.start();
@@ -43,7 +44,7 @@ public class EventLoop {
         CompletionQueue completionQueue = ring.getCompletionQueue();
         SubmissionQueue submissionQueue = ring.getSubmissionQueue();
 
-        for (;;) {
+        for (; ; ) {
             try {
                 submissionQueue.submit();
                 state.set(WAIT);
@@ -63,7 +64,7 @@ public class EventLoop {
 
 
     private void handle(int fd, int res, int flags, byte op, int data) {
-        CompletableFuture<Integer> userCallback = futures[data % futures.length];
+        CompletableFuture<Integer> userCallback = futures.get(data);
         if (userCallback != null) {
             if (res >= 0) {
                 userCallback.complete(res);
@@ -100,7 +101,7 @@ public class EventLoop {
         if (t == null) {
             return false;
         }
-        for (;;) {
+        for (; ; ) {
             safeExec(t);
             t = tasks.poll();
             if (t == null) {
@@ -147,7 +148,7 @@ public class EventLoop {
         CompletableFuture<Integer> f = new CompletableFuture<>();
         execute(() -> {
             int opId = sequencer.getAsInt();
-            futures[opId % futures.length] = f;
+            futures.put(opId, f);
             ring.getSubmissionQueue().addNoOp(opId);
         });
         return f;
@@ -157,7 +158,7 @@ public class EventLoop {
         CompletableFuture<Integer> f = new CompletableFuture<>();
         execute(() -> {
             int opId = sequencer.getAsInt();
-            futures[opId % futures.length] = f;
+            futures.put(opId, f);
             ring.getSubmissionQueue().addRead(fd, bufferAddress, offset, length, opId);
         });
         return f;
@@ -167,7 +168,7 @@ public class EventLoop {
         CompletableFuture<Integer> f = new CompletableFuture<>();
         execute(() -> {
             int opId = sequencer.getAsInt();
-            futures[opId % futures.length] = f;
+            futures.put(opId, f);
             ring.getSubmissionQueue().addWrite(fd, bufferAddress, offset, length, opId);
         });
         return f;
@@ -177,7 +178,7 @@ public class EventLoop {
         CompletableFuture<Integer> f = new CompletableFuture<>();
         execute(() -> {
             int opId = sequencer.getAsInt();
-            futures[opId % futures.length] = f;
+            futures.put(opId, f);
             ring.getSubmissionQueue().addWritev(fd, iovecArrAddress, offset, iovecArrSize, opId);
         });
         return f;
@@ -187,7 +188,7 @@ public class EventLoop {
         CompletableFuture<Integer> f = new CompletableFuture<>();
         execute(() -> {
             int opId = sequencer.getAsInt();
-            futures[opId % futures.length] = f;
+            futures.put(opId, f);
             ring.getSubmissionQueue().addReadv(fd, iovecArrAddress, offset, iovecArrSize, opId);
         });
         return f;
@@ -197,7 +198,7 @@ public class EventLoop {
         CompletableFuture<Integer> f = new CompletableFuture<>();
         execute(() -> {
             int opId = sequencer.getAsInt();
-            futures[opId % futures.length] = f;
+            futures.put(opId, f);
             ring.getSubmissionQueue().addOpenAt(dirFd, pathAddress, openFlags, mode, opId);
         });
         return f;
@@ -207,7 +208,7 @@ public class EventLoop {
         CompletableFuture<Integer> f = new CompletableFuture<>();
         execute(() -> {
             int opId = sequencer.getAsInt();
-            futures[opId % futures.length] = f;
+            futures.put(opId, f);
             ring.getSubmissionQueue().addStatx(dirFd, pathAddress, statxFlags, statxMask, statxBufferAddress, opId);
         });
         return f;
@@ -217,7 +218,7 @@ public class EventLoop {
         CompletableFuture<Integer> f = new CompletableFuture<>();
         execute(() -> {
             int opId = sequencer.getAsInt();
-            futures[opId % futures.length] = f;
+            futures.put(opId, f);
             ring.getSubmissionQueue().addFsync(fd, fsyncFlags, opId);
         });
         return f;
@@ -227,7 +228,7 @@ public class EventLoop {
         CompletableFuture<Integer> f = new CompletableFuture<>();
         execute(() -> {
             int opId = sequencer.getAsInt();
-            futures[opId % futures.length] = f;
+            futures.put(opId, f);
             ring.getSubmissionQueue().addFallocate(fd, length, mode, offset, opId);
         });
         return f;
@@ -237,7 +238,7 @@ public class EventLoop {
         CompletableFuture<Integer> f = new CompletableFuture<>();
         execute(() -> {
             int opId = sequencer.getAsInt();
-            futures[opId % futures.length] = f;
+            futures.put(opId, f);
             ring.getSubmissionQueue().addUnlinkAt(dirFd, pathAddress, flags, opId);
         });
         return f;
@@ -247,7 +248,7 @@ public class EventLoop {
         CompletableFuture<Integer> f = new CompletableFuture<>();
         execute(() -> {
             int opId = sequencer.getAsInt();
-            futures[opId % futures.length] = f;
+            futures.put(opId, f);
             ring.getSubmissionQueue().addRenameAt(oldDirFd, oldPathAddress, newDirFd, newPathAddress, flags, opId);
         });
         return f;
@@ -257,7 +258,7 @@ public class EventLoop {
         CompletableFuture<Integer> f = new CompletableFuture<>();
         execute(() -> {
             int opId = sequencer.getAsInt();
-            futures[opId % futures.length] = f;
+            futures.put(opId, f);
             ring.getSubmissionQueue().addClose(fd, opId);
         });
         return f;
