@@ -5,6 +5,7 @@ import one.jasyncfio.natives.*;
 import org.jctools.queues.MpscChunkedArrayQueue;
 
 import java.io.IOException;
+import java.nio.IntBuffer;
 import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -244,6 +245,16 @@ public class EventExecutor {
     CompletableFuture<Void> unregisterBuffers() {
         return CompletableFuture.runAsync(() ->
                 Native.ioUringRegister(ring.getRingFd(), Native.IORING_UNREGISTER_BUFFERS, -1, 0));
+    }
+
+    CompletableFuture<Void> registerFiles(IntBuffer fds, int size) {
+        return CompletableFuture.runAsync(() ->
+                Native.ioUringRegister(ring.getRingFd(), Native.IORING_REGISTER_FILES, MemoryUtils.getDirectBufferAddress(fds), size));
+    }
+
+    CompletableFuture<Void> unregisterFiles() {
+        return CompletableFuture.runAsync(() ->
+                Native.ioUringRegister(ring.getRingFd(), Native.IORING_UNREGISTER_FILES, -1, 0));
     }
 
     private void handle(int fd, int res, int flags, byte op, int data) {

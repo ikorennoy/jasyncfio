@@ -5,6 +5,8 @@ import one.jasyncfio.natives.MemoryUtils;
 import one.jasyncfio.natives.Native;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.IntBuffer;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -85,6 +87,26 @@ public class EventExecutorGroup {
             throw new RuntimeException("The operation is not supported if more than one io_uring instance is configured");
         }
         return executors[0].unregisterBuffers();
+    }
+
+    public CompletableFuture<Void> registerFiles(AbstractFile[] files) {
+        if (executors.length > 1) {
+            throw new RuntimeException("The operation is not supported if more than one io_uring instance is configured");
+        }
+        ByteBuffer buffer = ByteBuffer.allocateDirect(files.length * 4);
+        buffer.order(ByteOrder.nativeOrder());
+        IntBuffer fds = buffer.asIntBuffer();
+        for (AbstractFile file : files) {
+            fds.put(file.fd);
+        }
+        return executors[0].registerFiles(fds, files.length);
+    }
+
+    public CompletableFuture<Void> unregisterFiles() {
+        if (executors.length > 1) {
+            throw new RuntimeException("The operation is not supported if more than one io_uring instance is configured");
+        }
+        return executors[0].unregisterFiles();
     }
 
     /**
