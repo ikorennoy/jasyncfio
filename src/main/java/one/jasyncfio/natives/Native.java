@@ -56,7 +56,7 @@ public class Native {
                 (int) pointers[1][8],
                 pointers[1][9]
         );
-        return new Uring(completionQueue, submissionQueue);
+        return new Uring(completionQueue, submissionQueue, (int) pointers[0][10]);
     }
 
     private static native int ioUringEnter0(int ringFd, int toSubmit, int minComplete, int flags);
