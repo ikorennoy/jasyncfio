@@ -2,6 +2,7 @@ package one.jasyncfio;
 
 import one.jasyncfio.natives.MemoryUtils;
 import one.jasyncfio.natives.Native;
+import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -12,8 +13,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class EventExecutorGroup {
 
     private final AtomicInteger sequencer = new AtomicInteger();
-    private final EventLoop[] executors;
-    private final EventLoop serviceRing;
+    private final EventExecutor[] executors;
+    private final EventExecutor serviceRing;
 
     EventExecutorGroup(int numberOfRings,
                        int entries,
@@ -47,11 +48,11 @@ public class EventExecutorGroup {
         if (ioRingSetupAttachWq) {
             flags |= Native.IORING_SETUP_ATTACH_WQ;
         }
-        executors = new EventLoop[numberOfRings];
+        executors = new EventExecutor[numberOfRings];
         for (int i = 0; i < numberOfRings; i++) {
-            executors[i] = new EventLoop(entries, flags, sqThreadIdle, sqThreadCpu, cqSize, attachWqRingFd);
+            executors[i] = new EventExecutor(entries, flags, sqThreadIdle, sqThreadCpu, cqSize, attachWqRingFd);
         }
-        serviceRing = new EventLoop(entries, 0, 0, 0, 0, 0);
+        serviceRing = new EventExecutor(entries, 0, 0, 0, 0, 0);
     }
 
     public static Builder builder() {
@@ -62,12 +63,21 @@ public class EventExecutorGroup {
         return new Builder().build();
     }
 
-    private EventLoop get() {
+    private EventExecutor get() {
         if (executors.length == 1) {
             return executors[0];
         } else {
             return executors[sequencer.getAndIncrement() % executors.length];
         }
+    }
+
+    public CompletableFuture<Void> registerBuffers(ByteBuffer[] buffers) {
+        if (executors.length > 1) {
+            throw new RuntimeException("Operation not supported");
+        }
+        EventExecutor executor = executors[0];
+
+        return null;
     }
 
     /**
