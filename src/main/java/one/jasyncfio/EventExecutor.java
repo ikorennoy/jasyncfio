@@ -241,6 +241,11 @@ public class EventExecutor {
                 Native.ioUringRegister(ring.getRingFd(), Native.IORING_REGISTER_BUFFERS, buffers.getIovecArrayAddress(), buffers.getCount()));
     }
 
+    CompletableFuture<Void> unregisterBuffers() {
+        return CompletableFuture.runAsync(() ->
+                Native.ioUringRegister(ring.getRingFd(), Native.IORING_UNREGISTER_BUFFERS, -1, 0));
+    }
+
     private void handle(int fd, int res, int flags, byte op, int data) {
         CompletableFuture<Integer> userCallback = futures.get(data);
         if (userCallback != null) {
