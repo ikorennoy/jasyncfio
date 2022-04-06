@@ -1,5 +1,6 @@
 package one.jasyncfio;
 
+import one.jasyncfio.natives.IovecArray;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -402,6 +403,30 @@ public class BufferedFileTest {
         }
         assertEquals((int) Files.size(tempFile), bytes);
         assertEquals(resultString, strings.toString());
+    }
+
+    @Test
+    void writeFixed() throws Exception {
+        ByteBuffer[] buffers = new ByteBuffer[1];
+        String str = prepareString(100);
+        byte[] bytes = str.getBytes(StandardCharsets.UTF_8);
+        for (int i = 0; i < buffers.length; i++) {
+            ByteBuffer byteBuffer = ByteBuffer.allocateDirect(bytes.length);
+            byteBuffer.put(bytes);
+            byteBuffer.flip();
+            buffers[i] = byteBuffer;
+        }
+        IovecArray iovecArray = eventExecutorGroup.registerBuffers(buffers).get(1000, TimeUnit.MILLISECONDS);
+
+        Path tempFile = Files.createTempFile(tmpDir, "temp-", "-file");
+        BufferedFile bufferedFile = eventExecutorGroup
+                .openBufferedFile(tempFile.toString(), OpenOption.WRITE_ONLY)
+                .get(1000, TimeUnit.MILLISECONDS);
+
+        Integer written = bufferedFile.writeFixed(0, 0, iovecArray).get();
+
+        assertEquals((int) Files.size(tempFile), written);
+        assertEquals(str, new String(Files.readAllBytes(tempFile)));
     }
 
     private void deleteOnExit(BufferedFile f) {

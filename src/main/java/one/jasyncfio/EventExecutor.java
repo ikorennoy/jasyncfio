@@ -167,6 +167,17 @@ public class EventExecutor {
         return f;
     }
 
+    CompletableFuture<Integer> scheduleWriteFixed(int fd, long buffAddress, long offset, int length, int bufIndex) {
+        CompletableFuture<Integer> f = new CompletableFuture<>();
+        execute(() -> {
+            int opId = sequencer.getAsInt();
+            futures.put(opId, f);
+            ring.getSubmissionQueue().addWriteFixed(fd, buffAddress, offset, length, bufIndex, opId);
+        });
+        return f;
+    }
+
+
     CompletableFuture<Integer> scheduleOpenAt(int dirFd, long pathAddress, int openFlags, int mode) {
         CompletableFuture<Integer> f = new CompletableFuture<>();
         execute(() -> {

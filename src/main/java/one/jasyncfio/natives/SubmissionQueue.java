@@ -113,7 +113,8 @@ public class SubmissionQueue {
                 bufferAddress,
                 length,
                 offset,
-                opId
+                opId,
+                0
         );
     }
 
@@ -126,7 +127,8 @@ public class SubmissionQueue {
                 0,
                 0,
                 0,
-                opId
+                opId,
+                0
         );
     }
 
@@ -138,7 +140,8 @@ public class SubmissionQueue {
                 bufferAddress,
                 length,
                 offset,
-                opId
+                opId,
+                0
         );
     }
 
@@ -150,7 +153,21 @@ public class SubmissionQueue {
                 iovecArrAddress,
                 iovecArrSize,
                 offset,
-                opId
+                opId,
+                0
+        );
+    }
+
+    public void addWriteFixed(int fd, long buffAddress, long offset, int length, int bufIndex, int opId) throws Throwable {
+        enqueueSqe(Native.IORING_OP_WRITE_FIXED,
+                0,
+                0,
+                fd,
+                buffAddress,
+                length,
+                offset,
+                opId,
+                bufIndex
         );
     }
 
@@ -162,7 +179,8 @@ public class SubmissionQueue {
                 iovecArrAddress,
                 iovecArrSize,
                 offset,
-                opId
+                opId,
+                0
         );
     }
 
@@ -174,7 +192,8 @@ public class SubmissionQueue {
                 pathAddress,
                 mask,
                 statxBufferAddress,
-                opId
+                opId,
+                0
         );
     }
 
@@ -186,7 +205,8 @@ public class SubmissionQueue {
                 0,
                 0,
                 0,
-                opId
+                opId,
+                0
         );
     }
 
@@ -198,7 +218,8 @@ public class SubmissionQueue {
                 length,
                 mode,
                 offset,
-                opId
+                opId,
+                0
         );
     }
 
@@ -210,7 +231,8 @@ public class SubmissionQueue {
                 pathAddress,
                 0,
                 0,
-                opId
+                opId,
+                0
         );
     }
 
@@ -223,7 +245,8 @@ public class SubmissionQueue {
                 oldPathAddress,
                 newDirFd,
                 newPathAddress,
-                opId
+                opId,
+                0
         );
     }
 
@@ -235,7 +258,9 @@ public class SubmissionQueue {
                 eventfdReadBuf + position,
                 limit - position,
                 0,
-                opId);
+                opId,
+                0
+        );
     }
 
     public void addOpenAt(int dirFd, long pathAddress, int openFlags, int mode, int opId) throws Throwable {
@@ -246,7 +271,8 @@ public class SubmissionQueue {
                 pathAddress,
                 mode,
                 0,
-                opId
+                opId,
+                0
         );
     }
 
@@ -258,12 +284,13 @@ public class SubmissionQueue {
                 0,
                 0,
                 0,
-                opId
+                opId,
+                0
         );
     }
 
     private boolean enqueueSqe(byte op, int flags, int rwFlags, int fd,
-                               long bufferAddress, int length, long offset, int data) throws Throwable {
+                               long bufferAddress, int length, long offset, int data, int bufIndex) throws Throwable {
         int pending = tail - head;
         boolean submit = pending == ringEntries;
         if (submit) {
@@ -273,12 +300,12 @@ public class SubmissionQueue {
             }
         }
         long sqe = submissionArrayQueueAddress + (tail++ & ringMask) * SQE_SIZE;
-        setData(sqe, op, flags, rwFlags, fd, bufferAddress, length, offset, data);
+        setData(sqe, op, flags, rwFlags, fd, bufferAddress, length, offset, data, bufIndex);
         return submit;
     }
 
     private void setData(long sqe, byte op, int flags, int rwFlags, int fd, long bufferAddress, int length,
-                         long offset, int data) {
+                         long offset, int data, int bufIndex) {
 
         MemoryUtils.putByte(sqe + SQE_OP_CODE_FIELD, op);
         MemoryUtils.putByte(sqe + SQE_FLAGS_FIELD, (byte) flags);
@@ -289,6 +316,7 @@ public class SubmissionQueue {
         MemoryUtils.putInt(sqe + SQE_RW_FLAGS_FIELD, rwFlags);
         long userData = UserDataUtils.encode(fd, op, data);
         MemoryUtils.putLong(sqe + SQE_USER_DATA_FIELD, userData);
+        MemoryUtils.putInt(sqe + SQE_BUF_INDEX, bufIndex);
     }
 
     private int submit(int toSubmit, int minComplete, int flags) throws Throwable {
