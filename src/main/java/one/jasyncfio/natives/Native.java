@@ -157,4 +157,9 @@ public class Native {
     public static final int STATX_SIZE = FileIoConstants.statxSize();
     public static final int O_DIRECT = FileIoConstants.oDirect();
     public static final int O_CLOEXEC = FileIoConstants.oCloexec();
+    public static final int O_APPEND = FileIoConstants.oAppend();
+    public static final int O_DSYNC = FileIoConstants.oDsync();
+    public static final int O_EXCL = FileIoConstants.oExcl();
+    public static final int O_NOATIME = FileIoConstants.oNoAtime();
+    public static final int O_SYNC = FileIoConstants.oSync();
 }
