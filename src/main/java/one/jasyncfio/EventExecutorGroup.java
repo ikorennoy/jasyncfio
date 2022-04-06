@@ -7,6 +7,9 @@ import one.jasyncfio.natives.Native;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.file.StandardOpenOption;
+import java.util.Stack;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -109,73 +112,43 @@ public class EventExecutorGroup {
         return executors[0].unregisterFiles();
     }
 
+
     /**
-     * Attempts to open a file in read-only mode
+     * Opens DmaFile, possible errors are described in the openAt man page.
+     * Open file mode currently hardcoded to 666 (octal)
      *
-     * @param path path to file
+     * @param path    path to file
+     * @param options file open flags
      * @return {@link CompletableFuture} contains opened file or exception
      */
-    public CompletableFuture<DmaFile> openDmaFile(String path) {
+    public CompletableFuture<DmaFile> openDmaFile(String path, OpenOption... options) {
         if (path == null) {
             throw new IllegalArgumentException("path must be not null");
         }
         long pathPtr = MemoryUtils.getStringPtr(path);
-        int flags = Native.O_RDONLY | Native.O_CLOEXEC | Native.O_DIRECT;
+        int flags = OpenOption.toFlags(options);
+        flags |= Native.O_DIRECT;
         CompletableFuture<Integer> futureFd =
-                serviceRing.scheduleOpenAt(-1, pathPtr, flags, 0);
+                serviceRing.scheduleOpenAt(-1, pathPtr, flags, 0666);
         return futureFd
                 .thenApply((fd) -> new DmaFile(fd, path, pathPtr, get()));
     }
 
     /**
-     * Opens a file in read write mode.
-     * This function will create a file if it does not exist, and will truncate it if it does.
+     * Opens BufferedFile, possible errors are described in the openAt man page.
+     * Open file mode currently hardcoded to 666 (octal)
+     * Default access (no OpenOptions specified) is read only
      *
-     * @param path path to file
+     * @param path    path to file
+     * @param options file open flags
      * @return {@link CompletableFuture} contains opened file or exception
      */
-    public CompletableFuture<DmaFile> createDmaFile(String path) {
+    public CompletableFuture<BufferedFile> openBufferedFile(String path, OpenOption... options) {
         if (path == null) {
             throw new IllegalArgumentException("path must be not null");
         }
         long pathPtr = MemoryUtils.getStringPtr(path);
-        int flags = Native.O_RDWR | Native.O_CREAT | Native.O_TRUNC | Native.O_DIRECT;
-        CompletableFuture<Integer> futureFd =
-                serviceRing.scheduleOpenAt(-1, pathPtr, flags, 0666);
-        return futureFd
-                .thenApply(fd -> new DmaFile(fd, path, pathPtr, get()));
-    }
-
-    /**
-     * Attempts to open a file in read-only mode
-     *
-     * @param path path to file
-     * @return {@link CompletableFuture} contains opened file or exception
-     */
-    public CompletableFuture<BufferedFile> openBufferedFile(String path) {
-        if (path == null) {
-            throw new IllegalArgumentException("path must be not null");
-        }
-        long pathPtr = MemoryUtils.getStringPtr(path);
-        CompletableFuture<Integer> futureFd =
-                serviceRing.scheduleOpenAt(-1, pathPtr, Native.O_RDONLY, 0);
-        return futureFd
-                .thenApply((fd) -> new BufferedFile(fd, path, pathPtr, get()));
-    }
-
-    /**
-     * Opens a file in read write mode.
-     * This function will create a file if it does not exist, and will truncate it if it does.
-     *
-     * @param path path to file
-     * @return {@link CompletableFuture} contains opened file or exception
-     */
-    public CompletableFuture<BufferedFile> createBufferedFile(String path) {
-        if (path == null) {
-            throw new IllegalArgumentException("path must be not null");
-        }
-        long pathPtr = MemoryUtils.getStringPtr(path);
-        int flags = Native.O_RDWR | Native.O_CREAT | Native.O_TRUNC;
+        int flags = OpenOption.toFlags(options);
         CompletableFuture<Integer> futureFd =
                 serviceRing.scheduleOpenAt(-1, pathPtr, flags, 0666);
         return futureFd
