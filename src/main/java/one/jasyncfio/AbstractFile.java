@@ -11,13 +11,13 @@ class AbstractFile {
     public final int fd;
     final String path;
     protected final long pathAddress;
-    protected final EventLoop defaultEventExecutor;
+    protected final EventExecutor defaultEventExecutor;
 
-    AbstractFile(int fd, String path, long pathAddress, EventLoop eventLoop) {
+    AbstractFile(int fd, String path, long pathAddress, EventExecutor eventExecutor) {
         this.fd = fd;
         this.path = path;
         this.pathAddress = pathAddress;
-        this.defaultEventExecutor = eventLoop;
+        this.defaultEventExecutor = eventExecutor;
     }
 
     public int getRawFd() {
