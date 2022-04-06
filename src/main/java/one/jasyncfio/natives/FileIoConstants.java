@@ -17,4 +17,14 @@ public class FileIoConstants {
     static native int oDirect();
 
     static native int oCloexec();
+
+    static native int oAppend();
+
+    static native int oDsync();
+
+    static native int oExcl();
+
+    static native int oNoAtime();
+
+    static native int oSync();
 }
