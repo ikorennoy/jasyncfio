@@ -265,7 +265,7 @@ public class BufferedFileTest {
     @Test
     void preAllocate_emptyFile() throws Exception {
         BufferedFile f = eventExecutorGroup
-                .openBufferedFile(TEMP_FILE_NAME, OpenOption.CREATE)
+                .openBufferedFile(TEMP_FILE_NAME, OpenOption.CREATE, OpenOption.WRITE_ONLY)
                 .get(1000, TimeUnit.MILLISECONDS);
         deleteOnExit(f);
         assertEquals(0, f.size().get(1000, TimeUnit.MILLISECONDS));
