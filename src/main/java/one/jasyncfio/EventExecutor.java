@@ -237,7 +237,8 @@ public class EventExecutor {
     }
 
     CompletableFuture<Void> registerBuffers(IovecArray buffers) {
-        return null;
+        return CompletableFuture.runAsync(() ->
+                Native.ioUringRegister(ring.getRingFd(), Native.IORING_REGISTER_BUFFERS, buffers.getIovecArrayAddress(), buffers.getCount()));
     }
 
     private void handle(int fd, int res, int flags, byte op, int data) {

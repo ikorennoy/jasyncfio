@@ -1,7 +1,9 @@
 package one.jasyncfio;
 
+import one.jasyncfio.natives.IovecArray;
 import one.jasyncfio.natives.MemoryUtils;
 import one.jasyncfio.natives.Native;
+
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -75,9 +77,7 @@ public class EventExecutorGroup {
         if (executors.length > 1) {
             throw new RuntimeException("Operation not supported");
         }
-        EventExecutor executor = executors[0];
-
-        return null;
+        return executors[0].registerBuffers(new IovecArray(buffers));
     }
 
     /**
@@ -114,7 +114,7 @@ public class EventExecutorGroup {
         CompletableFuture<Integer> futureFd =
                 serviceRing.scheduleOpenAt(-1, pathPtr, flags, 0666);
         return futureFd
-                .thenApply(fd -> new DmaFile(fd, path, pathPtr,  get()));
+                .thenApply(fd -> new DmaFile(fd, path, pathPtr, get()));
     }
 
     /**
