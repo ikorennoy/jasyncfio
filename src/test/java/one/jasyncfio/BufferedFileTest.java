@@ -1,5 +1,6 @@
 package one.jasyncfio;
 
+import one.jasyncfio.natives.IovecArray;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -356,6 +357,7 @@ public class BufferedFileTest {
         assertEquals(0, bufferedFile.remove().get(1000, TimeUnit.MILLISECONDS));
         assertFalse(tempFile.exists());
     }
+
     @Test
     void writev() throws Exception {
         Path tempFile = Files.createTempFile(tmpDir, "temp-", "-file");
@@ -402,6 +404,56 @@ public class BufferedFileTest {
         }
         assertEquals((int) Files.size(tempFile), bytes);
         assertEquals(resultString, strings.toString());
+    }
+
+    @Test
+    void writeFixed() throws Exception {
+        ByteBuffer[] buffers = new ByteBuffer[1];
+        String str = prepareString(100);
+        byte[] bytes = str.getBytes(StandardCharsets.UTF_8);
+        for (int i = 0; i < buffers.length; i++) {
+            ByteBuffer byteBuffer = ByteBuffer.allocateDirect(bytes.length);
+            byteBuffer.put(bytes);
+            byteBuffer.flip();
+            buffers[i] = byteBuffer;
+        }
+        IovecArray iovecArray = eventExecutorGroup.registerBuffers(buffers).get(1000, TimeUnit.MILLISECONDS);
+
+        Path tempFile = Files.createTempFile(tmpDir, "temp-", "-file");
+        BufferedFile bufferedFile = eventExecutorGroup
+                .openBufferedFile(tempFile.toString(), OpenOption.WRITE_ONLY)
+                .get(1000, TimeUnit.MILLISECONDS);
+
+        Integer written = bufferedFile.writeFixed(0, 0, iovecArray).get();
+
+        assertEquals((int) Files.size(tempFile), written);
+        assertEquals(str, new String(Files.readAllBytes(tempFile)));
+    }
+
+    @Test
+    void readFixed() throws Exception {
+        Path tempFile = Files.createTempFile(tmpDir, "temp-", "-file");
+        String resultString = prepareString(100);
+        writeStringToFile(resultString, tempFile.toFile());
+        int length = resultString.getBytes(StandardCharsets.UTF_8).length;
+
+        ByteBuffer[] buffers = new ByteBuffer[1];
+        for (int i = 0; i < buffers.length; i++) {
+            ByteBuffer byteBuffer = ByteBuffer.allocateDirect(length);
+            buffers[i] = byteBuffer;
+        }
+
+        IovecArray iovecArray = eventExecutorGroup.registerBuffers(buffers).get(1000, TimeUnit.MILLISECONDS);
+
+        BufferedFile bufferedFile = eventExecutorGroup
+                .openBufferedFile(tempFile.toString())
+                .get(1000, TimeUnit.MILLISECONDS);
+
+        Integer read = bufferedFile.readFixed(0, 0, iovecArray).get();
+
+        assertEquals(length, read);
+
+        assertEquals(resultString, StandardCharsets.UTF_8.decode(buffers[0]).toString());
     }
 
     private void deleteOnExit(BufferedFile f) {
