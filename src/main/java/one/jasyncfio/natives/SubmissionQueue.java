@@ -171,6 +171,19 @@ public class SubmissionQueue {
         );
     }
 
+    public void addReadFixed(int fd, long buffAddress, long offset, int length, int bufIndex, int opdId) throws Throwable {
+        enqueueSqe(IORING_OP_READ_FIXED,
+                0,
+                0,
+                fd,
+                buffAddress,
+                length,
+                offset,
+                opdId,
+                bufIndex
+        );
+    }
+
     public void addReadv(int fd, long iovecArrAddress, long offset, int iovecArrSize, int opId) throws Throwable {
         enqueueSqe(Native.IORING_OP_READV,
                 0,

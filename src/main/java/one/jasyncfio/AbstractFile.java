@@ -54,6 +54,12 @@ class AbstractFile {
                 .scheduleWriteFixed(fd, buffer.getIovBase(), position, (int) buffer.getIovLen(), bufferIndex);
     }
 
+    public CompletableFuture<Integer> readFixed(long position, int bufferIndex, IovecArray registeredBuffers) {
+        IovecArray.Iovec buffer = registeredBuffers.getIovec(bufferIndex);
+        return eventExecutor
+                .scheduleReadFixed(fd, buffer.getIovBase(), position, (int) buffer.getIovLen(), bufferIndex);
+    }
+
     /**
      * Write the data with in the byte buffer the specified length starting at the given file position.
      * If the given position is greater than the file's current size then the file will be grown to accommodate the new bytes;
