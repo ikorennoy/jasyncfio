@@ -11,13 +11,13 @@ class AbstractFile {
     public final int fd;
     final String path;
     protected final long pathAddress;
-    protected final EventExecutor defaultEventExecutor;
+    protected final EventExecutor eventExecutor;
 
     AbstractFile(int fd, String path, long pathAddress, EventExecutor eventExecutor) {
         this.fd = fd;
         this.path = path;
         this.pathAddress = pathAddress;
-        this.defaultEventExecutor = eventExecutor;
+        this.eventExecutor = eventExecutor;
     }
 
     public int getRawFd() {
@@ -41,11 +41,23 @@ class AbstractFile {
      */
     public CompletableFuture<Integer> read(long position, int length, ByteBuffer buffer) {
         checkConstraints(position, length, buffer);
-        return defaultEventExecutor.scheduleRead(fd, MemoryUtils.getDirectBufferAddress(buffer), position, length)
+        return eventExecutor.scheduleRead(fd, MemoryUtils.getDirectBufferAddress(buffer), position, length)
                 .thenApply((result) -> {
                     buffer.limit(Math.min(result, length));
                     return result;
                 });
+    }
+
+    public CompletableFuture<Integer> writeFixed(long position, int bufferIndex, IovecArray registeredBuffers) {
+        IovecArray.Iovec buffer = registeredBuffers.getIovec(bufferIndex);
+        return eventExecutor
+                .scheduleWriteFixed(fd, buffer.getIovBase(), position, (int) buffer.getIovLen(), bufferIndex);
+    }
+
+    public CompletableFuture<Integer> readFixed(long position, int bufferIndex, IovecArray registeredBuffers) {
+        IovecArray.Iovec buffer = registeredBuffers.getIovec(bufferIndex);
+        return eventExecutor
+                .scheduleReadFixed(fd, buffer.getIovBase(), position, (int) buffer.getIovLen(), bufferIndex);
     }
 
     /**
@@ -64,17 +76,17 @@ class AbstractFile {
 
     public CompletableFuture<Integer> write(long position, int length, ByteBuffer buffer) {
         checkConstraints(position, length, buffer);
-        return defaultEventExecutor.scheduleWrite(fd, MemoryUtils.getDirectBufferAddress(buffer), position, length);
+        return eventExecutor.scheduleWrite(fd, MemoryUtils.getDirectBufferAddress(buffer), position, length);
     }
 
     public CompletableFuture<Integer> write(long position, ByteBuffer[] buffers) {
         IovecArray iovecArray = new IovecArray(buffers);
-        return defaultEventExecutor.scheduleWritev(fd, iovecArray.getIovecArrayAddress(), position, iovecArray.getCount());
+        return eventExecutor.scheduleWritev(fd, iovecArray.getIovecArrayAddress(), position, iovecArray.getCount());
     }
 
     public CompletableFuture<Integer> read(long position, ByteBuffer[] buffers) {
         IovecArray iovecArray = new IovecArray(buffers);
-        return defaultEventExecutor.scheduleReadv(fd, iovecArray.getIovecArrayAddress(), position, iovecArray.getCount());
+        return eventExecutor.scheduleReadv(fd, iovecArray.getIovecArrayAddress(), position, iovecArray.getCount());
     }
 
 
@@ -96,7 +108,7 @@ class AbstractFile {
      */
     public CompletableFuture<Long> size() {
         long bufAddress = MemoryUtils.allocateMemory(StatxUtils.BUF_SIZE);
-        return defaultEventExecutor.scheduleStatx(-1, pathAddress, 0, Native.STATX_SIZE, bufAddress)
+        return eventExecutor.scheduleStatx(-1, pathAddress, 0, Native.STATX_SIZE, bufAddress)
                 .thenApply((r) -> {
                     long size = StatxUtils.getSize(bufAddress);
                     MemoryUtils.freeMemory(bufAddress);
@@ -109,7 +121,7 @@ class AbstractFile {
      * providing durability even if the system crashes or is rebooted.
      */
     public CompletableFuture<Integer> dataSync() {
-        return defaultEventExecutor.scheduleFsync(fd, Native.IORING_FSYNC_DATASYNC);
+        return eventExecutor.scheduleFsync(fd, Native.IORING_FSYNC_DATASYNC);
     }
 
     /**
@@ -137,7 +149,7 @@ class AbstractFile {
         if (offset < 0) {
             throw new IllegalArgumentException("offset must be positive");
         }
-        return defaultEventExecutor.scheduleFallocate(fd, size, 0, offset);
+        return eventExecutor.scheduleFallocate(fd, size, 0, offset);
     }
 
 
@@ -148,7 +160,7 @@ class AbstractFile {
      * Removing removes the name from the filesystem but the file will still be accessible for as long as it is open.
      */
     public CompletableFuture<Integer> remove() {
-        return defaultEventExecutor.scheduleUnlink(-1, pathAddress, 0);
+        return eventExecutor.scheduleUnlink(-1, pathAddress, 0);
     }
 
     @Override
@@ -160,7 +172,7 @@ class AbstractFile {
      * Asynchronously closes this file.
      */
     public CompletableFuture<Integer> close() {
-        return defaultEventExecutor.scheduleClose(fd);
+        return eventExecutor.scheduleClose(fd);
     }
 
 }

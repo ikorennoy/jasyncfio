@@ -78,11 +78,12 @@ public class EventExecutorGroup {
         }
     }
 
-    public CompletableFuture<Void> registerBuffers(ByteBuffer[] buffers) {
+    public CompletableFuture<IovecArray> registerBuffers(ByteBuffer[] buffers) {
         if (executors.length > 1) {
             throw new RuntimeException("The operation is not supported if more than one io_uring instance is configured");
         }
-        return executors[0].registerBuffers(new IovecArray(buffers));
+        IovecArray iovecBuffers = new IovecArray(buffers);
+        return executors[0].registerBuffers(iovecBuffers).thenApply((r) -> iovecBuffers);
     }
 
     public CompletableFuture<Void> unregisterBuffers() {
