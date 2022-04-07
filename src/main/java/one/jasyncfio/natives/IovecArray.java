@@ -33,7 +33,7 @@ public class IovecArray {
         int size = 0;
 
         for (ByteBuffer buffer : buffers) {
-            long buffAddress = MemoryUtils.getDirectBufferAddress(buffer) + buffer.position();
+            long buffAddress = MemoryUtils.getDirectBufferAddress(buffer);
             int len = buffer.limit();
 
             final int baseOffset = count * IOV_SIZE;
@@ -54,11 +54,41 @@ public class IovecArray {
         return iovecArrayAddress;
     }
 
+    public Iovec getIovec(int position) {
+        if (position >= count) {
+            throw new IllegalArgumentException("position can't be greater than iovec array size");
+        }
+
+        final int baseOffset = position * IOV_SIZE;
+        final long iovecBaseAddress = iovecArrayAddress + baseOffset;
+        final long iovecLenAddress = iovecBaseAddress + ADDRESS_SIZE;
+
+        return new Iovec(MemoryUtils.getLong(iovecBaseAddress), MemoryUtils.getLong(iovecLenAddress));
+    }
+
     public int getCount() {
         return count;
     }
 
     public long getSize() {
         return size;
+    }
+
+    public static class Iovec {
+        private final long iovBase;
+        private final long iovLen;
+
+        public Iovec(long iovBase, long iovLen) {
+            this.iovBase = iovBase;
+            this.iovLen = iovLen;
+        }
+
+        public long getIovBase() {
+            return iovBase;
+        }
+
+        public long getIovLen() {
+            return iovLen;
+        }
     }
 }
