@@ -124,6 +124,14 @@ public class BufferedFileTest {
     }
 
     @Test
+    void read_lengthLessThenBufferSize() throws Exception {
+        BufferedFile bufferedFile = eventExecutorGroup
+                .openBufferedFile(getTempFile(tmpDir), OpenOption.READ_ONLY, OpenOption.CREATE)
+                .get();
+        CommonTests.read_lengthLessThenBufferSize(bufferedFile);
+    }
+
+    @Test
     void write() throws Exception {
         BufferedFile bufferedFile = eventExecutorGroup
                 .openBufferedFile(getTempFile(tmpDir), OpenOption.WRITE_ONLY, OpenOption.CREATE)
@@ -165,6 +173,14 @@ public class BufferedFileTest {
                 .openBufferedFile(getTempFile(tmpDir), OpenOption.CREATE, OpenOption.WRITE_ONLY)
                 .get(1000, TimeUnit.MILLISECONDS);
         CommonTests.write_lengthGreaterThanBufferSize(dmaFile);
+    }
+
+    @Test
+    void write_lengthLessThenBufferSize() throws Exception {
+        BufferedFile bufferedFile = eventExecutorGroup
+                .openBufferedFile(getTempFile(tmpDir), OpenOption.WRITE_ONLY, OpenOption.CREATE)
+                .get();
+        CommonTests.write_lengthLessThenBufferSize(bufferedFile);
     }
 
     @Test

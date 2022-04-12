@@ -142,4 +142,25 @@ public class CommonTests {
         assertEquals(1536, Files.size(tempFile));
         assertEquals(expected.substring(0, 1024), new String(Files.readAllBytes(tempFile)).substring(512));
     }
+
+    static void write_lengthLessThenBufferSize(AbstractFile testFile) throws Exception {
+        Path tempFile = Paths.get(testFile.getPath());
+        String expected = TestUtils.prepareString(100);
+        ByteBuffer byteBuffer = MemoryUtils.allocateAlignedByteBuffer(1024, DmaFile.DEFAULT_ALIGNMENT);
+        byteBuffer.put(expected.substring(0, 1024).getBytes(StandardCharsets.UTF_8));
+        assertEquals(1024, testFile.write(0, 1024, byteBuffer).get(1000, TimeUnit.MILLISECONDS));
+        assertEquals(1024, Files.size(tempFile));
+        assertEquals(expected.substring(0, 1024), new String(Files.readAllBytes(tempFile)));
+    }
+
+    static void read_lengthLessThenBufferSize(AbstractFile testFile) throws Exception {
+        Path tempFile = Paths.get(testFile.getPath());
+        String expected = TestUtils.prepareString(100);
+        int readLength = 1024;
+        TestUtils.writeStringToFile(expected, tempFile);
+        ByteBuffer byteBuffer = MemoryUtils.allocateAlignedByteBuffer(2048, DmaFile.DEFAULT_ALIGNMENT);
+        assertEquals(readLength, testFile.read(0, readLength, byteBuffer).get(1000, TimeUnit.MILLISECONDS));
+        String actual = StandardCharsets.UTF_8.decode(byteBuffer).toString();
+        assertEquals(expected.substring(0, readLength), actual);
+    }
 }
