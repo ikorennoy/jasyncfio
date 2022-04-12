@@ -88,7 +88,9 @@ public class EventExecutor {
     }
 
     void stop() {
-        state.set(STOP);
+        if (state.getAndSet(STOP) == WAIT) {
+            LockSupport.unpark(t);
+        }
     }
 
     boolean hasTasks() {
