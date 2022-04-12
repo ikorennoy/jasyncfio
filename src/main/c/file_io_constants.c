@@ -6,43 +6,43 @@
 
 #define FILE_IO_CONSTANTS_CLASS_NAME "one/jasyncfio/natives/FileIoConstants"
 
-static jint get_o_rdonly() {
+static jint get_o_rdonly(void) {
     return O_RDONLY;
 }
-static jint get_o_wronly() {
+static jint get_o_wronly(void) {
     return O_WRONLY;
 }
-static jint get_o_rdwr() {
+static jint get_o_rdwr(void) {
     return O_RDWR;
 }
-static jint get_o_creat() {
+static jint get_o_creat(void) {
     return O_CREAT;
 }
-static jint get_o_trunc() {
+static jint get_o_trunc(void) {
     return O_TRUNC;
 }
-static jint get_statx_size() {
+static jint get_statx_size(void) {
     return STATX_SIZE;
 }
-static jint get_o_direct() {
+static jint get_o_direct(void) {
     return O_DIRECT;
 }
-static jint get_cloexec() {
+static jint get_cloexec(void) {
     return O_CLOEXEC;
 }
-static jint get_append() {
+static jint get_append(void) {
     return O_APPEND;
 }
-static jint get_dsync() {
+static jint get_dsync(void) {
     return O_DSYNC;
 }
-static jint get_excl() {
+static jint get_excl(void) {
     return O_EXCL;
 }
-static jint get_noatime() {
+static jint get_noatime(void) {
     return O_NOATIME;
 }
-static jint get_sync() {
+static jint get_sync(void) {
     return O_SYNC;
 }
 
