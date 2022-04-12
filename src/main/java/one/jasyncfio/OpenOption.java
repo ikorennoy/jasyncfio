@@ -1,7 +1,5 @@
 package one.jasyncfio;
 
-import one.jasyncfio.natives.Native;
-
 import java.util.Collections;
 import java.util.HashSet;
 

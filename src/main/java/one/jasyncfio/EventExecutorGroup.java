@@ -1,9 +1,5 @@
 package one.jasyncfio;
 
-import one.jasyncfio.natives.IovecArray;
-import one.jasyncfio.natives.MemoryUtils;
-import one.jasyncfio.natives.Native;
-
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
@@ -20,7 +16,7 @@ public class EventExecutorGroup {
     private final EventExecutor[] executors;
     private final EventExecutor serviceRing;
 
-    EventExecutorGroup(int numberOfRings,
+    private EventExecutorGroup(int numberOfRings,
                        int entries,
                        boolean ioRingSetupIoPoll,
                        boolean ioRingSetupSqPoll,
@@ -102,7 +98,7 @@ public class EventExecutorGroup {
         buffer.order(ByteOrder.nativeOrder());
         IntBuffer fds = buffer.asIntBuffer();
         for (AbstractFile file : files) {
-            fds.put(file.fd);
+            fds.put(file.getRawFd());
         }
         return executors[0].registerFiles(fds, files.length);
     }

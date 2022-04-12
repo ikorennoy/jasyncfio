@@ -15,7 +15,7 @@
 #include "file_io_constants.h"
 
 
-#define IOURING_NATIVE_CLASS_NAME "one/jasyncfio/natives/Native"
+#define IOURING_NATIVE_CLASS_NAME "one/jasyncfio/Native"
 
 /**
  Our `strerror_r` wrapper makes sure that the function is XSI compliant,
