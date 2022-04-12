@@ -41,10 +41,14 @@
     }
 #endif
 
+static void unmap_rings(void *sq_ring_ptr, size_t sq_ring_sz, void *cq_ring_ptr, size_t cq_ring_sz) {
+     munmap(sq_ring_ptr, sq_ring_sz);
+     if (cq_ring_ptr && cq_ring_ptr != sq_ring_ptr)
+         munmap(cq_ring_ptr, cq_ring_sz);
+}
+
 static void io_uring_unmap_rings(struct io_uring_sq *sq, struct io_uring_cq *cq) {
-     munmap(sq->ring_ptr, sq->ring_sz);
-     if (cq->ring_ptr && cq->ring_ptr != sq->ring_ptr)
-         munmap(cq->ring_ptr, cq->ring_sz);
+    unmap_rings(sq->ring_ptr, sq->ring_sz, cq->ring_ptr, cq->ring_sz);
 }
 
 int io_uring_mmap(int fd, struct io_uring_params *p,
@@ -371,6 +375,13 @@ static jlong get_page_size(JNIEnv* env, jclass clazz) {
 
 }
 
+static void close_ring(JNIEnv* env, jclass clazz, jint ring_fd,
+                       jlong sq_ring_ptr, jint sq_ring_size,
+                       jlong cq_ring_ptr, jint cq_ring_size) {
+    unmap_rings((void *) sq_ring_ptr, sq_ring_size, (void *) cq_ring_ptr, cq_ring_size);
+    close(ring_fd);
+}
+
 static JNINativeMethod method_table[] = {
     {"getStringPointer", "(Ljava/lang/String;)J", (void *) get_string_ptr},
     {"releaseString", "(Ljava/lang/String;J)V", (void *) release_string},
@@ -384,6 +395,7 @@ static JNINativeMethod method_table[] = {
     {"decodeErrno", "(I)Ljava/lang/String;", (void *) decode_errno},
     {"getFileSize", "(I)J", (void *) get_file_size},
     {"getPageSize", "()J", (void *) get_page_size},
+    {"closeRing", "(IJIJI)V", (void *) close_ring},
 };
 
 jint jni_iouring_on_load(JNIEnv *env) {

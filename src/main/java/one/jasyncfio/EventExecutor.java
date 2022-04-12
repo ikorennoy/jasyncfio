@@ -8,14 +8,16 @@ import java.io.IOException;
 import java.nio.IntBuffer;
 import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.LockSupport;
 
 public class EventExecutor {
-    static final boolean AWAKE = true;
-    static final boolean WAIT = false;
+    private static final int STOP = 2;
+    private static final int AWAKE = 1;
+    private static final int WAIT = 0;
 
-    final AtomicBoolean state = new AtomicBoolean(WAIT);
+    final AtomicInteger state = new AtomicInteger(AWAKE);
     final Queue<ExtRunnable> tasks = new MpscChunkedArrayQueue<>(131073);
     final IntObjectHashMap<CompletableFuture<Integer>> futures = new IntObjectHashMap<>(1024);
     final CompletionCallback callback = this::handle;
@@ -45,10 +47,10 @@ public class EventExecutor {
         CompletionQueue completionQueue = ring.getCompletionQueue();
         SubmissionQueue submissionQueue = ring.getSubmissionQueue();
 
-        for (; ; ) {
+        while (true) {
             try {
                 submissionQueue.submit();
-                state.set(WAIT);
+                state.compareAndSet(AWAKE, WAIT);
                 if (!hasTasks() && !(completionQueue.hasCompletions() || (submissionQueue.getTail() != completionQueue.getHead()))) {
                     while (state.get() == WAIT) {
                         LockSupport.park();
@@ -57,10 +59,19 @@ public class EventExecutor {
             } catch (Throwable t) {
                 handleLoopException(t);
             } finally {
-                state.set(AWAKE);
+                state.compareAndSet(WAIT, AWAKE);
             }
             drain();
+            if (state.get() == STOP) {
+                drain();
+                closeRing();
+                break;
+            }
         }
+    }
+
+    private void closeRing() {
+        ring.close();
     }
 
     void execute(ExtRunnable task) {
@@ -70,10 +81,14 @@ public class EventExecutor {
     }
 
     void wakeup(boolean inEventLoop) {
-        boolean localState = state.get();
+        int localState = state.get();
         if (!inEventLoop && (localState != AWAKE && state.compareAndSet(WAIT, AWAKE))) {
             LockSupport.unpark(t);
         }
+    }
+
+    void stop() {
+        state.set(STOP);
     }
 
     boolean hasTasks() {
@@ -85,7 +100,7 @@ public class EventExecutor {
         if (t == null) {
             return false;
         }
-        for (; ; ) {
+        while (true) {
             safeExec(t);
             t = tasks.poll();
             if (t == null) {
@@ -291,7 +306,11 @@ public class EventExecutor {
     }
 
     private void addTask(ExtRunnable task) {
-        tasks.add(task);
+        if (state.get() != STOP) {
+            tasks.add(task);
+        } else {
+            throw new RejectedExecutionException("Event loop is stopped");
+        }
     }
 
     private static void safeExec(ExtRunnable task) {
