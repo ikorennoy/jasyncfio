@@ -85,7 +85,7 @@ public class Read_32 {
                 data.file,
                 data.positions,
                 data.blockSize,
-                Read_64.Data.batchSubmit,
+                Data.batchSubmit,
                 data.buffers,
                 data.futures,
                 data.registeredBuffers,
