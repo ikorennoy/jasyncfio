@@ -1,7 +1,6 @@
 package one.jasyncfio;
 
 import one.jasyncfio.collections.IntObjectHashMap;
-import one.jasyncfio.natives.*;
 import org.jctools.queues.MpscChunkedArrayQueue;
 
 import java.io.IOException;
@@ -37,101 +36,6 @@ public class EventExecutor {
         ring = Native.setupIoUring(entries, flags, sqThreadIdle, sqThreadCpu, cqSize, attachWqRingFd);
         t = new Thread(this::run);
         t.start();
-    }
-
-    private interface PrimitiveIntSupplier {
-        int getAsInt();
-    }
-
-    void run() {
-        CompletionQueue completionQueue = ring.getCompletionQueue();
-        SubmissionQueue submissionQueue = ring.getSubmissionQueue();
-
-        while (true) {
-            try {
-                submissionQueue.submit();
-                state.compareAndSet(AWAKE, WAIT);
-                if (!hasTasks() && !(completionQueue.hasCompletions() || (submissionQueue.getTail() != completionQueue.getHead()))) {
-                    while (state.get() == WAIT) {
-                        LockSupport.park();
-                    }
-                }
-            } catch (Throwable t) {
-                handleLoopException(t);
-            } finally {
-                state.compareAndSet(WAIT, AWAKE);
-            }
-            drain();
-            if (state.get() == STOP) {
-                drain();
-                closeRing();
-                break;
-            }
-        }
-    }
-
-    private void closeRing() {
-        ring.close();
-    }
-
-    void execute(ExtRunnable task) {
-        boolean inEventLoop = inEventLoop();
-        addTask(task);
-        wakeup(inEventLoop);
-    }
-
-    void wakeup(boolean inEventLoop) {
-        int localState = state.get();
-        if (!inEventLoop && (localState != AWAKE && state.compareAndSet(WAIT, AWAKE))) {
-            LockSupport.unpark(t);
-        }
-    }
-
-    void stop() {
-        if (state.getAndSet(STOP) == WAIT) {
-            LockSupport.unpark(t);
-        }
-    }
-
-    boolean hasTasks() {
-        return !tasks.isEmpty();
-    }
-
-    boolean runAllTasks() {
-        ExtRunnable t = tasks.poll();
-        if (t == null) {
-            return false;
-        }
-        while (true) {
-            safeExec(t);
-            t = tasks.poll();
-            if (t == null) {
-                return true;
-            }
-        }
-    }
-
-    void drain() {
-        boolean moreWork = true;
-        do {
-            try {
-                int processed = ring.getCompletionQueue().processEvents(callback);
-                boolean run = runAllTasks();
-                moreWork = processed != 0 || run;
-            } catch (Throwable t) {
-                handleLoopException(t);
-            }
-        } while (moreWork);
-    }
-
-
-    static void handleLoopException(Throwable t) {
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            // ignore
-        }
     }
 
     CompletableFuture<Integer> scheduleNoop() {
@@ -293,6 +197,101 @@ public class EventExecutor {
     CompletableFuture<Void> unregisterFiles() {
         return CompletableFuture.runAsync(() ->
                 Native.ioUringRegister(ring.getRingFd(), Native.IORING_UNREGISTER_FILES, -1, 0));
+    }
+
+    private interface PrimitiveIntSupplier {
+        int getAsInt();
+    }
+
+    private void run() {
+        CompletionQueue completionQueue = ring.getCompletionQueue();
+        SubmissionQueue submissionQueue = ring.getSubmissionQueue();
+
+        while (true) {
+            try {
+                submissionQueue.submit();
+                state.compareAndSet(AWAKE, WAIT);
+                if (!hasTasks() && !(completionQueue.hasCompletions() || (submissionQueue.getTail() != completionQueue.getHead()))) {
+                    while (state.get() == WAIT) {
+                        LockSupport.park();
+                    }
+                }
+            } catch (Throwable t) {
+                handleLoopException(t);
+            } finally {
+                state.compareAndSet(WAIT, AWAKE);
+            }
+            drain();
+            if (state.get() == STOP) {
+                drain();
+                closeRing();
+                break;
+            }
+        }
+    }
+
+    private void closeRing() {
+        ring.close();
+    }
+
+    private void execute(ExtRunnable task) {
+        boolean inEventLoop = inEventLoop();
+        addTask(task);
+        wakeup(inEventLoop);
+    }
+
+    private void wakeup(boolean inEventLoop) {
+        int localState = state.get();
+        if (!inEventLoop && (localState != AWAKE && state.compareAndSet(WAIT, AWAKE))) {
+            LockSupport.unpark(t);
+        }
+    }
+
+    void stop() {
+        if (state.getAndSet(STOP) == WAIT) {
+            LockSupport.unpark(t);
+        }
+    }
+
+    private boolean hasTasks() {
+        return !tasks.isEmpty();
+    }
+
+    private boolean runAllTasks() {
+        ExtRunnable t = tasks.poll();
+        if (t == null) {
+            return false;
+        }
+        while (true) {
+            safeExec(t);
+            t = tasks.poll();
+            if (t == null) {
+                return true;
+            }
+        }
+    }
+
+    private void drain() {
+        boolean moreWork = true;
+        do {
+            try {
+                int processed = ring.getCompletionQueue().processEvents(callback);
+                boolean run = runAllTasks();
+                moreWork = processed != 0 || run;
+            } catch (Throwable t) {
+                handleLoopException(t);
+            }
+        } while (moreWork);
+    }
+
+
+    private static void handleLoopException(Throwable t) {
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            // ignore
+        }
     }
 
     private void handle(int fd, int res, int flags, byte op, int data) {

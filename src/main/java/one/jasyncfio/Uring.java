@@ -1,4 +1,4 @@
-package one.jasyncfio.natives;
+package one.jasyncfio;
 
 public class Uring {
     private final CompletionQueue completionQueue;
@@ -11,19 +11,19 @@ public class Uring {
         this.submissionQueue = submissionQueue;
     }
 
-    public CompletionQueue getCompletionQueue() {
+    CompletionQueue getCompletionQueue() {
         return completionQueue;
     }
 
-    public SubmissionQueue getSubmissionQueue() {
+    SubmissionQueue getSubmissionQueue() {
         return submissionQueue;
     }
 
-    public int getRingFd() {
+    int getRingFd() {
         return ringFd;
     }
 
-    public void close() {
+    void close() {
         Native.closeRing(ringFd, submissionQueue.kRingPointer, submissionQueue.ringSize, completionQueue.kRingPointer, completionQueue.ringSize);
     }
 }

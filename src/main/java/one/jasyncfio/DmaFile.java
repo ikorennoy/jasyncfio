@@ -3,7 +3,7 @@ package one.jasyncfio;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 
-import static one.jasyncfio.natives.MemoryUtils.allocateAlignedByteBuffer;
+import static one.jasyncfio.MemoryUtils.allocateAlignedByteBuffer;
 
 public class DmaFile extends AbstractFile {
     public static final int DEFAULT_ALIGNMENT = 4096;

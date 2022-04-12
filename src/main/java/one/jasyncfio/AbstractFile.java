@@ -1,15 +1,11 @@
 package one.jasyncfio;
 
-import one.jasyncfio.natives.IovecArray;
-import one.jasyncfio.natives.MemoryUtils;
-import one.jasyncfio.natives.Native;
-
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 
 class AbstractFile {
-    public final int fd;
-    final String path;
+    private final int fd;
+    private final String path;
     private final long pathAddress;
     private final EventExecutorGroup eventExecutorGroup;
 

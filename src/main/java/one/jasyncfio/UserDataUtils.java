@@ -1,6 +1,4 @@
-package one.jasyncfio.natives;
-
-import one.jasyncfio.CompletionCallback;
+package one.jasyncfio;
 
 public class UserDataUtils {
 
