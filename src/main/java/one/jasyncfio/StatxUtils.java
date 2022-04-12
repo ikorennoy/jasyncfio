@@ -1,8 +1,5 @@
 package one.jasyncfio;
 
-import one.jasyncfio.natives.MemoryUtils;
-import one.jasyncfio.natives.Native;
-
 
 class StatxUtils {
     public static int BUF_SIZE = 256;

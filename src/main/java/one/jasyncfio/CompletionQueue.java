@@ -1,6 +1,4 @@
-package one.jasyncfio.natives;
-
-import one.jasyncfio.CompletionCallback;
+package one.jasyncfio;
 
 public class CompletionQueue {
     // offsets
@@ -50,11 +48,11 @@ public class CompletionQueue {
         this.ringMask = MemoryUtils.getIntVolatile(kRingMask);
     }
 
-    public boolean hasCompletions() {
+    boolean hasCompletions() {
         return ringHead != MemoryUtils.getIntVolatile(kTail);
     }
 
-    public int processEvents(CompletionCallback callback) {
+    int processEvents(CompletionCallback callback) {
         int tail = MemoryUtils.getIntVolatile(kTail);
         int i = 0;
         while (ringHead != tail) {
@@ -72,7 +70,7 @@ public class CompletionQueue {
         return i;
     }
 
-    public int getHead() {
+    int getHead() {
         return ringHead;
     }
 }

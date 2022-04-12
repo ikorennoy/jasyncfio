@@ -1,6 +1,5 @@
 package one.jasyncfio;
 
-import one.jasyncfio.natives.IovecArray;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 

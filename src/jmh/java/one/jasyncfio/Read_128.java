@@ -1,7 +1,5 @@
 package one.jasyncfio;
 
-import one.jasyncfio.natives.MemoryUtils;
-import one.jasyncfio.natives.Native;
 import org.openjdk.jmh.annotations.*;
 import java.nio.ByteBuffer;
 import java.util.Random;
@@ -60,7 +58,7 @@ public class Read_128 {
 
             file = eventExecutors.openDmaFile(device).get();
             Random random = new Random();
-            maxSize = Native.getFileSize(file.fd);
+            maxSize = Native.getFileSize(file.getRawFd());
             maxBlocks = maxSize / blockSize;
             for (int i = 0; i < ioDepth; i++) {
                 buffers[i] = MemoryUtils.allocateAlignedByteBuffer(blockSize, pageSize);
