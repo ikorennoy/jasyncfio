@@ -83,6 +83,7 @@ public class Native {
 
     public static native long getPageSize();
 
+    public static native void closeRing(int ringFd, long sqRingPtr, int sqRingSize, long cqRingPtr, int cqRingSize);
 
     /**
      * took from netty io uring project

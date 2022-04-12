@@ -16,10 +16,10 @@ public class CompletionQueue {
     private final long kRingEntries;
     private final long kOverflow;
     private final long kCompletionArray;
-    private final long kRingPointer;
+    final long kRingPointer;
 
     // values
-    private final int ringSize;
+    final int ringSize;
     private int ringHead;
     private final int ringMask;
     private final int ringFd;

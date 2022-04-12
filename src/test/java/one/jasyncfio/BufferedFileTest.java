@@ -12,6 +12,7 @@ import java.nio.file.Path;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import static one.jasyncfio.TestUtils.*;
@@ -454,6 +455,14 @@ public class BufferedFileTest {
         assertEquals(length, read);
 
         assertEquals(resultString, StandardCharsets.UTF_8.decode(buffers[0]).toString());
+    }
+
+    @Test
+    void closeRing() throws Exception {
+        eventExecutorGroup.stop();
+        Path tempFile = Files.createTempFile(tmpDir, "temp-", "-file");
+        assertThrows(RejectedExecutionException.class, () -> eventExecutorGroup
+                .openBufferedFile(tempFile.toString(), OpenOption.WRITE_ONLY));
     }
 
     private void deleteOnExit(BufferedFile f) {

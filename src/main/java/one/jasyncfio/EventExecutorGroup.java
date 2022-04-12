@@ -156,6 +156,13 @@ public class EventExecutorGroup {
                 .thenApply((fd) -> new BufferedFile(fd, path, pathPtr, get()));
     }
 
+    public void stop() {
+        serviceRing.stop();
+        for (EventExecutor executor : executors) {
+            executor.stop();
+        }
+    }
+
 
     public static class Builder {
         private int numberOfRings = 1;
