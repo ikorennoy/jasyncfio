@@ -126,12 +126,7 @@ public class DmaFileTest {
         DmaFile dmaFile = eventExecutorGroup
                 .openDmaFile(getTempFile(tmpDir), OpenOption.READ_ONLY, OpenOption.CREATE)
                 .get();
-        Path tempFile = Paths.get(dmaFile.getPath());
-        String expected = TestUtils.prepareString(100);
-        int readLength = 2048;
-        TestUtils.writeStringToFile(expected, tempFile);
-        ByteBuffer byteBuffer = MemoryUtils.allocateAlignedByteBuffer(1024, DmaFile.DEFAULT_ALIGNMENT);
-        assertThrows(IllegalArgumentException.class, () -> dmaFile.read(0, readLength, byteBuffer).get(1000, TimeUnit.MILLISECONDS));
+        CommonTests.read_lengthGreaterThanBufferSize(dmaFile);
     }
 
     @Test
@@ -154,12 +149,7 @@ public class DmaFileTest {
         DmaFile dmaFile = eventExecutorGroup
                 .openDmaFile(getTempFile(tmpDir), OpenOption.READ_ONLY, OpenOption.CREATE)
                 .get();
-        Path tempFile = Paths.get(dmaFile.getPath());
-        String expected = TestUtils.prepareString(10);
-        int readLength = expected.length();
-        TestUtils.writeStringToFile(expected, tempFile);
-        ByteBuffer byteBuffer = MemoryUtils.allocateAlignedByteBuffer(2048, DmaFile.DEFAULT_ALIGNMENT);
-        assertEquals(0, dmaFile.read(2048, readLength, byteBuffer).get(1000, TimeUnit.MILLISECONDS));
+        CommonTests.read_positionGreaterThanFileSize(dmaFile);
     }
 
     @Test
@@ -235,12 +225,6 @@ public class DmaFileTest {
         DmaFile dmaFile = eventExecutorGroup
                 .openDmaFile(getTempFile(tmpDir), OpenOption.WRITE_ONLY, OpenOption.CREATE)
                 .get();
-        Path tempFile = Paths.get(dmaFile.getPath());
-        String expected = TestUtils.prepareString(100);
-        ByteBuffer byteBuffer = MemoryUtils.allocateAlignedByteBuffer(1024, DmaFile.DEFAULT_ALIGNMENT);
-        byteBuffer.put(expected.substring(0, 1024).getBytes(StandardCharsets.UTF_8));
-        assertEquals(1024, dmaFile.write(512, 1024, byteBuffer).get(1000, TimeUnit.MILLISECONDS));
-        assertEquals(1536, Files.size(tempFile));
-        assertEquals(expected.substring(0, 1024), new String(Files.readAllBytes(tempFile)).substring(512));
+        CommonTests.write_positionGreaterThanFileSize(dmaFile);
     }
 }

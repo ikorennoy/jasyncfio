@@ -25,8 +25,9 @@ public class BufferedFileTest {
 
     @Test
     void open() throws Exception {
-        Path file = Files.createTempFile(tmpDir, "temp-", "-file");
-        BufferedFile bufferedFile = eventExecutorGroup.openBufferedFile(file.toString()).get(1000, TimeUnit.MILLISECONDS);
+        BufferedFile bufferedFile = eventExecutorGroup
+                .openBufferedFile(getTempFile(tmpDir), OpenOption.CREATE)
+                .get(1000, TimeUnit.MILLISECONDS);
         assertTrue(bufferedFile.getRawFd() > 0);
     }
 
@@ -76,9 +77,8 @@ public class BufferedFileTest {
 
     @Test
     void read_wrongBuffer() throws Exception {
-        Path tempFile = Files.createTempFile(tmpDir, "temp-", "-file");
         BufferedFile bufferedFile = eventExecutorGroup
-                .openBufferedFile(tempFile.toString())
+                .openBufferedFile(getTempFile(tmpDir), OpenOption.CREATE, OpenOption.READ_ONLY)
                 .get(1000, TimeUnit.MILLISECONDS);
         assertThrows(IllegalArgumentException.class, () -> bufferedFile.read(0, ByteBuffer.allocate(10)));
     }
@@ -109,25 +109,18 @@ public class BufferedFileTest {
 
     @Test
     void read_lengthGreaterThanBufferSize() throws Exception {
-        Path tempFile = Files.createTempFile(tmpDir, "test-", "file");
-        String expected = TestUtils.prepareString(100);
-        int readLength = 2048;
-        TestUtils.writeStringToFile(expected, tempFile);
-        BufferedFile bufferedFile = eventExecutorGroup.openBufferedFile(tempFile.toString()).get(1000, TimeUnit.MILLISECONDS);
-        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(1024);
-        assertThrows(IllegalArgumentException.class, () -> bufferedFile.read(0, readLength, byteBuffer).get(1000, TimeUnit.MILLISECONDS));
+        BufferedFile bufferedFile = eventExecutorGroup
+                .openBufferedFile(getTempFile(tmpDir), OpenOption.READ_ONLY, OpenOption.CREATE)
+                .get();
+        CommonTests.read_lengthGreaterThanBufferSize(bufferedFile);
     }
 
     @Test
     void read_positionGreaterThanFileSize() throws Exception {
-        Path tempFile = Files.createTempFile(tmpDir, "temp-", "-file");
-        String resultString = prepareString(100);
-        writeStringToFile(resultString, tempFile);
-        int stringLength = resultString.getBytes(StandardCharsets.UTF_8).length;
-        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(stringLength);
-        BufferedFile bufferedFile = eventExecutorGroup.openBufferedFile(tempFile.toString()).get(1000, TimeUnit.MILLISECONDS);
-        Integer bytes = bufferedFile.read(stringLength * 2L, byteBuffer).get(1000, TimeUnit.MILLISECONDS);
-        assertEquals(0, bytes);
+        BufferedFile bufferedFile = eventExecutorGroup
+                .openBufferedFile(getTempFile(tmpDir), OpenOption.READ_ONLY, OpenOption.CREATE)
+                .get();
+        CommonTests.read_positionGreaterThanFileSize(bufferedFile);
     }
 
     @Test
@@ -163,15 +156,7 @@ public class BufferedFileTest {
         BufferedFile bufferedFile = eventExecutorGroup
                 .openBufferedFile(getTempFile(tmpDir), OpenOption.CREATE, OpenOption.WRITE_ONLY)
                 .get(1000, TimeUnit.MILLISECONDS);
-        File file = new File(bufferedFile.getPath());
-        assertEquals(0, file.length());
-        String str = prepareString(100);
-        byte[] bytes = str.getBytes(StandardCharsets.UTF_8);
-        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(bytes.length);
-        byteBuffer.put(bytes);
-        Integer written = bufferedFile.write(100, bytes.length, byteBuffer).get(1000, TimeUnit.MILLISECONDS);
-        assertEquals(file.length(), written + 100);
-        assertEquals(bytes.length, written);
+        CommonTests.write_positionGreaterThanFileSize(bufferedFile);
     }
 
     @Test
