@@ -1,9 +1,9 @@
-package one.jasyncfio.natives;
+package one.jasyncfio;
 
 import java.io.*;
 
 public class Utils {
-    public static File loadLib(String name) throws IOException {
+    static File loadLib(String name) throws IOException {
         InputStream in = Native.class.getResourceAsStream("/" + name);
         File fileOut;
         if (in == null) {

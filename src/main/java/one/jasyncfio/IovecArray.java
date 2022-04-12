@@ -1,4 +1,4 @@
-package one.jasyncfio.natives;
+package one.jasyncfio;
 
 import java.nio.ByteBuffer;
 
@@ -25,12 +25,14 @@ public class IovecArray {
     private final ByteBuffer iovecArray;
     private final int count;
     private final long size;
+    private final Iovec[] iovecs;
 
     public IovecArray(ByteBuffer[] buffers) {
         iovecArray = ByteBuffer.allocateDirect(buffers.length * IOV_SIZE);
         iovecArrayAddress = MemoryUtils.getDirectBufferAddress(iovecArray);
         int count = 0;
         int size = 0;
+        iovecs = new Iovec[buffers.length];
 
         for (ByteBuffer buffer : buffers) {
             long buffAddress = MemoryUtils.getDirectBufferAddress(buffer);
@@ -38,6 +40,7 @@ public class IovecArray {
 
             final int baseOffset = count * IOV_SIZE;
             final int lenOffset = baseOffset + ADDRESS_SIZE;
+            iovecs[count] = new Iovec(buffAddress, len);
 
             size += len;
             ++count;
@@ -59,11 +62,7 @@ public class IovecArray {
             throw new IllegalArgumentException("position can't be greater than iovec array size");
         }
 
-        final int baseOffset = position * IOV_SIZE;
-        final long iovecBaseAddress = iovecArrayAddress + baseOffset;
-        final long iovecLenAddress = iovecBaseAddress + ADDRESS_SIZE;
-
-        return new Iovec(MemoryUtils.getLong(iovecBaseAddress), MemoryUtils.getLong(iovecLenAddress));
+        return iovecs[position];
     }
 
     public int getCount() {

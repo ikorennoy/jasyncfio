@@ -1,4 +1,4 @@
-package one.jasyncfio.natives;
+package one.jasyncfio;
 
 @FunctionalInterface
 public interface ExtRunnable {
