@@ -358,5 +358,4 @@ public class DmaFileTest {
                 .get(1000, TimeUnit.MILLISECONDS);
         CommonTests.open_newFile(dmaFile);
     }
-
 }
