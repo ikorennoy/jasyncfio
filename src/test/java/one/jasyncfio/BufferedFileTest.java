@@ -62,9 +62,7 @@ public class BufferedFileTest {
         BufferedFile bufferedFile = eventExecutorGroup
                 .openBufferedFile(getTempFile(tmpDir), OpenOption.CREATE)
                 .get(1000, TimeUnit.MILLISECONDS);
-        assertTrue(bufferedFile.getRawFd() > 0);
-        File file = new File(bufferedFile.getPath());
-        assertTrue(file.exists());
+        CommonTests.open_newFile(bufferedFile);
     }
 
     @Test
@@ -133,22 +131,10 @@ public class BufferedFileTest {
 
     @Test
     void write_trackPosition() throws Exception {
-        Path tempFile = Files.createTempFile(tmpDir, "temp-", "-file");
         BufferedFile bufferedFile = eventExecutorGroup
-                .openBufferedFile(tempFile.toString(), OpenOption.WRITE_ONLY)
+                .openBufferedFile(getTempFile(tmpDir), OpenOption.WRITE_ONLY, OpenOption.CREATE)
                 .get(1000, TimeUnit.MILLISECONDS);
-        assertEquals(0, Files.size(tempFile));
-        String str = prepareString(100);
-        byte[] bytes = str.getBytes(StandardCharsets.UTF_8);
-        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(bytes.length);
-        byteBuffer.put(bytes);
-        Integer written = bufferedFile.write(-1, bytes.length, byteBuffer).get(1000, TimeUnit.MILLISECONDS);
-        assertEquals((int) Files.size(tempFile), written);
-        assertEquals(str, new String(Files.readAllBytes(tempFile)));
-
-        bufferedFile.write(-1, bytes.length, byteBuffer).get(1000, TimeUnit.MILLISECONDS);
-        assertEquals((int) Files.size(tempFile), written * 2);
-        assertEquals(str + str, new String(Files.readAllBytes(tempFile)));
+        CommonTests.write_trackPosition(bufferedFile);
     }
 
     @Test
@@ -180,15 +166,7 @@ public class BufferedFileTest {
         BufferedFile bufferedFile = eventExecutorGroup
                 .openBufferedFile(getTempFile(tmpDir), OpenOption.CREATE, OpenOption.WRITE_ONLY)
                 .get(1000, TimeUnit.MILLISECONDS);
-        File file = new File(bufferedFile.getPath());
-        assertEquals(0, file.length());
-        String str = prepareString(100);
-        byte[] bytes = str.getBytes(StandardCharsets.UTF_8);
-        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(bytes.length);
-        byteBuffer.put(bytes);
-        Integer written = bufferedFile.write(0, 0, byteBuffer).get(1000, TimeUnit.MILLISECONDS);
-        assertEquals(0, written);
-        assertEquals(0, file.length());
+        CommonTests.write_lengthZero(bufferedFile);
     }
 
     @Test
@@ -311,25 +289,10 @@ public class BufferedFileTest {
 
     @Test
     void writev() throws Exception {
-        Path tempFile = Files.createTempFile(tmpDir, "temp-", "-file");
         BufferedFile bufferedFile = eventExecutorGroup
-                .openBufferedFile(tempFile.toString(), OpenOption.WRITE_ONLY)
+                .openBufferedFile(getTempFile(tmpDir), OpenOption.CREATE, OpenOption.WRITE_ONLY)
                 .get(1000, TimeUnit.MILLISECONDS);
-        assertEquals(0, Files.size(tempFile));
-        ByteBuffer[] buffers = new ByteBuffer[10];
-        StringBuilder strings = new StringBuilder();
-        String str = prepareString(100);
-        byte[] bytes = str.getBytes(StandardCharsets.UTF_8);
-        for (int i = 0; i < buffers.length; i++) {
-            ByteBuffer byteBuffer = ByteBuffer.allocateDirect(bytes.length);
-            byteBuffer.put(bytes);
-            byteBuffer.flip();
-            buffers[i] = byteBuffer;
-            strings.append(str);
-        }
-        Integer written = bufferedFile.write(0, buffers).get(1000, TimeUnit.MILLISECONDS);
-        assertEquals((int) Files.size(tempFile), written);
-        assertEquals(strings.toString(), new String(Files.readAllBytes(tempFile)));
+        CommonTests.writev(bufferedFile);
     }
 
     @Test
@@ -359,52 +322,18 @@ public class BufferedFileTest {
 
     @Test
     void writeFixed() throws Exception {
-        ByteBuffer[] buffers = new ByteBuffer[1];
-        String str = prepareString(100);
-        byte[] bytes = str.getBytes(StandardCharsets.UTF_8);
-        for (int i = 0; i < buffers.length; i++) {
-            ByteBuffer byteBuffer = ByteBuffer.allocateDirect(bytes.length);
-            byteBuffer.put(bytes);
-            byteBuffer.flip();
-            buffers[i] = byteBuffer;
-        }
-        IovecArray iovecArray = eventExecutorGroup.registerBuffers(buffers).get(1000, TimeUnit.MILLISECONDS);
-
-        Path tempFile = Files.createTempFile(tmpDir, "temp-", "-file");
         BufferedFile bufferedFile = eventExecutorGroup
-                .openBufferedFile(tempFile.toString(), OpenOption.WRITE_ONLY)
+                .openBufferedFile(getTempFile(tmpDir), OpenOption.CREATE, OpenOption.WRITE_ONLY)
                 .get(1000, TimeUnit.MILLISECONDS);
-
-        Integer written = bufferedFile.writeFixed(0, 0, iovecArray).get();
-
-        assertEquals((int) Files.size(tempFile), written);
-        assertEquals(str, new String(Files.readAllBytes(tempFile)));
+        CommonTests.writeFixed(bufferedFile, eventExecutorGroup);
     }
 
     @Test
     void readFixed() throws Exception {
-        Path tempFile = Files.createTempFile(tmpDir, "temp-", "-file");
-        String resultString = prepareString(100);
-        writeStringToFile(resultString, tempFile);
-        int length = resultString.getBytes(StandardCharsets.UTF_8).length;
-
-        ByteBuffer[] buffers = new ByteBuffer[1];
-        for (int i = 0; i < buffers.length; i++) {
-            ByteBuffer byteBuffer = ByteBuffer.allocateDirect(length);
-            buffers[i] = byteBuffer;
-        }
-
-        IovecArray iovecArray = eventExecutorGroup.registerBuffers(buffers).get(1000, TimeUnit.MILLISECONDS);
-
         BufferedFile bufferedFile = eventExecutorGroup
-                .openBufferedFile(tempFile.toString())
+                .openBufferedFile(getTempFile(tmpDir), OpenOption.READ_ONLY, OpenOption.CREATE)
                 .get(1000, TimeUnit.MILLISECONDS);
-
-        Integer read = bufferedFile.readFixed(0, 0, iovecArray).get();
-
-        assertEquals(length, read);
-
-        assertEquals(resultString, StandardCharsets.UTF_8.decode(buffers[0]).toString());
+        CommonTests.readFixed(bufferedFile, eventExecutorGroup);
     }
 
     @Test

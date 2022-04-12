@@ -2,6 +2,7 @@ package one.jasyncfio;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -11,8 +12,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import static one.jasyncfio.TestUtils.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class DmaFileTest {
 
@@ -159,6 +159,46 @@ public class DmaFileTest {
                 .openDmaFile(getTempFile(tmpDir), OpenOption.READ_ONLY, OpenOption.CREATE)
                 .get();
         CommonTests.read_bufferLessThanFile(dmaFile);
+    }
+
+    @Test
+    void readFixed() throws Exception {
+        DmaFile dmaFile = eventExecutorGroup
+                .openDmaFile(getTempFile(tmpDir), OpenOption.READ_ONLY, OpenOption.CREATE)
+                .get(1000, TimeUnit.MILLISECONDS);
+        CommonTests.readFixed(dmaFile, eventExecutorGroup);
+    }
+
+    @Test
+    void writeFixed() throws Exception {
+        DmaFile dmaFile = eventExecutorGroup
+                .openDmaFile(getTempFile(tmpDir), OpenOption.CREATE, OpenOption.WRITE_ONLY)
+                .get(1000, TimeUnit.MILLISECONDS);
+        CommonTests.writeFixed(dmaFile, eventExecutorGroup);
+    }
+
+    @Test
+    void writev() throws Exception {
+        DmaFile dmaFile = eventExecutorGroup
+                .openDmaFile(getTempFile(tmpDir), OpenOption.WRITE_ONLY, OpenOption.CREATE)
+                .get(1000, TimeUnit.MILLISECONDS);
+        CommonTests.writev(dmaFile);
+    }
+
+    @Test
+    void write_lengthZero() throws Exception {
+        DmaFile dmaFile = eventExecutorGroup
+                .openDmaFile(getTempFile(tmpDir), OpenOption.CREATE, OpenOption.WRITE_ONLY)
+                .get(1000, TimeUnit.MILLISECONDS);
+        CommonTests.write_lengthZero(dmaFile);
+    }
+
+    @Test
+    void write_trackPosition() throws Exception {
+        DmaFile dmaFile = eventExecutorGroup
+                .openDmaFile(getTempFile(tmpDir), OpenOption.WRITE_ONLY, OpenOption.CREATE)
+                .get(1000, TimeUnit.MILLISECONDS);
+        CommonTests.write_trackPosition(dmaFile);
     }
 
     @Test
@@ -309,6 +349,14 @@ public class DmaFileTest {
                 .openDmaFile(getTempFile(tmpDir), OpenOption.READ_ONLY, OpenOption.CREATE)
                 .get(1000, TimeUnit.MILLISECONDS);
         CommonTests.remove_closed(dmaFile);
+    }
+
+    @Test
+    void open_newFile() throws Exception {
+        DmaFile dmaFile = eventExecutorGroup
+                .openDmaFile(getTempFile(tmpDir), OpenOption.CREATE)
+                .get(1000, TimeUnit.MILLISECONDS);
+        CommonTests.open_newFile(dmaFile);
     }
 
 }
