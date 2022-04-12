@@ -1,6 +1,7 @@
 package one.jasyncfio;
 
 import org.openjdk.jmh.annotations.*;
+
 import java.nio.ByteBuffer;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
@@ -27,6 +28,10 @@ public class Read_64 {
         @Param({"true", "false"})
         boolean ioPoll;
 
+        @Param({"true", "false"})
+        boolean registeredBuffers;
+
+
         public final int blockSize = Integer.parseInt(System.getProperty("BLOCK_SIZE", "512"));
         public final long pageSize = Native.getPageSize();
 
@@ -39,6 +44,7 @@ public class Read_64 {
         public long maxBlocks;
         public long[] positions = new long[batchSubmit];
         public CompletableFuture<Integer>[] futures = new CompletableFuture[batchSubmit];
+        public IovecArray iovecArray;
 
         @Setup
         public void setup() throws Exception {
@@ -62,6 +68,9 @@ public class Read_64 {
             for (int i = 0; i < ioDepth; i++) {
                 buffers[i] = MemoryUtils.allocateAlignedByteBuffer(blockSize, pageSize);
             }
+            if (registeredBuffers) {
+                iovecArray = eventExecutors.registerBuffers(buffers).get();
+            }
             for (int i = 0; i < batchSubmit; i++) {
                 positions[i] = (Math.abs(random.nextLong()) % (maxBlocks - 1)) * blockSize;
             }
@@ -73,7 +82,16 @@ public class Read_64 {
     @Fork(value = 1)
     @Threads(1)
     public void randomRead(Data data) throws Exception {
-        Benchmarks.randomRead(data.file, data.positions, data.blockSize, Data.batchSubmit, data.buffers, data.futures);
+        Benchmarks.randomRead(
+                data.file,
+                data.positions,
+                data.blockSize,
+                Data.batchSubmit,
+                data.buffers,
+                data.futures,
+                data.registeredBuffers,
+                data.iovecArray
+        );
     }
 
     @Benchmark
@@ -81,6 +99,15 @@ public class Read_64 {
     @Fork(value = 1)
     @Threads(1)
     public void sequentialRead(Data data) throws Exception {
-        Benchmarks.sequentialRead(data.file, data.maxSize, data.blockSize, Data.batchSubmit, data.buffers, data.futures);
+        Benchmarks.sequentialRead(
+                data.file,
+                data.maxSize,
+                data.blockSize,
+                Data.batchSubmit,
+                data.buffers,
+                data.futures,
+                data.registeredBuffers,
+                data.iovecArray
+        );
     }
 }
