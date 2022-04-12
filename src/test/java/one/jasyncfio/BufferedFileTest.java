@@ -9,8 +9,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Date;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.RejectedExecutionException;
@@ -70,17 +68,10 @@ public class BufferedFileTest {
 
     @Test
     void read() throws Exception {
-        Path tempFile = Files.createTempFile(tmpDir, "temp-", "-file");
-        String resultString = prepareString(100);
-        writeStringToFile(resultString, tempFile);
-        assertTrue(Files.size(tempFile) > 0);
-        ByteBuffer bb = ByteBuffer.allocateDirect((int) Files.size(tempFile));
         BufferedFile bufferedFile = eventExecutorGroup
-                .openBufferedFile(tempFile.toString())
+                .openBufferedFile(getTempFile(tmpDir), OpenOption.CREATE, OpenOption.READ_ONLY)
                 .get(1000, TimeUnit.MILLISECONDS);
-        Integer bytes = bufferedFile.read(0, bb).get(1000, TimeUnit.MILLISECONDS);
-        assertEquals((int) Files.size(tempFile), bytes);
-        assertEquals(resultString, StandardCharsets.UTF_8.decode(bb).toString());
+        CommonTests.read(bufferedFile);
     }
 
     @Test
@@ -140,19 +131,11 @@ public class BufferedFileTest {
     }
 
     @Test
-    void write_emptyFile() throws Exception {
-        Path tempFile = Files.createTempFile(tmpDir, "temp-", "-file");
+    void write() throws Exception {
         BufferedFile bufferedFile = eventExecutorGroup
-                .openBufferedFile(tempFile.toString(), OpenOption.WRITE_ONLY)
+                .openBufferedFile(getTempFile(tmpDir), OpenOption.WRITE_ONLY, OpenOption.CREATE)
                 .get(1000, TimeUnit.MILLISECONDS);
-        assertEquals(0, Files.size(tempFile));
-        String str = prepareString(100);
-        byte[] bytes = str.getBytes(StandardCharsets.UTF_8);
-        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(bytes.length);
-        byteBuffer.put(bytes);
-        Integer written = bufferedFile.write(0, bytes.length, byteBuffer).get(1000, TimeUnit.MILLISECONDS);
-        assertEquals((int) Files.size(tempFile), written);
-        assertEquals(str, new String(Files.readAllBytes(tempFile)));
+        CommonTests.write(bufferedFile);
     }
 
     @Test
@@ -189,6 +172,14 @@ public class BufferedFileTest {
         Integer written = bufferedFile.write(100, bytes.length, byteBuffer).get(1000, TimeUnit.MILLISECONDS);
         assertEquals(file.length(), written + 100);
         assertEquals(bytes.length, written);
+    }
+
+    @Test
+    void write_lengthGreaterThanBufferSize() throws Exception {
+        BufferedFile dmaFile = eventExecutorGroup
+                .openBufferedFile(getTempFile(tmpDir), OpenOption.CREATE, OpenOption.WRITE_ONLY)
+                .get(1000, TimeUnit.MILLISECONDS);
+        CommonTests.write_lengthGreaterThanBufferSize(dmaFile);
     }
 
     @Test

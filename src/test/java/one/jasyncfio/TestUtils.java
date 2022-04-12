@@ -16,7 +16,6 @@ public class TestUtils {
         return sb.toString();
     }
 
-    // todo replace file to path
     static void writeStringToFile(String stringToWrite, Path f) throws IOException {
         Files.write(f, stringToWrite.getBytes(StandardCharsets.UTF_8));
     }
