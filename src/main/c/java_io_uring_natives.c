@@ -171,7 +171,7 @@ static char* exceptionMessage(char* msg, int error) {
     return combined;
 }
 
-void throwRuntimeExceptionErrorNo(JNIEnv* env, char* message, int errorNumber) {
+void throwRuntimeExceptionErrorNo(JNIEnv* env, char *message, int errorNumber) {
     char* allocatedMessage = exceptionMessage(message, errorNumber);
     if (allocatedMessage == NULL) {
         return;
