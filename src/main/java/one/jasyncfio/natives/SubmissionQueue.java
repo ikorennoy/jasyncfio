@@ -27,8 +27,8 @@ public class SubmissionQueue {
     private final long kArray;
     private final long submissionArrayQueueAddress;
 
-    private final int ringSize;
-    private final long kRingPointer;
+    final int ringSize;
+    final long kRingPointer;
 
 
     private final int ringEntries;

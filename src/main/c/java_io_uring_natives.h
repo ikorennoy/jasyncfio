@@ -5,12 +5,12 @@
 #define JAVA_IO_URING_NATIVES_H
 
 struct io_uring_sq {
-    unsigned *head;
-    unsigned *tail;
-    unsigned *ring_mask;
-    unsigned *ring_entries;
-    unsigned *flags;
-    unsigned *dropped;
+    unsigned *khead;
+    unsigned *ktail;
+    unsigned *kring_mask;
+    unsigned *kring_entries;
+    unsigned *kflags;
+    unsigned *kdropped;
     unsigned *array;
     struct io_uring_sqe *sqes;
 
@@ -19,11 +19,11 @@ struct io_uring_sq {
 };
 
 struct io_uring_cq {
-    unsigned *head;
-    unsigned *tail;
-    unsigned *ring_mask;
-    unsigned *ring_entries;
-    unsigned *overflow;
+    unsigned *khead;
+    unsigned *ktail;
+    unsigned *kring_mask;
+    unsigned *kring_entries;
+    unsigned *koverflow;
     struct io_uring_cqe *cqes;
 
     size_t ring_sz;
