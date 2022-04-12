@@ -3,98 +3,98 @@
 
 #define IO_URING_CONSTANTS_CLASS_NAME "one/jasyncfio/natives/UringConstants"
 
-static jbyte get_ioring_op_read() {
+static jbyte get_ioring_op_read(void) {
     return IORING_OP_READ;
 }
-static jbyte get_ioring_op_nop() {
+static jbyte get_ioring_op_nop(void) {
     return IORING_OP_NOP;
 }
-static jbyte get_ioring_op_write() {
+static jbyte get_ioring_op_write(void) {
     return IORING_OP_WRITE;
 }
-static jbyte get_ioring_op_close() {
+static jbyte get_ioring_op_close(void) {
     return IORING_OP_CLOSE;
 }
-static jbyte get_ioring_op_openat() {
+static jbyte get_ioring_op_openat(void) {
     return IORING_OP_OPENAT;
 }
-static jbyte get_ioring_op_readv() {
+static jbyte get_ioring_op_readv(void) {
     return IORING_OP_READV;
 }
-static jbyte get_ioring_op_writev() {
+static jbyte get_ioring_op_writev(void) {
     return IORING_OP_WRITEV;
 }
-static jbyte get_ioring_op_fsync() {
+static jbyte get_ioring_op_fsync(void) {
     return IORING_OP_FSYNC;
 }
-static jbyte get_ioring_op_read_fixed() {
+static jbyte get_ioring_op_read_fixed(void) {
     return IORING_OP_READ_FIXED;
 }
-static jbyte get_ioring_op_write_fixed() {
+static jbyte get_ioring_op_write_fixed(void) {
     return IORING_OP_WRITE_FIXED;
 }
-static jbyte get_ioring_op_poll_add() {
+static jbyte get_ioring_op_poll_add(void) {
     return IORING_OP_POLL_ADD;
 }
-static jbyte get_ioring_op_poll_remove() {
+static jbyte get_ioring_op_poll_remove(void) {
     return IORING_OP_POLL_REMOVE;
 }
-static jbyte get_ioring_op_statx() {
+static jbyte get_ioring_op_statx(void) {
     return IORING_OP_STATX;
 }
-static jbyte get_ioring_op_fallocate() {
+static jbyte get_ioring_op_fallocate(void) {
     return IORING_OP_FALLOCATE;
 }
-static jbyte get_ioring_op_unlinkat() {
+static jbyte get_ioring_op_unlinkat(void) {
     return IORING_OP_UNLINKAT;
 }
-static jbyte get_ioring_op_renameat() {
+static jbyte get_ioring_op_renameat(void) {
     return IORING_OP_RENAMEAT;
 }
 
-static jint get_ioring_enter_getevents() {
+static jint get_ioring_enter_getevents(void) {
     return IORING_ENTER_GETEVENTS;
 }
-static jint get_ioring_setup_sqpoll() {
+static jint get_ioring_setup_sqpoll(void) {
     return IORING_SETUP_SQPOLL;
 }
-static jint get_ioring_setup_iopoll() {
+static jint get_ioring_setup_iopoll(void) {
     return IORING_SETUP_IOPOLL;
 }
-static jint get_ioring_setup_sq_aff() {
+static jint get_ioring_setup_sq_aff(void) {
     return IORING_SETUP_SQ_AFF;
 }
-static jint get_ioring_setup_cqsize() {
+static jint get_ioring_setup_cqsize(void) {
     return IORING_SETUP_CQSIZE;
 }
-static jint get_ioring_enter_sq_wakeup() {
+static jint get_ioring_enter_sq_wakeup(void) {
     return IORING_ENTER_SQ_WAKEUP;
 }
-static jint get_ioring_sq_need_wakeup() {
+static jint get_ioring_sq_need_wakeup(void) {
     return IORING_SQ_NEED_WAKEUP;
 }
-static jint get_ioring_sq_cq_overflow() {
+static jint get_ioring_sq_cq_overflow(void) {
     return IORING_SQ_CQ_OVERFLOW;
 }
-static jint get_ioring_fsync_datasync() {
+static jint get_ioring_fsync_datasync(void) {
     return IORING_FSYNC_DATASYNC;
 }
-static jint get_ioring_setup_clamp() {
+static jint get_ioring_setup_clamp(void) {
     return IORING_SETUP_CLAMP;
 }
-static jint get_ioring_setup_attach_wq() {
+static jint get_ioring_setup_attach_wq(void) {
     return IORING_SETUP_ATTACH_WQ;
 }
-static jint get_ioring_register_buffers() {
+static jint get_ioring_register_buffers(void) {
     return IORING_REGISTER_BUFFERS;
 }
-static jint get_ioring_unregister_buffers() {
+static jint get_ioring_unregister_buffers(void) {
     return IORING_UNREGISTER_BUFFERS;
 }
-static jint get_ioring_register_files() {
+static jint get_ioring_register_files(void) {
     return IORING_REGISTER_FILES;
 }
-static jint get_ioring_unregister_files() {
+static jint get_ioring_unregister_files(void) {
     return IORING_UNREGISTER_FILES;
 }
 
