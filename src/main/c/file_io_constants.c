@@ -4,7 +4,7 @@
 
 #include "file_io_constants.h"
 
-#define FILE_IO_CONSTANTS_CLASS_NAME "one/jasyncfio/natives/FileIoConstants"
+#define FILE_IO_CONSTANTS_CLASS_NAME "one/jasyncfio/FileIoConstants"
 
 static jint get_o_rdonly(void) {
     return O_RDONLY;
