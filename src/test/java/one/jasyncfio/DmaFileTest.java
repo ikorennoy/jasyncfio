@@ -10,7 +10,7 @@ import java.nio.file.Paths;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-import static one.jasyncfio.TestUtils.getTempFile;
+import static one.jasyncfio.TestUtils.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -143,6 +143,22 @@ public class DmaFileTest {
                 .openDmaFile(getTempFile(tmpDir), OpenOption.READ_ONLY, OpenOption.CREATE)
                 .get();
         CommonTests.read_positionGreaterThanFileSize(dmaFile);
+    }
+
+    @Test
+    void read_bufferGreaterThanFile() throws Exception {
+        DmaFile dmaFile = eventExecutorGroup
+                .openDmaFile(getTempFile(tmpDir), OpenOption.READ_ONLY, OpenOption.CREATE)
+                .get();
+        CommonTests.read_bufferGreaterThanFile(dmaFile);
+    }
+
+    @Test
+    void read_bufferLessThanFile() throws Exception {
+        DmaFile dmaFile = eventExecutorGroup
+                .openDmaFile(getTempFile(tmpDir), OpenOption.READ_ONLY, OpenOption.CREATE)
+                .get();
+        CommonTests.read_bufferLessThanFile(dmaFile);
     }
 
     @Test
