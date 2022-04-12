@@ -7,9 +7,6 @@ import one.jasyncfio.natives.Native;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
-import java.nio.channels.FileChannel;
-import java.nio.file.StandardOpenOption;
-import java.util.Stack;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -70,12 +67,16 @@ public class EventExecutorGroup {
         return new Builder().build();
     }
 
-    private EventExecutor get() {
+    EventExecutor get() {
         if (executors.length == 1) {
             return executors[0];
         } else {
             return executors[sequencer.getAndIncrement() % executors.length];
         }
+    }
+
+    EventExecutor getServiceRing() {
+        return serviceRing;
     }
 
     public CompletableFuture<IovecArray> registerBuffers(ByteBuffer[] buffers) {
@@ -132,7 +133,7 @@ public class EventExecutorGroup {
         CompletableFuture<Integer> futureFd =
                 serviceRing.scheduleOpenAt(-1, pathPtr, flags, 0666);
         return futureFd
-                .thenApply((fd) -> new DmaFile(fd, path, pathPtr, get()));
+                .thenApply((fd) -> new DmaFile(fd, path, pathPtr, this));
     }
 
     /**
@@ -153,7 +154,7 @@ public class EventExecutorGroup {
         CompletableFuture<Integer> futureFd =
                 serviceRing.scheduleOpenAt(-1, pathPtr, flags, 0666);
         return futureFd
-                .thenApply((fd) -> new BufferedFile(fd, path, pathPtr, get()));
+                .thenApply((fd) -> new BufferedFile(fd, path, pathPtr, this));
     }
 
     public void stop() {
