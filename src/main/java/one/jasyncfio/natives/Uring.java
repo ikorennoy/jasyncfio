@@ -22,4 +22,8 @@ public class Uring {
     public int getRingFd() {
         return ringFd;
     }
+
+    public void close() {
+        Native.closeRing(ringFd, submissionQueue.kRingPointer, submissionQueue.ringSize, completionQueue.kRingPointer, completionQueue.ringSize);
+    }
 }
