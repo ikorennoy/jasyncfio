@@ -17,8 +17,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class CommonTests {
 
     static void size(AbstractFile testFile) throws Exception {
-        File file = new File(testFile.getPath());
-        file.deleteOnExit();
+        Path file = Paths.get(testFile.getPath());
         String resultString = prepareString(100);
         writeStringToFile(resultString, file);
         int expectedLength = resultString.getBytes(StandardCharsets.UTF_8).length;

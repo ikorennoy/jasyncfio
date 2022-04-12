@@ -1,6 +1,7 @@
 package one.jasyncfio;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -16,11 +17,8 @@ public class TestUtils {
     }
 
     // todo replace file to path
-    static void writeStringToFile(String stringToWrite, File f) throws IOException {
-        try (FileWriter fw = new FileWriter(f)) {
-            fw.write(stringToWrite);
-            fw.flush();
-        }
+    static void writeStringToFile(String stringToWrite, Path f) throws IOException {
+        Files.write(f, stringToWrite.getBytes(StandardCharsets.UTF_8));
     }
 
     static String getTempFile(Path dir) throws Exception {
