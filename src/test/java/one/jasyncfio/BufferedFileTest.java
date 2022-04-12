@@ -193,8 +193,9 @@ public class BufferedFileTest {
 
     @Test
     void close() throws Exception {
-        Path tempFile = Files.createTempFile(tmpDir, "temp-", "-file");
-        BufferedFile bufferedFile = eventExecutorGroup.openBufferedFile(tempFile.toString()).get(1000, TimeUnit.MILLISECONDS);
+        BufferedFile bufferedFile = eventExecutorGroup
+                .openBufferedFile(getTempFile(tmpDir), OpenOption.WRITE_ONLY, OpenOption.CREATE)
+                .get();
         CommonTests.close(bufferedFile);
     }
 
@@ -412,9 +413,5 @@ public class BufferedFileTest {
         Path tempFile = Files.createTempFile(tmpDir, "temp-", "-file");
         assertThrows(RejectedExecutionException.class, () -> eventExecutorGroup
                 .openBufferedFile(tempFile.toString(), OpenOption.WRITE_ONLY));
-    }
-
-    private void deleteOnExit(BufferedFile f) {
-        new File(f.getPath()).deleteOnExit();
     }
 }

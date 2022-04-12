@@ -230,4 +230,85 @@ public class DmaFileTest {
                 .get();
         CommonTests.write_positionGreaterThanFileSize(dmaFile);
     }
+
+    @Test
+    void close() throws Exception {
+        DmaFile dmaFile = eventExecutorGroup
+                .openDmaFile(getTempFile(tmpDir), OpenOption.WRITE_ONLY, OpenOption.CREATE)
+                .get();
+        CommonTests.close(dmaFile);
+    }
+
+    @Test
+    void size() throws Exception {
+        DmaFile dmaFile = eventExecutorGroup
+                .openDmaFile(getTempFile(tmpDir), OpenOption.CREATE)
+                .get(1000, TimeUnit.MILLISECONDS);
+        CommonTests.size(dmaFile);
+    }
+
+    @Test
+    void size_zero() throws Exception {
+        DmaFile dmaFile = eventExecutorGroup
+                .openDmaFile(getTempFile(tmpDir), OpenOption.CREATE)
+                .get(1000, TimeUnit.MILLISECONDS);
+        CommonTests.size_zero(dmaFile);
+    }
+
+    @Test
+    void dataSync() throws Exception {
+        DmaFile dmaFile = eventExecutorGroup
+                .openDmaFile(getTempFile(tmpDir), OpenOption.CREATE)
+                .get(1000, TimeUnit.MILLISECONDS);
+        CommonTests.dataSync(dmaFile);
+    }
+
+    @Test
+    void dataSync_closedFile() throws Exception {
+        DmaFile dmaFile = eventExecutorGroup
+                .openDmaFile(getTempFile(tmpDir), OpenOption.CREATE)
+                .get(1000, TimeUnit.MILLISECONDS);
+        CommonTests.dataSync_closedFile(dmaFile);
+    }
+
+    @Test
+    void preAllocate_emptyFile() throws Exception {
+        DmaFile dmaFile = eventExecutorGroup
+                .openDmaFile(getTempFile(tmpDir), OpenOption.CREATE, OpenOption.WRITE_ONLY)
+                .get(1000, TimeUnit.MILLISECONDS);
+        CommonTests.preAllocate_emptyFile(dmaFile);
+    }
+
+    @Test
+    void remove() throws Exception {
+        DmaFile dmaFile = eventExecutorGroup
+                .openDmaFile(getTempFile(tmpDir), OpenOption.CREATE)
+                .get(1000, TimeUnit.MILLISECONDS);
+        CommonTests.remove(dmaFile);
+    }
+
+    @Test
+    void remove_removed() throws Exception {
+        DmaFile dmaFile = eventExecutorGroup
+                .openDmaFile(getTempFile(tmpDir), OpenOption.CREATE)
+                .get(1000, TimeUnit.MILLISECONDS);
+        CommonTests.remove_removed(dmaFile);
+    }
+
+    @Test
+    void remove_readOnly() throws Exception {
+        DmaFile dmaFile = eventExecutorGroup
+                .openDmaFile(getTempFile(tmpDir), OpenOption.READ_ONLY, OpenOption.CREATE)
+                .get(1000, TimeUnit.MILLISECONDS);
+        CommonTests.remove_readOnly(dmaFile);
+    }
+
+    @Test
+    void remove_closed() throws Exception {
+        DmaFile dmaFile = eventExecutorGroup
+                .openDmaFile(getTempFile(tmpDir), OpenOption.READ_ONLY, OpenOption.CREATE)
+                .get(1000, TimeUnit.MILLISECONDS);
+        CommonTests.remove_closed(dmaFile);
+    }
+
 }
