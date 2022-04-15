@@ -1,7 +1,10 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 plugins {
     java
     `maven-publish`
     id("me.champeau.jmh") version "0.6.4"
+    id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
 val jvmTargetVersion = "8"
@@ -122,8 +125,7 @@ fun getCompileObjectArgs(sourceFile: File, outputFile: File): List<String> {
     )
 }
 
-
-tasks.jar {
+tasks.withType(ShadowJar::class) {
     dependsOn.add(tasks.getByName("sharedLib"))
     from(sharedLib)
     archiveClassifier.set("linux-$arch")
@@ -136,9 +138,12 @@ tasks.jar {
             ),
         )
     }
+    mergeServiceFiles()
+    minimize()
 }
 
 tasks.withType(Test::class) {
+    dependsOn.add(tasks.getByName("shadowJar"))
     useJUnitPlatform()
 }
 
@@ -171,7 +176,7 @@ publishing {
             groupId = "one.jasyncfio"
             artifactId = "jasyncfio"
             version = version
-            from(components["java"])
+            project.shadow.component(this)
         }
     }
 }
