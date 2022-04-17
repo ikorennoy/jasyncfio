@@ -10,8 +10,8 @@ import java.util.concurrent.TimeUnit;
 /**
  * jvmArgsAppend = "-agentpath:/libasyncProfiler.so=start,event=cpu,file=sqpoll.jfr,jfr" - profiler
  */
-@Warmup(iterations = 1, time = 10)
-@Measurement(iterations = 1, time = 10)
+@Warmup(iterations = 1, time = 5)
+@Measurement(iterations = 1, time = 5)
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.SECONDS)
 public class Read_1024 {
@@ -23,14 +23,14 @@ public class Read_1024 {
         public static final int ioDepth = 2048;
         public static final int batchSubmit = 1024;
 
-//        @Param({"true", "false"})
-        boolean sqPoll = true;
+        @Param({"true", "false"})
+        boolean sqPoll;
 
-//        @Param({"true", "false"})
-        boolean ioPoll = true;
+        @Param({"true", "false"})
+        boolean ioPoll;
 
-//        @Param({"true", "false"})
-        boolean registeredBuffers = true;
+        @Param({"true", "false"})
+        boolean registeredBuffers;
 
 
         public final int blockSize = Integer.parseInt(System.getProperty("BLOCK_SIZE", "512"));
