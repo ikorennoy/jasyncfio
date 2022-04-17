@@ -92,8 +92,27 @@ public class BufferedFileSamples {
         Integer writtenBytes = bufferedFile.writeFixed(0, 0, iovecArray).get();
     }
 
-    public void trackPosition() {
+    /**
+     * In this example we will write to the file several times, while adjusting the position.
+     * Note that your filesystem must support lseek in order for this functionality to work correctly
+     */
+    public void trackPosition() throws Exception {
+        EventExecutorGroup eventExecutorGroup = EventExecutorGroup.initDefault();
 
+        String filePath = prepareFilePath();
+        BufferedFile bufferedFile = eventExecutorGroup
+                .openBufferedFile(filePath, OpenOption.CREATE, OpenOption.WRITE_ONLY)
+                .get();
+
+
+        ByteBuffer buffer = ByteBuffer.allocateDirect(1024);
+
+        // note that we set position to -1
+        // it means that we start write from 0 and the position will be adjusted to written bytes
+        Integer written = bufferedFile.write(-1, buffer).get();
+
+        // now we start write from 'written' position and again position will be adjusted
+        Integer written2 = bufferedFile.write(-1, buffer).get();
     }
 
 
