@@ -47,7 +47,6 @@ Read_4096.sequentialRead         true      true  thrpt       486960.580         
 Read_4096.sequentialRead         true     false  thrpt       450217.611          ops/s
 Read_4096.sequentialRead        false      true  thrpt       490027.496          ops/s
 Read_4096.sequentialRead        false     false  thrpt       473530.717          ops/s
-Read_512.randomRead              true      true  thrpt       473535.534          ops/s
 Read_512.randomRead              true     false  thrpt       395901.456          ops/s
 Read_512.randomRead             false      true  thrpt       424645.855          ops/s
 Read_512.randomRead             false     false  thrpt       434855.509          ops/s
