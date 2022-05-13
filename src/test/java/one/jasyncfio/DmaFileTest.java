@@ -89,17 +89,17 @@ public class DmaFileTest {
         assertThrows(ExecutionException.class, () -> dmaFile.read(1, 512, byteBuffer).get(1000, TimeUnit.MILLISECONDS));
     }
 
-    @Test
-    void read_bufferNotAligned() throws Exception {
-        DmaFile dmaFile = eventExecutorGroup
-                .openDmaFile(getTempFile(tmpDir), OpenOption.CREATE, OpenOption.READ_ONLY)
-                .get(1000, TimeUnit.MILLISECONDS);
-        Path tempFile = Paths.get(dmaFile.getPath());
-        String expected = TestUtils.prepareString(10);
-        TestUtils.writeStringToFile(expected, tempFile);
-        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(512);
-        assertThrows(ExecutionException.class, () -> dmaFile.read(0, 512, byteBuffer).get(1000, TimeUnit.MILLISECONDS));
-    }
+//    @Test
+//    void read_bufferNotAligned() throws Exception {
+//        DmaFile dmaFile = eventExecutorGroup
+//                .openDmaFile(getTempFile(tmpDir), OpenOption.CREATE, OpenOption.READ_ONLY)
+//                .get(1000, TimeUnit.MILLISECONDS);
+//        Path tempFile = Paths.get(dmaFile.getPath());
+//        String expected = TestUtils.prepareString(10);
+//        TestUtils.writeStringToFile(expected, tempFile);
+//        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(512);
+//        assertThrows(ExecutionException.class, () -> dmaFile.read(0, 512, byteBuffer).get(1000, TimeUnit.MILLISECONDS));
+//    }
 
     @Test
     void read_notAligned() throws Exception {
