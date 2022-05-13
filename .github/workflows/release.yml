@@ -40,4 +40,4 @@ jobs:
         run: docker pull --platform $(echo ${{ matrix.arch }} | sed 's|-|/|g') ubuntu:20.04 || true
       - name: build in docker
         run: | 
-          docker run -e S_USERNAME=${{ secrets.S_USERNAME }} -e S_PASSWORD=${{ secrets.S_PASSWORD }} -e VERSION=${{ github.event.inputs.version }} -e PASSPHRASE=${{ github.event.release.prerelease }} --rm --ulimit memlock=-1:-1 -v $GITHUB_WORKSPACE:/work ubuntu:20.04 /work/.github/workflows/build.sh release
+          docker run -e S_USERNAME=${{ secrets.S_USERNAME }} -e S_PASSWORD=${{ secrets.S_PASSWORD }} -e VERSION=${{ github.event.inputs.version }} -e PASSPHRASE=${{ github.event.inputs.passphrase }} --rm --ulimit memlock=-1:-1 -v $GITHUB_WORKSPACE:/work ubuntu:20.04 /work/.github/workflows/build.sh release
