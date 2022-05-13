@@ -17,7 +17,7 @@ case "$1" in
   *)
     echo "You have to specify release or build."
     exit 1
-    ;
+esac
 
 function release() {
   ./gradlew clean build publishToSonatype -Pversion=$VERSION -Psigning.gnupg.passphrase=$PASSPHRASE
