@@ -12,7 +12,7 @@ release() {
   export GPG_TTY=$(tty)
   gpg --batch --import /work/release.gpg
   gpg --list-secret-keys --keyid-format LONG
-  ./gradlew -Pversion=$VERSION -Psigning.gnupg.passphrase=$PASSPHRASE clean build publishToSonatype
+  ./gradlew -Pversion=$VERSION -Psigning.gnupg.passphrase=$PASSPHRASE clean build publishToSonatype --stacktrace
 }
 
 build() {
