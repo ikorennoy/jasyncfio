@@ -35,8 +35,6 @@ jobs:
       - name: Install gpg secret key
         run: |
           echo -n "${{ secrets.GPG_PRIVATE_KEY }}" > $GITHUB_WORKSPACE/release.gpg
-      - name: Ls
-        run: ls -la $GITHUB_WORKSPACE
       - name: build in docker
         run: | 
           docker run -e S_USERNAME -e S_PASSWORD -e VERSION -e PASSPHRASE  --rm --ulimit memlock=-1:-1 -v $GITHUB_WORKSPACE:/work ubuntu:20.04 /work/.github/workflows/build.sh release
