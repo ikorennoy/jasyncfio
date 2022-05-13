@@ -12,7 +12,6 @@ release() {
   export GPG_TTY=$(tty)
   cat <(echo -e $PRIVATE_KEY) | gpg --batch --import
   gpg --list-secret-keys --keyid-format LONG
-  echo -n "${{ secrets.GPG_PRIVATE_KEY }}" > $GITHUB_WORKSPACE/release.gpg
   ./gradlew clean build publishToSonatype -Pversion=$VERSION -Psigning.gnupg.passphrase=$PASSPHRASE
 }
 
