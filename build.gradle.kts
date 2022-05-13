@@ -176,7 +176,11 @@ publishing {
             groupId = "one.jasyncfio"
             artifactId = "jasyncfio"
             version = version
-            project.shadow.component(this)
+            java.withJavadocJar()
+            java.withSourcesJar()
+            artifact(tasks.getByName("shadowJar"))
+            artifact(tasks.getByName("javadocJar"))
+            artifact(tasks.getByName("sourcesJar"))
         }
     }
 }
