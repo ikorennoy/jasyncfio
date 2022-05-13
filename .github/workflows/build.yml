@@ -30,7 +30,7 @@ jobs:
     - name: pull docker image
       run: docker pull dockcross/linux-$(echo ${{ matrix.arch }} | sed 's|-|/|g')-full || true
     - name: build in docker
-      run: docker run --rm --ulimit memlock=-1:-1 -v $GITHUB_WORKSPACE:/work ubuntu:20.04 /work/.github/workflows/build.sh
+      run: docker run --rm --ulimit memlock=-1:-1 -v $GITHUB_WORKSPACE:/work dockcross/linux-$(echo ${{ matrix.arch }} | sed 's|-|/|g')-full /work/.github/workflows/build.sh
     - name: Upload
       uses: actions/upload-artifact@v2
       with:
