@@ -195,7 +195,7 @@ publishing {
 nexusPublishing {
     repositories {
         sonatype {
-            nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"))
+            nexusUrl.set(uri("https://s01.oss.sonatype.org"))
             username.set(System.getenv("S_USERNAME"))
             password.set(System.getenv("S_PASSWORD"))
         }
