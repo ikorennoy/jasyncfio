@@ -20,9 +20,9 @@ jobs:
       - name: Install gpg secret key
         run: |
           export GPG_TTY=$(tty)
-          echo -n "${{ secrets.GPG_PRIVATE_KEY }}" | base64 --decode | gpg --batch --import
+          cat <(echo -e "${{ secrets.GPG_PRIVATE_KEY }}") | gpg --batch --import
           gpg --list-secret-keys --keyid-format LONG
-          echo -n "${{ secrets.GPG_PRIVATE_KEY }}" | base64 --decode > $GITHUB_WORKSPACE/release.gpg
+          echo -n "${{ secrets.GPG_PRIVATE_KEY }}" > $GITHUB_WORKSPACE/release.gpg
       - name: Git checkout
         uses: actions/checkout@v2
       - name: Update System
