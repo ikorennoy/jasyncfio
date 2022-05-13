@@ -10,8 +10,8 @@ import java.util.concurrent.TimeUnit;
 /**
  * jvmArgsAppend = "-agentpath:/libasyncProfiler.so=start,event=cpu,file=sqpoll.jfr,jfr" - profiler
  */
-@Warmup(iterations = 1)
-@Measurement(iterations = 1)
+@Warmup(iterations = 1, time = 5)
+@Measurement(iterations = 1, time = 5)
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.SECONDS)
 public class Read_64 {
@@ -19,7 +19,7 @@ public class Read_64 {
     @State(Scope.Thread)
     public static class Data {
 
-        public static final int ioDepth = 256;
+        public static final int ioDepth = 128;
         public static final int batchSubmit = 64;
 
         @Param({"true", "false"})
@@ -79,7 +79,7 @@ public class Read_64 {
 
     @Benchmark
     @OperationsPerInvocation(Data.batchSubmit)
-    @Fork(value = 1)
+    @Fork(value = 1, jvmArgs = {"-Xmx6g", "-XX:+UseG1GC", "-DBLOCK_DEVICE=/dev/nvme0n1"})
     @Threads(1)
     public void randomRead(Data data) throws Exception {
         Benchmarks.randomRead(
@@ -96,7 +96,7 @@ public class Read_64 {
 
     @Benchmark
     @OperationsPerInvocation(Data.batchSubmit)
-    @Fork(value = 1)
+    @Fork(value = 1, jvmArgs = {"-Xmx6g", "-XX:+UseG1GC", "-DBLOCK_DEVICE=/dev/nvme0n1"})
     @Threads(1)
     public void sequentialRead(Data data) throws Exception {
         Benchmarks.sequentialRead(
