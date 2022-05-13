@@ -10,7 +10,7 @@ apt-get install -y --no-install-recommends openjdk-8-jdk make gcc g++ libc6-dev
 release() {
   apt-get install -y --no-install-recommends gnupg
   export GPG_TTY=$(tty)
-  cat <(echo -e "$GPG_PRIVATE_KEY") | gpg --batch --import
+  cat <(echo -e $PRIVATE_KEY) | gpg --batch --import
   gpg --list-secret-keys --keyid-format LONG
   echo -n "${{ secrets.GPG_PRIVATE_KEY }}" > $GITHUB_WORKSPACE/release.gpg
   ./gradlew clean build publishToSonatype -Pversion=$VERSION -Psigning.gnupg.passphrase=$PASSPHRASE
