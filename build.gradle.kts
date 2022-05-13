@@ -3,6 +3,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 plugins {
     java
     `maven-publish`
+    signing
     id("me.champeau.jmh") version "0.6.4"
     id("com.github.johnrengelman.shadow") version "7.1.2"
 }
@@ -183,6 +184,10 @@ publishing {
             artifact(tasks.getByName("sourcesJar"))
         }
     }
+}
+
+signing {
+    sign(publishing.publications["maven"])
 }
 
 dependencies {
