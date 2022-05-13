@@ -17,8 +17,8 @@ public class EventExecutor {
     private static final int WAIT = 0;
 
     final AtomicInteger state = new AtomicInteger(AWAKE);
-    final Queue<ExtRunnable> tasks = new MpscChunkedArrayQueue<>(131073);
-    final IntObjectHashMap<CompletableFuture<Integer>> futures = new IntObjectHashMap<>(1024);
+    final Queue<ExtRunnable> tasks = new MpscChunkedArrayQueue<>(65536);
+    final IntObjectHashMap<CompletableFuture<Integer>> futures = new IntObjectHashMap<>(8192);
     final CompletionCallback callback = this::handle;
     final Uring ring;
     final PrimitiveIntSupplier sequencer;
