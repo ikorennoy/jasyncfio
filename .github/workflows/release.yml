@@ -1,18 +1,18 @@
-name: Release
-
-on:
-  workflow_dispatch:
-    inputs:
-      version:
-        description: "Release version"
-        required: true
-      passphrase:
-        description: "GPG passphrase"
-        required: true
-
-jobs:
-  release:
-    name: Release
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
+#name: Release
+#
+#on:
+#  workflow_dispatch:
+#    inputs:
+#      version:
+#        description: "Release version"
+#        required: true
+#      passphrase:
+#        description: "GPG passphrase"
+#        required: true
+#
+#jobs:
+#  release:
+#    name: Release
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Checkout
