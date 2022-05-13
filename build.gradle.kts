@@ -186,6 +186,7 @@ publishing {
         }
     }
     signing {
+        useGpgCmd()
         sign(publishing.publications["maven"])
     }
 }
