@@ -20,6 +20,8 @@ jobs:
       - name: Install gpg secret key
         run: |
           echo -n "${{ secrets.GPG_PRIVATE_KEY }}" > $GITHUB_WORKSPACE/release.gpg
+      - name: Ls
+        run: ls -la $GITHUB_WORKSPACE
       - name: Git checkout
         uses: actions/checkout@v2
       - name: Update System
