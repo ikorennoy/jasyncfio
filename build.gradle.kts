@@ -3,14 +3,16 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 plugins {
     java
     `maven-publish`
+    signing
     id("me.champeau.jmh") version "0.6.4"
     id("com.github.johnrengelman.shadow") version "7.1.2"
+    id("io.github.gradle-nexus.publish-plugin") version "1.1.0"
 }
 
 val jvmTargetVersion = "8"
 
 group = "one.jasyncfio"
-version = "0.0.1"
+
 
 tasks.filterIsInstance<JavaCompile>().forEach { compileJava ->
     compileJava.targetCompatibility = jvmTargetVersion
@@ -176,10 +178,30 @@ publishing {
             groupId = "one.jasyncfio"
             artifactId = "jasyncfio"
             version = version
-            project.shadow.component(this)
+            java.withJavadocJar()
+            java.withSourcesJar()
+            artifact(tasks.getByName("shadowJar"))
+            artifact(tasks.getByName("javadocJar"))
+            artifact(tasks.getByName("sourcesJar"))
+        }
+    }
+    signing {
+        useGpgCmd()
+        sign(publishing.publications["maven"])
+    }
+}
+
+
+nexusPublishing {
+    repositories {
+        sonatype {
+            nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"))
+            username.set(System.getenv("S_USERNAME"))
+            password.set(System.getenv("S_PASSWORD"))
         }
     }
 }
+
 
 dependencies {
     implementation("org.jctools:jctools-core:3.3.0")
