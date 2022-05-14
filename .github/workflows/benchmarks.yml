@@ -16,7 +16,7 @@ jobs:
     name: Benchmarks
     steps:
       - name: clone fio
-        run: git clone git@github.com:axboe/fio.git
+        run: git clone https://github.com/axboe/fio.git
       - name: cd fio
         run: cd fio
       - name: build fio
