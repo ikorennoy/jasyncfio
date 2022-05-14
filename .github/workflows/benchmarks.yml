@@ -16,4 +16,4 @@ jobs:
     name: Benchmarks
     steps:
       - name: Run
-        run: ls -la /dev
+        run: df .
