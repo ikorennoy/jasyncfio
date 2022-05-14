@@ -15,5 +15,11 @@ jobs:
     runs-on: ubuntu-20.04
     name: Benchmarks
     steps:
-      - name: Run
-        run: df .
+      - name: clone fio
+        run: git clone git@github.com:axboe/fio.git
+      - name: cd fio
+        run: cd fio
+      - name: build fio
+        run: ./configure && make -j$(nproc)
+      - name: test dist
+        run: t/one-core-peak.sh /dev/root
