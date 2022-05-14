@@ -1,6 +1,8 @@
 package one.jasyncfio;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 public class Utils {
     static File loadLib(String name) throws IOException {
@@ -9,20 +11,24 @@ public class Utils {
         if (in == null) {
             File file = new File(name);
             if (file.exists())
-                in = new FileInputStream(file);
+                in = Files.newInputStream(file.toPath());
             else
-                in = new FileInputStream("build/" + name);
+                in = Files.newInputStream(Paths.get("build/" + name));
         }
         fileOut = File.createTempFile(name, "lib");
 
-        FileOutputStream fos = new FileOutputStream(fileOut);
-        int r = in.read();
-        while (r != -1) {
-            fos.write(r);
-            r = in.read();
+        try (FileOutputStream fos = new FileOutputStream(fileOut)) {
+            int r = in.read();
+            while (r != -1) {
+                fos.write(r);
+                r = in.read();
+            }
+            System.load(fileOut.toString());
+            fileOut.deleteOnExit();
+        } finally {
+            in.close();
         }
-        System.load(fileOut.toString());
-        fileOut.deleteOnExit();
+
         return fileOut;
     }
 }
