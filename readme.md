@@ -1,46 +1,60 @@
-# jasyncfio
+# Jasyncfio
 
 [![Build](https://github.com/ikorennoy/jasyncfio/actions/workflows/build.yml/badge.svg)](https://github.com/ikorennoy/jasyncfio/actions/workflows/build.yml)
 
-jasyncfio provides an asynchronous file I/O API based on the Linux io_uring interface.
+Jasyncfio provides an asynchronous file I/O API based on the Linux io_uring interface.
 
-## jasyncfio Features
+## Jasyncfio Features
 
 * Fully asynchronous io_uring based file I/O API
 * API comes in two kinds: Buffered and Direct I/O
-* API for linear access to files
+* API for linear access to files (depends on your file system)
 
-## jasyncfio Buffered I/O
 
-Buffered I/O means that it will be supported by the operating system's page cache, and you don't have to worry
-about memory alignment.
+## Examples
 
 ```java
 EventExecutorGroup eventExecutorGroup = EventExecutorGroup.initDefault();
-CompletableFuture<BufferedFile> f = eventExecutorGroup.createBufferedFile("/tmp/testFile");
-// let's assume that our future is completed
-BufferedFile file = f.get();
-ByteBuffer byteBuffer = ByteBuffer.allocateDirect(1024);
-CompletableFuture<Integer> readResult = file.read(0, byteBuffer);
-// let's assume that our future is completed
-Integer readBytes = readResult.get();
-// so we have `readBytes` in out byteBuffer
+
+CompletableFuture<BufferedFile> bufferedFileCompletableFuture =
+        eventExecutorGroup.openBufferedFile(filePath, OpenOption.CREATE, OpenOption.WRITE_ONLY);
+
+BufferedFile bufferedFile = bufferedFileCompletableFuture.get();
+
+ByteBuffer buffer = ByteBuffer.allocateDirect(1024);
+CompletableFuture<Integer> writeCompletableFuture = bufferedFile.write(0, buffer);
+Integer writtenBytes = writeCompletableFuture.get();
 ```
 
-## jasyncfio Direct I/O
+If you want to dive deeper, there are more examples with explanations on the [wiki](https://github.com/ikorennoy/jasyncfio/wiki).
 
-Direct I/O means that it will not be backed by the operating system's page cache. So you will have to deal with memory
-alignment, but it may give a positive performance effect under some workloads. Read more: 
-[open man page](https://man7.org/linux/man-pages/man2/open.2.html) `NOTES` section `O_DIRECT`.
+## Download 
 
-```java
-EventExecutorGroup eventExecutorGroup = EventExecutorGroup.initDefault();
-CompletableFuture<DmaFile> f = eventExecutorGroup.createDmaFile("/tmp/testFile");
-// let's assume that our future is completed
-DmaFile file = f.get();
-ByteBuffer byteBuffer = MemoryUtils.allocateAlignedByteBuffer(512, DmaFile.DEFAULT_ALIGNMENT);
-CompletableFuture<Integer> readResult = file.read(0, 512, byteBuffer);
-// let's assume that our future is completed
-Integer readBytes = readResult.get();
-// so we have `readBytes` in out byteBuffer
+Releases are available at [Maven Central](https://search.maven.org/artifact/one.jasyncfio/jasyncfio).
+
+Since the library uses native code, it is necessary to specify the classifier. At the moment there are releases only for linux-amd64, there are plans to support linux-arm64.
+
+### Maven
+
+```xml
+<dependency>
+    <groupId>one.jasyncfio</groupId>
+    <artifactId>jasyncfio</artifactId>
+    <version>0.0.1</version>
+    <classifier>linux-amd64</classifier>
+</dependency>
 ```
+
+### Gradle Groovy DSL
+
+```groovy
+implementation 'one.jasyncfio:jasyncfio:0.0.1:linux-amd64'
+```
+
+
+### Gradle Kotlin DSL
+
+```kotlin
+implementation("one.jasyncfio:jasyncfio:0.0.1:linux-amd64")
+```
+
