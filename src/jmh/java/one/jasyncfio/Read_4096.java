@@ -81,7 +81,7 @@ public class Read_4096 {
     @Benchmark
     @OperationsPerInvocation(Data.batchSubmit)
     @Fork(value = 1, jvmArgs = {"-Xmx6g", "-XX:+UseG1GC", "-DBLOCK_DEVICE=/dev/nvme0n1"})
-    @Threads(1)
+    @Threads(2)
     public void randomRead(Data data) throws Exception {
         Benchmarks.randomRead(
                 data.file,
@@ -98,7 +98,7 @@ public class Read_4096 {
     @Benchmark
     @OperationsPerInvocation(Data.batchSubmit)
     @Fork(value = 1, jvmArgs = {"-Xmx6g", "-XX:+UseG1GC", "-DBLOCK_DEVICE=/dev/nvme0n1"})
-    @Threads(1)
+    @Threads(2)
     public void sequentialRead(Data data) throws Exception {
         Benchmarks.sequentialRead(data.file,
                 data.maxSize,
