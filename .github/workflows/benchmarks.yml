@@ -24,4 +24,4 @@ jobs:
       - name: test disk
         run: |
           cd fio
-          t/one-core-peak.sh /dev/root
+          sudo t/one-core-peak.sh /dev/root
