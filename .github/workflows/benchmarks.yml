@@ -16,7 +16,7 @@ jobs:
     name: Benchmarks
     steps:
       - name: install deps
-        run: apt install linux-tools-$(uname -r)
+        run: sudo apt-get install linux-tools-$(uname -r)
       - name: clone fio
         run: git clone https://github.com/axboe/fio.git
       - name: build fio
