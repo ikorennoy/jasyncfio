@@ -8,8 +8,8 @@ Jasyncfio provides an asynchronous file I/O API based on the Linux io_uring inte
 
 * Fully asynchronous io_uring based file I/O API
 * API comes in two kinds: Buffered and Direct I/O
-* API for linear access to files (depends on your file system)
-
+* API for linear access to file (depends on your file system)
+* Using a wide range of io_uring features such as polling, registered buffers/files
 
 ## Examples
 
