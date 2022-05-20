@@ -34,6 +34,10 @@ Releases are available at [Maven Central](https://search.maven.org/artifact/one.
 
 Since the library uses native code, it is necessary to specify the classifier. At the moment there are releases only for linux-amd64, there are plans to support linux-arm64.
 
+### Requirements
+* Linux Kernel >= 5.11
+* Java >= 8
+
 ### Maven
 
 ```xml
