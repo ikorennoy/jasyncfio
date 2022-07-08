@@ -32,7 +32,7 @@ public class CommonTests {
     static void close(AbstractFile testFile) throws Exception {
         assertTrue(testFile.getRawFd() > 0);
         testFile.close().get(1000, TimeUnit.MILLISECONDS);
-        CompletableFuture<Integer> read = testFile.read(0, 10, ByteBuffer.allocateDirect(10));
+        CompletableFuture<Integer> read = testFile.read(ByteBuffer.allocateDirect(10), 0, 10);
         assertThrows(ExecutionException.class, () -> read.get(1000, TimeUnit.MILLISECONDS));
     }
 
@@ -48,7 +48,7 @@ public class CommonTests {
 
     static void preAllocate_emptyFile(AbstractFile testFile) throws Exception {
         assertEquals(0, testFile.size().get(1000, TimeUnit.MILLISECONDS));
-        assertEquals(0, testFile.preAllocate(1024).get(1000, TimeUnit.MILLISECONDS));
+        assertEquals(0, testFile.preAllocate(1024, 0).get(1000, TimeUnit.MILLISECONDS));
         assertEquals(1024, testFile.size().get(1000, TimeUnit.MILLISECONDS));
     }
 
@@ -89,7 +89,7 @@ public class CommonTests {
 
         ByteBuffer byteBuffer = MemoryUtils.allocateAlignedByteBuffer(DmaFile.DEFAULT_ALIGNMENT, DmaFile.DEFAULT_ALIGNMENT);
         byteBuffer.put(expected.substring(0, DmaFile.DEFAULT_ALIGNMENT).getBytes(StandardCharsets.UTF_8));
-        assertEquals(DmaFile.DEFAULT_ALIGNMENT, testFile.write(0, DmaFile.DEFAULT_ALIGNMENT, byteBuffer).get(1000, TimeUnit.MILLISECONDS));
+        assertEquals(DmaFile.DEFAULT_ALIGNMENT, testFile.write(byteBuffer, 0, DmaFile.DEFAULT_ALIGNMENT).get(1000, TimeUnit.MILLISECONDS));
         assertEquals(DmaFile.DEFAULT_ALIGNMENT, Files.size(tempFile));
         assertEquals(expected.substring(0, DmaFile.DEFAULT_ALIGNMENT), new String(Files.readAllBytes(tempFile)));
     }
@@ -98,7 +98,7 @@ public class CommonTests {
         String expected = TestUtils.prepareString(50);
         ByteBuffer byteBuffer = MemoryUtils.allocateAlignedByteBuffer(512, DmaFile.DEFAULT_ALIGNMENT);
         byteBuffer.put(expected.substring(0, 512).getBytes(StandardCharsets.UTF_8));
-        assertThrows(IllegalArgumentException.class, () -> testFile.write(0, 1024, byteBuffer).get(1000, TimeUnit.MILLISECONDS));
+        assertThrows(IllegalArgumentException.class, () -> testFile.write(byteBuffer, 0, 1024).get(1000, TimeUnit.MILLISECONDS));
     }
 
     static void read(AbstractFile testFile) throws Exception {
@@ -107,7 +107,7 @@ public class CommonTests {
         int readLength = 1024;
         TestUtils.writeStringToFile(expected, tempFile);
         ByteBuffer byteBuffer = MemoryUtils.allocateAlignedByteBuffer(readLength, DmaFile.DEFAULT_ALIGNMENT);
-        Integer read = testFile.read(0, readLength, byteBuffer).get(1000, TimeUnit.MILLISECONDS);
+        Integer read = testFile.read(byteBuffer, 0, readLength).get(1000, TimeUnit.MILLISECONDS);
         assertEquals(readLength, read);
         assertEquals(read, byteBuffer.limit());
         assertEquals(0, byteBuffer.position());
@@ -121,7 +121,7 @@ public class CommonTests {
         int readLength = 2048;
         TestUtils.writeStringToFile(expected, tempFile);
         ByteBuffer byteBuffer = MemoryUtils.allocateAlignedByteBuffer(1024, DmaFile.DEFAULT_ALIGNMENT);
-        assertThrows(IllegalArgumentException.class, () -> testFile.read(0, readLength, byteBuffer).get(1000, TimeUnit.MILLISECONDS));
+        assertThrows(IllegalArgumentException.class, () -> testFile.read(byteBuffer, 0, readLength).get(1000, TimeUnit.MILLISECONDS));
     }
 
     static void read_positionGreaterThanFileSize(AbstractFile testFile) throws Exception {
@@ -130,7 +130,7 @@ public class CommonTests {
         int readLength = expected.length();
         TestUtils.writeStringToFile(expected, tempFile);
         ByteBuffer byteBuffer = MemoryUtils.allocateAlignedByteBuffer(2048, DmaFile.DEFAULT_ALIGNMENT);
-        assertEquals(0, testFile.read(2048, readLength, byteBuffer).get(1000, TimeUnit.MILLISECONDS));
+        assertEquals(0, testFile.read(byteBuffer, 2048, readLength).get(1000, TimeUnit.MILLISECONDS));
     }
 
     static void readv(AbstractFile testFile) throws Exception {
@@ -142,7 +142,7 @@ public class CommonTests {
         String expected = TestUtils.prepareString(100);
         ByteBuffer byteBuffer = MemoryUtils.allocateAlignedByteBuffer(1024, DmaFile.DEFAULT_ALIGNMENT);
         byteBuffer.put(expected.substring(0, 1024).getBytes(StandardCharsets.UTF_8));
-        assertEquals(1024, testFile.write(512, 1024, byteBuffer).get(1000, TimeUnit.MILLISECONDS));
+        assertEquals(1024, testFile.write(byteBuffer, 512, 1024).get(1000, TimeUnit.MILLISECONDS));
         assertEquals(1536, Files.size(tempFile));
         assertEquals(expected.substring(0, 1024), new String(Files.readAllBytes(tempFile)).substring(512));
     }
@@ -152,7 +152,7 @@ public class CommonTests {
         String expected = TestUtils.prepareString(100);
         ByteBuffer byteBuffer = MemoryUtils.allocateAlignedByteBuffer(1024, DmaFile.DEFAULT_ALIGNMENT);
         byteBuffer.put(expected.substring(0, 1024).getBytes(StandardCharsets.UTF_8));
-        assertEquals(1024, testFile.write(0, 1024, byteBuffer).get(1000, TimeUnit.MILLISECONDS));
+        assertEquals(1024, testFile.write(byteBuffer, 0, 1024).get(1000, TimeUnit.MILLISECONDS));
         assertEquals(1024, Files.size(tempFile));
         assertEquals(expected.substring(0, 1024), new String(Files.readAllBytes(tempFile)));
     }
@@ -164,11 +164,11 @@ public class CommonTests {
         byte[] bytes = str.getBytes(StandardCharsets.UTF_8);
         ByteBuffer byteBuffer = MemoryUtils.allocateAlignedByteBuffer(bytes.length, DmaFile.DEFAULT_ALIGNMENT);
         byteBuffer.put(bytes);
-        Integer written = testFile.write(-1, bytes.length, byteBuffer).get(1000, TimeUnit.MILLISECONDS);
+        Integer written = testFile.write(byteBuffer, -1, bytes.length).get(1000, TimeUnit.MILLISECONDS);
         assertEquals((int) Files.size(tempFile), written);
         assertEquals(str, new String(Files.readAllBytes(tempFile)));
 
-        testFile.write(-1, bytes.length, byteBuffer).get(1000, TimeUnit.MILLISECONDS);
+        testFile.write(byteBuffer, -1, bytes.length).get(1000, TimeUnit.MILLISECONDS);
         assertEquals((int) Files.size(tempFile), written * 2);
         assertEquals(str + str, new String(Files.readAllBytes(tempFile)));
     }
@@ -180,7 +180,7 @@ public class CommonTests {
         byte[] bytes = str.getBytes(StandardCharsets.UTF_8);
         ByteBuffer byteBuffer = MemoryUtils.allocateAlignedByteBuffer(bytes.length, DmaFile.DEFAULT_ALIGNMENT);
         byteBuffer.put(bytes);
-        Integer written = testFile.write(0, 0, byteBuffer).get(1000, TimeUnit.MILLISECONDS);
+        Integer written = testFile.write(byteBuffer, 0, 0).get(1000, TimeUnit.MILLISECONDS);
         assertEquals(0, written);
         assertEquals(0, file.length());
     }
@@ -199,43 +199,43 @@ public class CommonTests {
             buffers[i] = byteBuffer;
             strings.append(str);
         }
-        Integer written = testFile.write(0, buffers).get(1000, TimeUnit.MILLISECONDS);
+        Integer written = testFile.write(buffers, 0).get(1000, TimeUnit.MILLISECONDS);
         assertEquals((int) Files.size(tempFile), written);
         assertEquals(strings.toString(), new String(Files.readAllBytes(tempFile)));
     }
 
-    static void writeFixed(AbstractFile testFile, EventExecutorGroup eventExecutorGroup) throws Exception {
-        Path tempFile = Paths.get(testFile.getPath());
-        ByteBuffer[] buffers = new ByteBuffer[1];
-        String str = prepareString(100).substring(0, 512);
-        byte[] bytes = str.getBytes(StandardCharsets.UTF_8);
-        for (int i = 0; i < buffers.length; i++) {
-            ByteBuffer byteBuffer = MemoryUtils.allocateAlignedByteBuffer(bytes.length, DmaFile.DEFAULT_ALIGNMENT);
-            byteBuffer.put(bytes);
-            byteBuffer.flip();
-            buffers[i] = byteBuffer;
-        }
-        IovecArray iovecArray = eventExecutorGroup.registerBuffers(buffers).get(1000, TimeUnit.MILLISECONDS);
-        Integer written = testFile.writeFixed(0, 0, iovecArray).get();
-        assertEquals((int) Files.size(tempFile), written);
-        assertEquals(str, new String(Files.readAllBytes(tempFile)));
-    }
+//    static void writeFixed(AbstractFile testFile, EventExecutor eventExecutorGroup) throws Exception {
+//        Path tempFile = Paths.get(testFile.getPath());
+//        ByteBuffer[] buffers = new ByteBuffer[1];
+//        String str = prepareString(100).substring(0, 512);
+//        byte[] bytes = str.getBytes(StandardCharsets.UTF_8);
+//        for (int i = 0; i < buffers.length; i++) {
+//            ByteBuffer byteBuffer = MemoryUtils.allocateAlignedByteBuffer(bytes.length, DmaFile.DEFAULT_ALIGNMENT);
+//            byteBuffer.put(bytes);
+//            byteBuffer.flip();
+//            buffers[i] = byteBuffer;
+//        }
+//        IovecArray iovecArray = eventExecutorGroup.registerBuffers(buffers).get(1000, TimeUnit.MILLISECONDS);
+//        Integer written = testFile.writeFixed(0, 0, iovecArray).get();
+//        assertEquals((int) Files.size(tempFile), written);
+//        assertEquals(str, new String(Files.readAllBytes(tempFile)));
+//    }
 
-    static void readFixed(AbstractFile testFile, EventExecutorGroup eventExecutorGroup) throws Exception {
-        Path tempFile = Paths.get(testFile.getPath());
-        String resultString = prepareString(100).substring(0, 512);
-        writeStringToFile(resultString, tempFile);
-        int length = resultString.getBytes(StandardCharsets.UTF_8).length;
-        ByteBuffer[] buffers = new ByteBuffer[1];
-        for (int i = 0; i < buffers.length; i++) {
-            ByteBuffer byteBuffer = MemoryUtils.allocateAlignedByteBuffer(length, DmaFile.DEFAULT_ALIGNMENT);
-            buffers[i] = byteBuffer;
-        }
-        IovecArray iovecArray = eventExecutorGroup.registerBuffers(buffers).get(1000, TimeUnit.MILLISECONDS);
-        Integer read = testFile.readFixed(0, 0, iovecArray).get();
-        assertEquals(length, read);
-        assertEquals(resultString, StandardCharsets.UTF_8.decode(buffers[0]).toString());
-    }
+//    static void readFixed(AbstractFile testFile, EventExecutorGroup eventExecutorGroup) throws Exception {
+//        Path tempFile = Paths.get(testFile.getPath());
+//        String resultString = prepareString(100).substring(0, 512);
+//        writeStringToFile(resultString, tempFile);
+//        int length = resultString.getBytes(StandardCharsets.UTF_8).length;
+//        ByteBuffer[] buffers = new ByteBuffer[1];
+//        for (int i = 0; i < buffers.length; i++) {
+//            ByteBuffer byteBuffer = MemoryUtils.allocateAlignedByteBuffer(length, DmaFile.DEFAULT_ALIGNMENT);
+//            buffers[i] = byteBuffer;
+//        }
+//        IovecArray iovecArray = eventExecutorGroup.registerBuffers(buffers).get(1000, TimeUnit.MILLISECONDS);
+//        Integer read = testFile.readFixed(0, 0, iovecArray).get();
+//        assertEquals(length, read);
+//        assertEquals(resultString, StandardCharsets.UTF_8.decode(buffers[0]).toString());
+//    }
 
     static void read_lengthLessThenBufferSize(AbstractFile testFile) throws Exception {
         Path tempFile = Paths.get(testFile.getPath());
@@ -243,7 +243,7 @@ public class CommonTests {
         int readLength = 1024;
         TestUtils.writeStringToFile(expected, tempFile);
         ByteBuffer byteBuffer = MemoryUtils.allocateAlignedByteBuffer(2048, DmaFile.DEFAULT_ALIGNMENT);
-        assertEquals(readLength, testFile.read(0, readLength, byteBuffer).get(1000, TimeUnit.MILLISECONDS));
+        assertEquals(readLength, testFile.read(byteBuffer, 0, readLength).get(1000, TimeUnit.MILLISECONDS));
         String actual = StandardCharsets.UTF_8.decode(byteBuffer).toString();
         assertEquals(expected.substring(0, readLength), actual);
     }
@@ -254,7 +254,7 @@ public class CommonTests {
         writeStringToFile(resultString, tempFile);
         int stringLength = resultString.getBytes(StandardCharsets.UTF_8).length;
         ByteBuffer byteBuffer = MemoryUtils.allocateAlignedByteBuffer(stringLength * 2, DmaFile.DEFAULT_ALIGNMENT);
-        Integer bytes = testFile.read(0, byteBuffer.capacity(), byteBuffer).get(1000, TimeUnit.MILLISECONDS);
+        Integer bytes = testFile.read(byteBuffer, 0, byteBuffer.capacity()).get(1000, TimeUnit.MILLISECONDS);
         assertEquals(stringLength, bytes);
         assertEquals(resultString, StandardCharsets.UTF_8.decode(byteBuffer).toString());
     }
@@ -265,7 +265,7 @@ public class CommonTests {
         writeStringToFile(resultString, tempFile);
         int stringLength = resultString.getBytes(StandardCharsets.UTF_8).length;
         ByteBuffer byteBuffer = MemoryUtils.allocateAlignedByteBuffer(stringLength / 2, DmaFile.DEFAULT_ALIGNMENT);
-        Integer bytes = testFile.read(0, byteBuffer.capacity(), byteBuffer).get(1000, TimeUnit.MILLISECONDS);
+        Integer bytes = testFile.read(byteBuffer, 0, byteBuffer.capacity()).get(1000, TimeUnit.MILLISECONDS);
         assertEquals(stringLength / 2, bytes);
         assertEquals(resultString.substring(0, 512), StandardCharsets.UTF_8.decode(byteBuffer).toString());
     }

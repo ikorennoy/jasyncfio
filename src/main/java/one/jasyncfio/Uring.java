@@ -11,19 +11,19 @@ public class Uring {
         this.submissionQueue = submissionQueue;
     }
 
-    CompletionQueue getCompletionQueue() {
+    public CompletionQueue getCompletionQueue() {
         return completionQueue;
     }
 
-    SubmissionQueue getSubmissionQueue() {
+    public SubmissionQueue getSubmissionQueue() {
         return submissionQueue;
     }
 
-    int getRingFd() {
+    public int getRingFd() {
         return ringFd;
     }
 
-    void close() {
+    public void close() {
         Native.closeRing(ringFd, submissionQueue.kRingPointer, submissionQueue.ringSize, completionQueue.kRingPointer, completionQueue.ringSize);
     }
 }

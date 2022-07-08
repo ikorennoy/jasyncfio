@@ -48,15 +48,15 @@ public class CompletionQueue {
         this.ringMask = MemoryUtils.getIntVolatile(kRingMask);
     }
 
-    boolean hasCompletions() {
+    public boolean hasCompletions() {
         return ringHead != MemoryUtils.getIntVolatile(kTail);
     }
 
-    int processEvents(CompletionCallback callback) {
+    public int processEvents(CompletionCallback callback) {
         int tail = MemoryUtils.getIntVolatile(kTail);
         int i = 0;
         while (ringHead != tail) {
-            long cqeAddress = kCompletionArray + (ringHead & ringMask) * CQE_SIZE;
+            long cqeAddress = kCompletionArray + (long) (ringHead & ringMask) * CQE_SIZE;
 
             long userData = MemoryUtils.getLong(cqeAddress + CQE_USER_DATA_FIELD);
             int res = MemoryUtils.getInt(cqeAddress + CQE_RES_FIELD);
@@ -65,12 +65,12 @@ public class CompletionQueue {
             ringHead += 1;
             MemoryUtils.putIntOrdered(kHead, ringHead);
             i++;
-            UserDataUtils.decode(res, flags, userData, callback);
+            callback.handle(res, flags, userData);
         }
         return i;
     }
 
-    int getHead() {
+    public int getHead() {
         return ringHead;
     }
 }

@@ -1,48 +1,44 @@
 package one.jasyncfio;
 
-import java.nio.ByteBuffer;
+import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 
-import static one.jasyncfio.MemoryUtils.allocateAlignedByteBuffer;
-
-public class DmaFile extends AbstractFile {
-    public static final int DEFAULT_ALIGNMENT = 4096;
-
-    DmaFile(int fd, String path, long pathAddress, EventExecutorGroup eventExecutorGroup) {
-        super(fd, path, pathAddress, eventExecutorGroup);
+public class DmaFile  extends AbstractFile{
+    public static final int DEFAULT_ALIGNMENT = (int) Native.getPageSize();
+    DmaFile(String path, long pathAddress, int fd, PollableStatus pollableStatus, EventExecutor executor) {
+        super(path, pathAddress, fd, pollableStatus, executor);
     }
 
-
-    /**
-     * Reads data from a specified position and of a specified length into a byte buffer.
-     * <p>
-     * It is not necessary to respect the `O_DIRECT` alignment of the file, and
-     * this API will internally convert the positions and sizes to match, at a cost.
-     * <p>
-     * Limit of the result ByteBuffer will be installed at read bytes
-     *
-     * @param position The file position at which the transfer is to begin; must be non-negative
-     * @param length   The content length; must be non-negative
-     * @return {@link CompletableFuture} with the result ByteBuffer
-     */
-    public CompletableFuture<ByteBuffer> readAligned(long position, int length) {
-        final long effectivePosition = alignDown(position, DEFAULT_ALIGNMENT);
-        final long b = (position - effectivePosition);
-        final int effectiveSize = alignUp((length + b), DEFAULT_ALIGNMENT);
-        ByteBuffer byteBuffer = allocateAlignedByteBuffer(effectiveSize, DEFAULT_ALIGNMENT);
-        CompletableFuture<Integer> read = read(effectivePosition, effectiveSize, byteBuffer);
-        return read.thenApply((result) -> {
-            byteBuffer.position((int) position).limit(Math.min(result, length));
-            return byteBuffer;
-        });
+    public static CompletableFuture<DmaFile> open(Path path, EventExecutor executor, OpenOption... openOptions) {
+        return open(path.normalize().toAbsolutePath().toString(), 438, executor, openOptions);
     }
 
-    public static int alignUp(long v, long align) {
-        return (int) ((v + align - 1) & -align);
+    public static CompletableFuture<DmaFile> open(Path path, EventExecutor executor) {
+        return open(path.normalize().toAbsolutePath().toString(), 438, executor, OpenOption.READ_ONLY);
     }
 
-    public static int alignDown(long v, long align) {
-        return (int) (v & -align);
+    public static CompletableFuture<DmaFile> open(Path path, int mode, EventExecutor executor, OpenOption... openOptions) {
+        return open(path.normalize().toAbsolutePath().toString(), mode, executor, openOptions);
     }
 
+    public static CompletableFuture<DmaFile> open(String path, EventExecutor executor) {
+        return open(path, 438, executor, OpenOption.READ_ONLY);
+    }
+
+    public static CompletableFuture<DmaFile> open(String path, EventExecutor executor, OpenOption... openOptions) {
+        return open(path, 438, executor, openOptions);
+    }
+
+    public static CompletableFuture<DmaFile> open(String path, int mode, EventExecutor executor, OpenOption... openOptions) {
+        long pathPtr = MemoryUtils.getStringPtr(path);
+        return executor.executeCommand(
+                Command.openAt(
+                        OpenOption.toFlags(openOptions) | Native.O_DIRECT,
+                        pathPtr,
+                        mode,
+                        executor,
+                        CompletableFutureResultProvider.newInstance()
+                )
+        ).thenApply((fd) -> new DmaFile(path, pathPtr, fd, PollableStatus.NON_POLLABLE, executor));
+    }
 }
