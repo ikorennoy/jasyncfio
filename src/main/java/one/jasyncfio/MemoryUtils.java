@@ -5,7 +5,7 @@ import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-public class MemoryUtils {
+class MemoryUtils {
 
     protected static sun.misc.Unsafe unsafe = (sun.misc.Unsafe) getUnsafe();
 

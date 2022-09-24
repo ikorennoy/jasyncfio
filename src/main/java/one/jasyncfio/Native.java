@@ -2,7 +2,7 @@ package one.jasyncfio;
 
 import java.util.Locale;
 
-public class Native {
+class Native {
 
     static {
         try {

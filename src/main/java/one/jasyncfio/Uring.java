@@ -1,6 +1,6 @@
 package one.jasyncfio;
 
-public class Uring {
+class Uring {
     private final CompletionQueue completionQueue;
     private final SubmissionQueue submissionQueue;
     private final int ringFd;

@@ -1,6 +1,6 @@
 package one.jasyncfio;
 
-public interface ResultProvider<T> {
+interface ResultProvider<T> {
     void onSuccess(int result);
 
     void onError(Throwable ex);

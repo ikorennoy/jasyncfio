@@ -1,6 +1,6 @@
 package one.jasyncfio;
 
-public enum PollableStatus {
+enum PollableStatus {
     POLLABLE,
     NON_POLLABLE,
 }

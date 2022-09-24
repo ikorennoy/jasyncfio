@@ -1,7 +1,7 @@
 package one.jasyncfio;
 
 
-public class StatxUtils {
+class StatxUtils {
     public static int BUF_SIZE = 256;
     // offsets
     private static final int STX_MASK = 0; // __u32

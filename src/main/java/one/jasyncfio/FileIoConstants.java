@@ -1,6 +1,6 @@
 package one.jasyncfio;
 
-public class FileIoConstants {
+class FileIoConstants {
 
     static native int oRdOnly();
 

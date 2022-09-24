@@ -2,7 +2,7 @@ package one.jasyncfio;
 
 import static one.jasyncfio.Native.*;
 
-public class SubmissionQueue {
+class SubmissionQueue {
     private static final long SQE_SIZE = 64;
 
     private static final int SQE_OP_CODE_FIELD = 0;
