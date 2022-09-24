@@ -1,8 +1,8 @@
 package one.jasyncfio;
 
-public abstract class EventExecutor implements AutoCloseable {
+abstract class EventExecutor implements AutoCloseable {
 
-    public abstract <T> T executeCommand(Command<T> command);
+    abstract <T> T executeCommand(Command<T> command);
 
     abstract <T> long scheduleCommand(Command<T> command);
 
@@ -10,7 +10,7 @@ public abstract class EventExecutor implements AutoCloseable {
 
     abstract void addEventFdRead();
 
-    public abstract void start();
+    abstract void start();
 
     public static class Builder {
         private int entries = 4096;

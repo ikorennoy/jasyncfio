@@ -5,7 +5,7 @@ import cn.danielw.fop.ObjectPool;
 import cn.danielw.fop.PoolConfig;
 import cn.danielw.fop.Poolable;
 
-public class Command<T> implements Runnable {
+class Command<T> implements Runnable {
     private static final CommandAllocator<? extends Command<?>> allocator = new CommandAllocator<>();
     private static final PoolConfig poolConfig = new PoolConfig() {
         {
@@ -106,7 +106,7 @@ public class Command<T> implements Runnable {
         }
     }
 
-    public static <T> Command<T> writeVectored(
+    static <T> Command<T> writeVectored(
             int fd,
             long offset,
             long iovecArrayAddress,
@@ -130,7 +130,7 @@ public class Command<T> implements Runnable {
         );
     }
 
-    public static <T> Command<T> write(
+    static <T> Command<T> write(
             int fd,
             long offset,
             int length,
@@ -155,7 +155,7 @@ public class Command<T> implements Runnable {
         );
     }
 
-    public static <T> Command<T> readVectored(
+    static <T> Command<T> readVectored(
             int fd,
             long offset,
             long length,
@@ -179,7 +179,7 @@ public class Command<T> implements Runnable {
         );
     }
 
-    public static <T> Command<T> read(
+    static <T> Command<T> read(
             int fd,
             long offset,
             int length,
@@ -204,7 +204,7 @@ public class Command<T> implements Runnable {
         );
     }
 
-    public static <T> Command<T> size(
+    static <T> Command<T> size(
             long pathAddress,
             long statxBuffer,
             EventExecutor executor,
@@ -226,7 +226,7 @@ public class Command<T> implements Runnable {
         );
     }
 
-    public static <T> Command<T> openAt(
+    static <T> Command<T> openAt(
             int openFlags,
             long pathPtr,
             int mode,
@@ -249,7 +249,7 @@ public class Command<T> implements Runnable {
         );
     }
 
-    public static <T> Command<T> close(
+    static <T> Command<T> close(
             int fd,
             EventExecutor executor,
             ResultProvider<T> resultProvider
@@ -270,7 +270,7 @@ public class Command<T> implements Runnable {
         );
     }
 
-    public static <T> Command<T> splice(
+    static <T> Command<T> splice(
             int srcFd,
             long srcOffst,
             int dstFd,
@@ -296,7 +296,7 @@ public class Command<T> implements Runnable {
         );
     }
 
-    public static <T> Command<T> dataSync(
+    static <T> Command<T> dataSync(
             int fd,
             EventExecutor executor,
             ResultProvider<T> resultProvider
@@ -317,7 +317,7 @@ public class Command<T> implements Runnable {
         );
     }
 
-    public static <T> Command<T> preAllocate(
+    static <T> Command<T> preAllocate(
             int fd,
             long length,
             int mode,
@@ -341,7 +341,7 @@ public class Command<T> implements Runnable {
         );
     }
 
-    public static <T> Command<T> unlink(
+    static <T> Command<T> unlink(
             int dirFd,
             long pathAddress,
             int flags,
@@ -397,7 +397,7 @@ public class Command<T> implements Runnable {
         return command;
     }
 
-    public void release() {
+    void release() {
         op = 0;
         flags = 0;
         rwFlags = 0;
