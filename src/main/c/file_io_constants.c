@@ -1,6 +1,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <bits/statx.h>
+#include <poll.h>
 
 #include "file_io_constants.h"
 
@@ -45,21 +46,37 @@ static jint get_noatime(void) {
 static jint get_sync(void) {
     return O_SYNC;
 }
+static jint get_pollin(void) {
+    return POLLIN;
+}
+static jint get_splice_f_move(void) {
+    return SPLICE_F_MOVE;
+}
+static jint get_splice_f_nonblock(void) {
+    return SPLICE_F_NONBLOCK;
+}
+static jint get_splice_f_more(void) {
+    return SPLICE_F_MORE;
+}
 
 static JNINativeMethod method_table[] = {
-    {"oRdOnly",   "()I", (void *) get_o_rdonly},
-    {"oWrOnly",   "()I", (void *) get_o_wronly},
-    {"oRdWr",     "()I", (void *) get_o_rdwr},
-    {"oCreat",    "()I", (void *) get_o_creat},
-    {"oTrunc",    "()I", (void *) get_o_trunc},
-    {"statxSize", "()I", (void *) get_statx_size},
-    {"oDirect",   "()I", (void *) get_o_direct},
-    {"oCloexec",  "()I", (void *) get_cloexec},
-    {"oAppend",   "()I", (void *) get_append},
-    {"oDsync",    "()I", (void *) get_dsync},
-    {"oExcl",     "()I", (void *) get_excl},
-    {"oNoAtime",  "()I", (void *) get_noatime},
-    {"oSync",     "()I", (void *) get_sync},
+    {"oRdOnly",            "()I", (void *) get_o_rdonly},
+    {"oWrOnly",            "()I", (void *) get_o_wronly},
+    {"oRdWr",              "()I", (void *) get_o_rdwr},
+    {"oCreat",             "()I", (void *) get_o_creat},
+    {"oTrunc",             "()I", (void *) get_o_trunc},
+    {"statxSize",          "()I", (void *) get_statx_size},
+    {"oDirect",            "()I", (void *) get_o_direct},
+    {"oCloexec",           "()I", (void *) get_cloexec},
+    {"oAppend",            "()I", (void *) get_append},
+    {"oDsync",             "()I", (void *) get_dsync},
+    {"oExcl",              "()I", (void *) get_excl},
+    {"oNoAtime",           "()I", (void *) get_noatime},
+    {"oSync",              "()I", (void *) get_sync},
+    {"pollin",             "()I", (void *) get_pollin},
+    {"spliceFMove",        "()I", (void *) get_splice_f_move},
+    {"spliceFNonblock",    "()I", (void *) get_splice_f_nonblock},
+    {"spliceFMore",        "()I", (void *) get_splice_f_more},
 };
 
 jint jni_file_io_constants_on_load(JNIEnv *env) {

@@ -1,5 +1,7 @@
 package one.jasyncfio;
 
+//import sun.misc.Cleaner;
+
 import java.nio.ByteBuffer;
 
 /**
@@ -23,34 +25,53 @@ public class IovecArray {
 
     private final long iovecArrayAddress;
     private final ByteBuffer iovecArray;
-    private final int count;
-    private final long size;
+    private final int size;
+    private final long sizeBytes;
     private final Iovec[] iovecs;
 
+    private final ByteBuffer[] buffers;
+
     public IovecArray(ByteBuffer[] buffers) {
+        this.buffers = buffers;
         iovecArray = ByteBuffer.allocateDirect(buffers.length * IOV_SIZE);
         iovecArrayAddress = MemoryUtils.getDirectBufferAddress(iovecArray);
-        int count = 0;
         int size = 0;
         iovecs = new Iovec[buffers.length];
 
-        for (ByteBuffer buffer : buffers) {
+        for (int i = 0; i < buffers.length; i++) {
+            ByteBuffer buffer = buffers[i];
             long buffAddress = MemoryUtils.getDirectBufferAddress(buffer);
-            int len = buffer.limit();
+            int len = buffer.remaining();
 
-            final int baseOffset = count * IOV_SIZE;
+            final int baseOffset = i * IOV_SIZE;
             final int lenOffset = baseOffset + ADDRESS_SIZE;
-            iovecs[count] = new Iovec(buffAddress, len);
+            iovecs[i] = new Iovec(buffAddress, len);
 
             size += len;
-            ++count;
 
             MemoryUtils.putLong(baseOffset + iovecArrayAddress, buffAddress);
             MemoryUtils.putLong(lenOffset + iovecArrayAddress, len);
         }
 
-        this.count = count;
-        this.size = size;
+        this.size = buffers.length;
+        this.sizeBytes = size;
+
+//        Cleaner.create(this, () -> {
+//            if (iovecArrayAddress != 0) {
+//                MemoryUtils.freeMemory(iovecArrayAddress);
+//            }
+//        });
+    }
+
+    public void updatePositions(int bytesRead) {
+        int left = bytesRead;
+        for (int i = 0; i < buffers.length; i++) {
+            ByteBuffer buffer = buffers[i];
+            int rem = buffer.remaining();
+            int n = Math.min(left, rem);
+            buffer.position(buffer.position() + n);
+            left -= n;
+        }
     }
 
     public long getIovecArrayAddress() {
@@ -58,19 +79,19 @@ public class IovecArray {
     }
 
     public Iovec getIovec(int position) {
-        if (position >= count) {
+        if (position >= size) {
             throw new IllegalArgumentException("position can't be greater than iovec array size");
         }
 
         return iovecs[position];
     }
 
-    public int getCount() {
-        return count;
+    public int getSize() {
+        return size;
     }
 
-    public long getSize() {
-        return size;
+    public long getSizeBytes() {
+        return sizeBytes;
     }
 
     public static class Iovec {

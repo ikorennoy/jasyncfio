@@ -1,7 +1,7 @@
 package one.jasyncfio;
 
 
-class StatxUtils {
+public class StatxUtils {
     public static int BUF_SIZE = 256;
     // offsets
     private static final int STX_MASK = 0; // __u32
@@ -18,7 +18,7 @@ class StatxUtils {
     private static final int STX_ATTRIBUTES_MASK = 56; // __u64
 
 
-    static long getSize(long buf) {
+    public static long getSize(long buf) {
         if (isFlagSet(buf, Native.STATX_SIZE)) {
             return MemoryUtils.getLong(buf + STX_SIZE);
         }
