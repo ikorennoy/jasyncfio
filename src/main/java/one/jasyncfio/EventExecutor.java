@@ -12,6 +12,8 @@ abstract class EventExecutor implements AutoCloseable {
 
     abstract void start();
 
+    abstract int sleepableRingFd();
+
     public static class Builder {
         private int entries = 4096;
         private boolean ioRingSetupSqPoll = false;

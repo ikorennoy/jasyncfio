@@ -278,4 +278,8 @@ class EventExecutorImpl extends EventExecutor {
     private boolean hasTasks() {
         return !tasks.isEmpty();
     }
+
+    int sleepableRingFd() {
+        return sleepableRing.ring.getRingFd();
+    }
 }

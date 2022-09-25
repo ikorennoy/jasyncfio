@@ -74,6 +74,8 @@ class UringConstants {
 
     static native byte ioRingOpShutdown();
 
+    static native byte ioRingOpSendZc();
+
     static native int ioRingRegisterBuffers();
 
     static native int ioRingUnregisterBuffers();
@@ -81,6 +83,8 @@ class UringConstants {
     static native int ioRingRegisterFiles();
 
     static native int ioRingUnregisterFiles();
+
+    static native int ioRingRegisterProbe();
 
     static native byte ioRingOpSplice();
 }
