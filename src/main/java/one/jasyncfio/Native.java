@@ -4,6 +4,8 @@ import java.util.Locale;
 
 class Native {
 
+
+
     static {
         try {
             String os = System.getProperty("os.name", "").toLowerCase(Locale.ROOT);
@@ -89,6 +91,10 @@ class Native {
 
     public static native long probeOpSize();
 
+    public static native long ioUringBufSize();
+
+    public static native long ioUringBufRegSize();
+
     /**
      * took from netty io uring project
      */
@@ -155,6 +161,7 @@ class Native {
     public static final int IORING_UNREGISTER_BUFFERS = UringConstants.ioRingUnregisterBuffers();
     public static final int IORING_REGISTER_FILES = UringConstants.ioRingRegisterFiles();
     public static final int IORING_UNREGISTER_FILES = UringConstants.ioRingUnregisterFiles();
+    public static final int IORING_REGISTER_PBUF_RING = UringConstants.ioRingRegisterPbufRing();
     public static final int IORING_REGISTER_PROBE = UringConstants.ioRingRegisterProbe();
     public static final int IORING_ENTER_GETEVENTS = UringConstants.ioRingEnterGetEvents();
     public static final int IORING_ENTER_SQ_WAKEUP = UringConstants.ioRingEnterSqWakeup();

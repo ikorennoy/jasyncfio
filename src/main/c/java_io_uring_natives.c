@@ -390,6 +390,14 @@ static jlong io_uring_probe_op_size(JNIEnv* env, jclass clazz) {
     return sizeof(struct io_uring_probe_op);
 }
 
+static jlong io_uring_buf_size(JNIEnv* env, jclass clazz) {
+    return sizeof(struct io_uring_buf);
+}
+
+static jlong io_uring_buf_reg_size(JNIEnv* env, jclass clazz) {
+    return sizeof(struct io_uring_buf_reg);
+}
+
 static JNINativeMethod method_table[] = {
     {"getStringPointer", "(Ljava/lang/String;)J", (void *) get_string_ptr},
     {"releaseString", "(Ljava/lang/String;J)V", (void *) release_string},
@@ -406,6 +414,8 @@ static JNINativeMethod method_table[] = {
     {"closeRing", "(IJIJI)V", (void *) close_ring},
     {"probeBufferSize", "()J", (void *) probe_ring_buffer_size},
     {"probeOpSize", "()J", (void *) io_uring_probe_op_size},
+    {"ioUringBufSize", "()J", (void *) io_uring_buf_size},
+    {"ioUringBufRegSize", "()J", (void *) io_uring_buf_reg_size},
 };
 
 jint jni_iouring_on_load(JNIEnv *env) {

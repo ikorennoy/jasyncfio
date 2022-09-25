@@ -133,6 +133,9 @@ static jint get_ioring_unregister_files(void) {
 static jint get_ioring_register_probe(void) {
     return IORING_REGISTER_PROBE;
 }
+static jint get_ioring_register_pbuf_ring(void) {
+    return IORING_REGISTER_PBUF_RING;
+}
 
 
 
@@ -180,6 +183,7 @@ static JNINativeMethod method_table[] = {
     {"ioRingRegisterFiles", "()I", (void *) get_ioring_register_files},
     {"ioRingUnregisterFiles", "()I", (void *) get_ioring_unregister_files},
     {"ioRingRegisterProbe", "()I", (void *) get_ioring_register_probe},
+    {"ioRingRegisterPbufRing", "()I", (void *) get_ioring_register_pbuf_ring},
 };
 
 jint jni_io_uring_constants_on_load(JNIEnv *env) {
