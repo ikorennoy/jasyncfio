@@ -1,328 +1,143 @@
 package one.jasyncfio;
 
-import one.jasyncfio.collections.IntObjectHashMap;
-import org.jctools.queues.MpscChunkedArrayQueue;
+abstract class EventExecutor implements AutoCloseable {
 
-import java.io.IOException;
-import java.nio.IntBuffer;
-import java.util.Queue;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.LockSupport;
+    abstract <T> T executeCommand(Command<T> command);
 
-public class EventExecutor {
-    private static final int STOP = 2;
-    private static final int AWAKE = 1;
-    private static final int WAIT = 0;
+    abstract <T> long scheduleCommand(Command<T> command);
 
-    final AtomicInteger state = new AtomicInteger(AWAKE);
-    final Queue<ExtRunnable> tasks = new MpscChunkedArrayQueue<>(65536);
-    final IntObjectHashMap<CompletableFuture<Integer>> futures = new IntObjectHashMap<>(8192);
-    final CompletionCallback callback = this::handle;
-    final Uring ring;
-    final PrimitiveIntSupplier sequencer;
-    final Thread t;
+    abstract <T> Ring ringFromCommand(Command<T> command);
 
-    EventExecutor(int entries, int flags, int sqThreadIdle, int sqThreadCpu, int cqSize, int attachWqRingFd) {
-        sequencer = new PrimitiveIntSupplier() {
-            private int i = 0;
+    abstract void addEventFdRead();
 
-            @Override
-            public int getAsInt() {
-                return Math.abs(i++ % 16_777_215);
+    abstract void start();
+
+    public static class Builder {
+        private int entries = 4096;
+        private boolean ioRingSetupSqPoll = false;
+        private int sqThreadIdle = 0;
+        private boolean ioRingSetupSqAff = false;
+        private int sqThreadCpu = 0;
+        private boolean ioRingSetupCqSize = false;
+        private int cqSize = 0;
+        private boolean ioRingSetupClamp = false;
+        private boolean ioRingSetupAttachWq = false;
+        private int attachWqRingFd = 0;
+
+        private Builder() {
+        }
+
+        /**
+         * Denotes the number of Submission Queue Entries that will be associated with this io_uring instance.
+         */
+        public Builder entries(int entries) {
+            this.entries = entries;
+            return this;
+        }
+
+        /**
+         * When this flag is specified, a kernel thread is created to perform submission queue polling.
+         * An io_uring instance configured in this way enables an application to issue I/O without ever context switching into the kernel.
+         * By using the submission queue to fill in new submission queue entries and watching for completions on the completion queue,
+         * the application can submit and reap I/Os without doing a single system call.
+         *
+         * @param sqThreadIdleMillis max kernel thread idle time in milliseconds
+         */
+
+        public Builder ioRingSetupSqPoll(int sqThreadIdleMillis) {
+            if (sqThreadIdleMillis < 0) {
+                throw new IllegalArgumentException("sqThreadIdleMillis < 0");
             }
-        };
-        ring = Native.setupIoUring(entries, flags, sqThreadIdle, sqThreadCpu, cqSize, attachWqRingFd);
-        t = new Thread(this::run);
-        t.start();
-    }
+            this.ioRingSetupSqPoll = true;
+            this.sqThreadIdle = sqThreadIdleMillis;
+            return this;
+        }
 
-    CompletableFuture<Integer> scheduleNoop() {
-        CompletableFuture<Integer> f = new CompletableFuture<>();
-        execute(() -> {
-            int opId = sequencer.getAsInt();
-            futures.put(opId, f);
-            ring.getSubmissionQueue().addNoOp(opId);
-        });
-        return f;
-    }
+        /**
+         * If this flag is specified, then the poll thread will be bound to the cpu set in the sq_thread_cpu field of the struct io_uring_params.
+         * This flag is only meaningful when IORING_SETUP_SQPOLL is specified.
+         * When cgroup setting cpuset.cpus changes (typically in container environment), the bounded cpu set may be changed as well.
+         *
+         * @param sqThreadCpu cpu to bound to
+         */
+        public Builder ioRingSetupSqAff(int sqThreadCpu) {
+            this.ioRingSetupSqAff = true;
+            this.sqThreadCpu = sqThreadCpu;
+            return this;
+        }
 
-    CompletableFuture<Integer> scheduleRead(int fd, long bufferAddress, long offset, int length) {
-        CompletableFuture<Integer> f = new CompletableFuture<>();
-        execute(() -> {
-            int opId = sequencer.getAsInt();
-            futures.put(opId, f);
-            ring.getSubmissionQueue().addRead(fd, bufferAddress, offset, length, opId);
-        });
-        return f;
-    }
-
-    CompletableFuture<Integer> scheduleWrite(int fd, long bufferAddress, long offset, int length) {
-        CompletableFuture<Integer> f = new CompletableFuture<>();
-        execute(() -> {
-            int opId = sequencer.getAsInt();
-            futures.put(opId, f);
-            ring.getSubmissionQueue().addWrite(fd, bufferAddress, offset, length, opId);
-        });
-        return f;
-    }
-
-    CompletableFuture<Integer> scheduleWritev(int fd, long iovecArrAddress, long offset, int iovecArrSize) {
-        CompletableFuture<Integer> f = new CompletableFuture<>();
-        execute(() -> {
-            int opId = sequencer.getAsInt();
-            futures.put(opId, f);
-            ring.getSubmissionQueue().addWritev(fd, iovecArrAddress, offset, iovecArrSize, opId);
-        });
-        return f;
-    }
-
-    CompletableFuture<Integer> scheduleReadv(int fd, long iovecArrAddress, long offset, int iovecArrSize) {
-        CompletableFuture<Integer> f = new CompletableFuture<>();
-        execute(() -> {
-            int opId = sequencer.getAsInt();
-            futures.put(opId, f);
-            ring.getSubmissionQueue().addReadv(fd, iovecArrAddress, offset, iovecArrSize, opId);
-        });
-        return f;
-    }
-
-    CompletableFuture<Integer> scheduleWriteFixed(int fd, long buffAddress, long offset, int length, int bufIndex) {
-        CompletableFuture<Integer> f = new CompletableFuture<>();
-        execute(() -> {
-            int opId = sequencer.getAsInt();
-            futures.put(opId, f);
-            ring.getSubmissionQueue().addWriteFixed(fd, buffAddress, offset, length, bufIndex, opId);
-        });
-        return f;
-    }
-
-    public CompletableFuture<Integer> scheduleReadFixed(int fd, long buffAddress, long offset, int length, int bufIndex) {
-        CompletableFuture<Integer> f = new CompletableFuture<>();
-        execute(() -> {
-            int opdId = sequencer.getAsInt();
-            futures.put(opdId, f);
-            ring.getSubmissionQueue().addReadFixed(fd, buffAddress, offset, length, bufIndex, opdId);
-        });
-        return f;
-    }
-
-
-    CompletableFuture<Integer> scheduleOpenAt(int dirFd, long pathAddress, int openFlags, int mode) {
-        CompletableFuture<Integer> f = new CompletableFuture<>();
-        execute(() -> {
-            int opId = sequencer.getAsInt();
-            futures.put(opId, f);
-            ring.getSubmissionQueue().addOpenAt(dirFd, pathAddress, openFlags, mode, opId);
-        });
-        return f;
-    }
-
-    CompletableFuture<Integer> scheduleStatx(int dirFd, long pathAddress, int statxFlags, int statxMask, long statxBufferAddress) {
-        CompletableFuture<Integer> f = new CompletableFuture<>();
-        execute(() -> {
-            int opId = sequencer.getAsInt();
-            futures.put(opId, f);
-            ring.getSubmissionQueue().addStatx(dirFd, pathAddress, statxFlags, statxMask, statxBufferAddress, opId);
-        });
-        return f;
-    }
-
-    CompletableFuture<Integer> scheduleFsync(int fd, int fsyncFlags) {
-        CompletableFuture<Integer> f = new CompletableFuture<>();
-        execute(() -> {
-            int opId = sequencer.getAsInt();
-            futures.put(opId, f);
-            ring.getSubmissionQueue().addFsync(fd, fsyncFlags, opId);
-        });
-        return f;
-    }
-
-    CompletableFuture<Integer> scheduleFallocate(int fd, long length, int mode, long offset) {
-        CompletableFuture<Integer> f = new CompletableFuture<>();
-        execute(() -> {
-            int opId = sequencer.getAsInt();
-            futures.put(opId, f);
-            ring.getSubmissionQueue().addFallocate(fd, length, mode, offset, opId);
-        });
-        return f;
-    }
-
-    CompletableFuture<Integer> scheduleUnlink(int dirFd, long pathAddress, int flags) {
-        CompletableFuture<Integer> f = new CompletableFuture<>();
-        execute(() -> {
-            int opId = sequencer.getAsInt();
-            futures.put(opId, f);
-            ring.getSubmissionQueue().addUnlinkAt(dirFd, pathAddress, flags, opId);
-        });
-        return f;
-    }
-
-    CompletableFuture<Integer> scheduleRename(int oldDirFd, long oldPathAddress, int newDirFd, int newPathAddress, int flags) {
-        CompletableFuture<Integer> f = new CompletableFuture<>();
-        execute(() -> {
-            int opId = sequencer.getAsInt();
-            futures.put(opId, f);
-            ring.getSubmissionQueue().addRenameAt(oldDirFd, oldPathAddress, newDirFd, newPathAddress, flags, opId);
-        });
-        return f;
-    }
-
-    CompletableFuture<Integer> scheduleClose(int fd) {
-        CompletableFuture<Integer> f = new CompletableFuture<>();
-        execute(() -> {
-            int opId = sequencer.getAsInt();
-            futures.put(opId, f);
-            ring.getSubmissionQueue().addClose(fd, opId);
-        });
-        return f;
-    }
-
-    CompletableFuture<Void> registerBuffers(IovecArray buffers) {
-        return CompletableFuture.runAsync(() ->
-                Native.ioUringRegister(ring.getRingFd(), Native.IORING_REGISTER_BUFFERS, buffers.getIovecArrayAddress(), buffers.getCount()));
-    }
-
-    CompletableFuture<Void> unregisterBuffers() {
-        return CompletableFuture.runAsync(() ->
-                Native.ioUringRegister(ring.getRingFd(), Native.IORING_UNREGISTER_BUFFERS, -1, 0));
-    }
-
-    CompletableFuture<Void> registerFiles(IntBuffer fds, int size) {
-        return CompletableFuture.runAsync(() ->
-                Native.ioUringRegister(ring.getRingFd(), Native.IORING_REGISTER_FILES, MemoryUtils.getDirectBufferAddress(fds), size));
-    }
-
-    CompletableFuture<Void> unregisterFiles() {
-        return CompletableFuture.runAsync(() ->
-                Native.ioUringRegister(ring.getRingFd(), Native.IORING_UNREGISTER_FILES, -1, 0));
-    }
-
-    private interface PrimitiveIntSupplier {
-        int getAsInt();
-    }
-
-    private void run() {
-        CompletionQueue completionQueue = ring.getCompletionQueue();
-        SubmissionQueue submissionQueue = ring.getSubmissionQueue();
-
-        while (true) {
-            try {
-                submissionQueue.submit();
-                state.compareAndSet(AWAKE, WAIT);
-                if (!hasTasks() && !(completionQueue.hasCompletions() || (submissionQueue.getTail() != completionQueue.getHead()))) {
-                    while (state.get() == WAIT) {
-                        LockSupport.park();
-                    }
-                }
-            } catch (Throwable t) {
-                handleLoopException(t);
-            } finally {
-                state.compareAndSet(WAIT, AWAKE);
+        /**
+         * Create the completion queue with struct io_uring_params.cq_entries entries.
+         * The value must be greater than entries, and may be rounded up to the next power-of-two.
+         */
+        public Builder ioRingSetupCqSize(int cqSize) {
+            if (cqSize < 0) {
+                throw new IllegalArgumentException("cqSize < 0");
             }
-            drain();
-            if (state.get() == STOP) {
-                drain();
-                closeRing();
-                break;
+            this.ioRingSetupCqSize = true;
+            this.cqSize = cqSize;
+            return this;
+        }
+
+        /**
+         * If this flag is specified, and if entries exceeds IORING_MAX_ENTRIES, then entries will be clamped at IORING_MAX_ENTRIES.
+         * If the flag IORING_SETUP_SQPOLL is set, and if the value of struct io_uring_params.cq_entries exceeds IORING_MAX_CQ_ENTRIES,
+         * then it will be clamped at IORING_MAX_CQ_ENTRIES.
+         */
+        public Builder ioRingSetupClamp() {
+            this.ioRingSetupClamp = true;
+            return this;
+        }
+
+        /**
+         * This flag should be set in conjunction with struct io_uring_params.wq_fd being set to an existing io_uring ring file descriptor.
+         * When set, the io_uring instance being created will share the asynchronous worker thread backend of the specified io_uring ring,
+         * rather than create a new separate thread pool.
+         *
+         * @param attachWqRingFd existing io_uring ring fd.
+         */
+        public Builder ioRingSetupAttachWq(int attachWqRingFd) {
+            this.ioRingSetupAttachWq = true;
+            this.attachWqRingFd = attachWqRingFd;
+            return this;
+        }
+
+
+        public EventExecutor build() {
+            if (entries > 4096 || !isPowerOfTwo(entries)) {
+                throw new IllegalArgumentException("entries must be power of 2 and less than 4096");
             }
-        }
-    }
-
-    private void closeRing() {
-        ring.close();
-    }
-
-    private void execute(ExtRunnable task) {
-        boolean inEventLoop = inEventLoop();
-        addTask(task);
-        wakeup(inEventLoop);
-    }
-
-    private void wakeup(boolean inEventLoop) {
-        int localState = state.get();
-        if (!inEventLoop && (localState != AWAKE && state.compareAndSet(WAIT, AWAKE))) {
-            LockSupport.unpark(t);
-        }
-    }
-
-    void stop() {
-        if (state.getAndSet(STOP) == WAIT) {
-            LockSupport.unpark(t);
-        }
-    }
-
-    private boolean hasTasks() {
-        return !tasks.isEmpty();
-    }
-
-    private boolean runAllTasks() {
-        ExtRunnable t = tasks.poll();
-        if (t == null) {
-            return false;
-        }
-        while (true) {
-            safeExec(t);
-            t = tasks.poll();
-            if (t == null) {
-                return true;
+            if (ioRingSetupCqSize && cqSize < entries) {
+                throw new IllegalStateException("cqSize must be greater than entries");
             }
-        }
-    }
-
-    private void drain() {
-        boolean moreWork = true;
-        do {
-            try {
-                int processed = ring.getCompletionQueue().processEvents(callback);
-                boolean run = runAllTasks();
-                moreWork = processed != 0 || run;
-            } catch (Throwable t) {
-                handleLoopException(t);
+            if (ioRingSetupSqAff && !ioRingSetupSqPoll) {
+                throw new IllegalArgumentException("IORING_SETUP_SQ_AFF is only meaningful when IORING_SETUP_SQPOLL is specified");
             }
-        } while (moreWork);
-    }
-
-
-    private static void handleLoopException(Throwable t) {
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            // ignore
+            EventExecutor pollEventExecutor = new EventExecutorImpl(entries,
+                    ioRingSetupSqPoll,
+                    sqThreadIdle,
+                    ioRingSetupSqAff,
+                    sqThreadCpu,
+                    ioRingSetupCqSize,
+                    cqSize,
+                    ioRingSetupClamp,
+                    ioRingSetupAttachWq,
+                    attachWqRingFd
+            );
+            pollEventExecutor.start();
+            return pollEventExecutor;
         }
+
+    }
+    public static EventExecutor initDefault() {
+        return new Builder().build();
     }
 
-    private void handle(int fd, int res, int flags, byte op, int data) {
-        CompletableFuture<Integer> userCallback = futures.get(data);
-        if (userCallback != null) {
-            if (res >= 0) {
-                userCallback.complete(res);
-            } else {
-                userCallback.completeExceptionally(
-                        new IOException(String.format("Error code: %d; message: %s", -res, Native.decodeErrno(res))));
-            }
-        }
+    public static Builder builder() {
+        return new Builder();
     }
 
-    private void addTask(ExtRunnable task) {
-        if (state.get() != STOP) {
-            tasks.add(task);
-        } else {
-            throw new RejectedExecutionException("Event loop is stopped");
-        }
-    }
-
-    private static void safeExec(ExtRunnable task) {
-        try {
-            task.run();
-        } catch (Throwable ex) {
-            ex.printStackTrace();
-        }
-    }
-
-    private boolean inEventLoop() {
-        return t == Thread.currentThread();
+    private static boolean isPowerOfTwo(int x) {
+        return (x != 0) && ((x & (x - 1)) == 0);
     }
 }

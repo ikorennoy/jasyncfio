@@ -1,6 +1,6 @@
 package one.jasyncfio;
 
-public class UringConstants {
+class UringConstants {
 
     static native int ioRingEnterGetEvents();
 
@@ -56,6 +56,24 @@ public class UringConstants {
 
     static native byte ioRingOpPollRemove();
 
+    static native byte ioRingOpConnect();
+
+    static native byte ioRingOpAccept();
+
+    static native byte ioRingOpTimeout();
+
+    static native byte ioRingOpTimeoutRemove();
+
+    static native byte ioRingOpSendMsg();
+
+    static native byte ioRingOpRecvMsg();
+
+    static native byte ioRingOpSend();
+
+    static native byte ioRingOpRecv();
+
+    static native byte ioRingOpShutdown();
+
     static native int ioRingRegisterBuffers();
 
     static native int ioRingUnregisterBuffers();
@@ -64,4 +82,5 @@ public class UringConstants {
 
     static native int ioRingUnregisterFiles();
 
+    static native byte ioRingOpSplice();
 }

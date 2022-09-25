@@ -1,35 +1,42 @@
 package one.jasyncfio;
 
-import java.nio.ByteBuffer;
+import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 
 public class BufferedFile extends AbstractFile {
 
-    BufferedFile(int fd, String path, long pathAddress, EventExecutorGroup eventExecutorGroup) {
-        super(fd, path, pathAddress, eventExecutorGroup);
+    private BufferedFile(String path, long pathAddress, int fd, PollableStatus pollableStatus, EventExecutor executor) {
+        super(path, pathAddress, fd, pollableStatus, executor);
     }
 
-    /**
-     * Reads data at the specified position into the buffer.
-     * For {@link  DmaFile} position and buffer must be properly aligned
-     *
-     * @param position start position
-     * @param buffer   The buffer into which bytes are to be transferred
-     * @return {@link CompletableFuture} with the number of bytes read
-     */
-    public CompletableFuture<Integer> read(long position, ByteBuffer buffer) {
-        return read(position, buffer.capacity(), buffer);
+    public static CompletableFuture<BufferedFile> open(Path path, EventExecutor executor, OpenOption... openOption) {
+        return open(path, 438, executor, openOption);
     }
 
-    /**
-     * Writes data to the specified position into the file.
-     * For {@link DmaFile} position and buffer must be properly aligned
-     *
-     * @param position start position
-     * @param buffer   The buffer from which bytes are to be transferred
-     * @return {@link  CompletableFuture} with the number of bytes written
-     */
-    public CompletableFuture<Integer> write(long position, ByteBuffer buffer) {
-        return write(position, buffer.capacity(), buffer);
+    public static CompletableFuture<BufferedFile> open(Path path, EventExecutor executor) {
+        return open(path, 438, executor, OpenOption.READ_ONLY);
+    }
+
+    public static CompletableFuture<BufferedFile> open(Path path, int mode, EventExecutor executor, OpenOption... openOption) {
+        return open(path.normalize().toAbsolutePath().toString(), mode, executor, openOption);
+    }
+
+    public static CompletableFuture<BufferedFile> open(String path, EventExecutor executor) {
+        return open(path, 438, executor, OpenOption.READ_ONLY);
+    }
+
+    public static CompletableFuture<BufferedFile> open(String path, EventExecutor executor, OpenOption... openOption) {
+        return open(path, 438, executor, openOption);
+    }
+
+    public static CompletableFuture<BufferedFile> open(String path, int mode, EventExecutor executor, OpenOption... openOption) {
+        long patAddress = MemoryUtils.getStringPtr(path);
+        return executor.executeCommand(Command.openAt(
+                OpenOption.toFlags(openOption),
+                patAddress,
+                mode,
+                executor,
+                AsyncResultProvider.newInstance()
+        )).thenApply((res) -> new BufferedFile(path, patAddress, res, PollableStatus.NON_POLLABLE, executor));
     }
 }

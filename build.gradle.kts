@@ -206,7 +206,10 @@ nexusPublishing {
 
 dependencies {
     implementation("org.jctools:jctools-core:3.3.0")
+    implementation("cn.danielw:fast-object-pool:2.2.1")
+    implementation("com.conversantmedia:disruptor:1.2.15")
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.2")
     testImplementation("org.junit.jupiter:junit-jupiter-engine:5.8.2")
     testImplementation("org.openjdk.jmh:jmh-core:1.34")
+
 }

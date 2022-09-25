@@ -2,7 +2,7 @@ package one.jasyncfio;
 
 import java.util.Locale;
 
-public class Native {
+class Native {
 
     static {
         try {
@@ -28,7 +28,7 @@ public class Native {
         return ret;
     }
 
-    static Uring setupIoUring(int entries, int flags, int sqThreadIdle, int sqThreadCpu, int cqSize, int attachWqRingFd) {
+    public static Uring setupIoUring(int entries, int flags, int sqThreadIdle, int sqThreadCpu, int cqSize, int attachWqRingFd) {
         long[][] pointers = setupIoUring0(entries, flags, sqThreadIdle, sqThreadCpu, cqSize, attachWqRingFd);
         final SubmissionQueue submissionQueue = new SubmissionQueue(
                 pointers[0][0],
@@ -119,48 +119,64 @@ public class Native {
     }
 
 
-    static final byte IORING_OP_READ = UringConstants.ioRingOpRead();
-    static final byte IORING_OP_WRITE = UringConstants.ioRingOpWrite();
-    static final byte IORING_OP_CLOSE = UringConstants.ioRingOpClose();
-    static final byte IORING_OP_OPENAT = UringConstants.ioRingOpenAt();
-    static final byte IORING_OP_NOP = UringConstants.ioRingOpNop();
-    static final byte IORING_OP_STATX = UringConstants.ioRingOpStatx();
-    static final byte IORING_OP_FSYNC = UringConstants.ioRingOpFsync();
-    static final byte IORING_OP_FALLOCATE = UringConstants.ioRingOpFallocate();
-    static final byte IORING_OP_UNLINKAT = UringConstants.ioRingOpUnlinkAt();
-    static final byte IORING_OP_RENAMEAT = UringConstants.ioRingOpRenameAt();
-    static final byte IORING_OP_READV = UringConstants.ioRingOpReadv();
-    static final byte IORING_OP_WRITEV = UringConstants.ioRingOpWritev();
-    static final byte IORING_OP_READ_FIXED = UringConstants.ioRingOpReadFixed();
-    static final byte IORING_OP_WRITE_FIXED = UringConstants.ioRingOpWriteFixed();
+    public static final byte IORING_OP_READ = UringConstants.ioRingOpRead();
+    public static final byte IORING_OP_WRITE = UringConstants.ioRingOpWrite();
+    public static final byte IORING_OP_CLOSE = UringConstants.ioRingOpClose();
+    public static final byte IORING_OP_OPENAT = UringConstants.ioRingOpenAt();
+    public static final byte IORING_OP_NOP = UringConstants.ioRingOpNop();
+    public static final byte IORING_OP_STATX = UringConstants.ioRingOpStatx();
+    public static final byte IORING_OP_FSYNC = UringConstants.ioRingOpFsync();
+    public static final byte IORING_OP_FALLOCATE = UringConstants.ioRingOpFallocate();
+    public static final byte IORING_OP_UNLINKAT = UringConstants.ioRingOpUnlinkAt();
+    public static final byte IORING_OP_RENAMEAT = UringConstants.ioRingOpRenameAt();
+    public static final byte IORING_OP_READV = UringConstants.ioRingOpReadv();
+    public static final byte IORING_OP_WRITEV = UringConstants.ioRingOpWritev();
+    public static final byte IORING_OP_READ_FIXED = UringConstants.ioRingOpReadFixed();
+    public static final byte IORING_OP_WRITE_FIXED = UringConstants.ioRingOpWriteFixed();
+    public static final byte IORING_OP_CONNECT = UringConstants.ioRingOpConnect();
+    public static final byte IORING_OP_POLL_ADD = UringConstants.ioRingOpPollAdd();
+    public static final byte IORING_OP_POLL_REMOVE = UringConstants.ioRingOpPollRemove();
+    public static final byte IORING_OP_ACCEPT = UringConstants.ioRingOpAccept();
+    public static final byte IORING_OP_TIMEOUT = UringConstants.ioRingOpTimeout();
+    public static final byte IORING_OP_TIMEOUT_REMOVE = UringConstants.ioRingOpTimeoutRemove();
+    public static final byte IORING_OP_SENDMSG = UringConstants.ioRingOpSendMsg();
+    public static final byte IORING_OP_RECVMSG = UringConstants.ioRingOpRecvMsg();
+    public static final byte IORING_OP_SEND = UringConstants.ioRingOpSend();
+    public static final byte IORING_OP_RECV = UringConstants.ioRingOpRecv();
+    public static final byte IORING_OP_SHUTDOWN = UringConstants.ioRingOpShutdown();
+    public static final byte IORING_OP_SPLICE = UringConstants.ioRingOpSplice();
 
-    static final int IORING_REGISTER_BUFFERS = UringConstants.ioRingRegisterBuffers();
-    static final int IORING_UNREGISTER_BUFFERS = UringConstants.ioRingUnregisterBuffers();
-    static final int IORING_REGISTER_FILES = UringConstants.ioRingRegisterFiles();
-    static final int IORING_UNREGISTER_FILES = UringConstants.ioRingUnregisterFiles();
-    static final int IORING_ENTER_GETEVENTS = UringConstants.ioRingEnterGetEvents();
-    static final int IORING_ENTER_SQ_WAKEUP = UringConstants.ioRingEnterSqWakeup();
-    static final int IORING_SQ_NEED_WAKEUP = UringConstants.ioRingSqNeedWakeup();
-    static final int IORING_SQ_CQ_OVERFLOW = UringConstants.ioRingSqCqOverflow();
-    static final int IORING_FSYNC_DATASYNC = UringConstants.ioRingFsyncDatasync();
-    static final int IORING_SETUP_SQPOLL = UringConstants.ioRingSetupSqPoll();
-    static final int IORING_SETUP_IOPOLL = UringConstants.ioRingSetupIoPoll();
-    static final int IORING_SETUP_SQ_AFF = UringConstants.ioRingSetupSqAff();
-    static final int IORING_SETUP_CQ_SIZE = UringConstants.ioRingSetupCqSize();
-    static final int IORING_SETUP_CLAMP = UringConstants.ioRingSetupClamp();
-    static final int IORING_SETUP_ATTACH_WQ = UringConstants.ioRingSetupAttachWq();
+    public static final int IORING_REGISTER_BUFFERS = UringConstants.ioRingRegisterBuffers();
+    public static final int IORING_UNREGISTER_BUFFERS = UringConstants.ioRingUnregisterBuffers();
+    public static final int IORING_REGISTER_FILES = UringConstants.ioRingRegisterFiles();
+    public static final int IORING_UNREGISTER_FILES = UringConstants.ioRingUnregisterFiles();
+    public static final int IORING_ENTER_GETEVENTS = UringConstants.ioRingEnterGetEvents();
+    public static final int IORING_ENTER_SQ_WAKEUP = UringConstants.ioRingEnterSqWakeup();
+    public static final int IORING_SQ_NEED_WAKEUP = UringConstants.ioRingSqNeedWakeup();
+    public static final int IORING_SQ_CQ_OVERFLOW = UringConstants.ioRingSqCqOverflow();
+    public static final int IORING_FSYNC_DATASYNC = UringConstants.ioRingFsyncDatasync();
+    public static final int IORING_SETUP_SQPOLL = UringConstants.ioRingSetupSqPoll();
+    public static final int IORING_SETUP_IOPOLL = UringConstants.ioRingSetupIoPoll();
+    public static final int IORING_SETUP_SQ_AFF = UringConstants.ioRingSetupSqAff();
+    public static final int IORING_SETUP_CQ_SIZE = UringConstants.ioRingSetupCqSize();
+    public static final int IORING_SETUP_CLAMP = UringConstants.ioRingSetupClamp();
+    public static final int IORING_SETUP_ATTACH_WQ = UringConstants.ioRingSetupAttachWq();
 
-    static final int O_RDONLY = FileIoConstants.oRdOnly();
-    static final int O_WRONLY = FileIoConstants.oWrOnly();
-    static final int O_RDWR = FileIoConstants.oRdWr();
-    static final int O_TRUNC = FileIoConstants.oTrunc();
-    static final int O_CREAT = FileIoConstants.oCreat();
-    static final int STATX_SIZE = FileIoConstants.statxSize();
-    static final int O_DIRECT = FileIoConstants.oDirect();
-    static final int O_CLOEXEC = FileIoConstants.oCloexec();
-    static final int O_APPEND = FileIoConstants.oAppend();
-    static final int O_DSYNC = FileIoConstants.oDsync();
-    static final int O_EXCL = FileIoConstants.oExcl();
-    static final int O_NOATIME = FileIoConstants.oNoAtime();
-    static final int O_SYNC = FileIoConstants.oSync();
+    public static final int O_RDONLY = FileIoConstants.oRdOnly();
+    public static final int O_WRONLY = FileIoConstants.oWrOnly();
+    public static final int O_RDWR = FileIoConstants.oRdWr();
+    public static final int O_TRUNC = FileIoConstants.oTrunc();
+    public static final int O_CREAT = FileIoConstants.oCreat();
+    public static final int STATX_SIZE = FileIoConstants.statxSize();
+    public static final int O_DIRECT = FileIoConstants.oDirect();
+    public static final int O_CLOEXEC = FileIoConstants.oCloexec();
+    public static final int O_APPEND = FileIoConstants.oAppend();
+    public static final int O_DSYNC = FileIoConstants.oDsync();
+    public static final int O_EXCL = FileIoConstants.oExcl();
+    public static final int O_NOATIME = FileIoConstants.oNoAtime();
+    public static final int O_SYNC = FileIoConstants.oSync();
+    public static final int POLLIN = FileIoConstants.pollin();
+    public static final int SPLICE_F_MOVE = FileIoConstants.spliceFMove();
+    public static final int SPLICE_F_NONBLOCK = FileIoConstants.spliceFNonblock();
+    public static final int SPLICE_F_MORE = FileIoConstants.spliceFMore();
 }

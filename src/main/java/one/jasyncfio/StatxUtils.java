@@ -18,7 +18,7 @@ class StatxUtils {
     private static final int STX_ATTRIBUTES_MASK = 56; // __u64
 
 
-    static long getSize(long buf) {
+    public static long getSize(long buf) {
         if (isFlagSet(buf, Native.STATX_SIZE)) {
             return MemoryUtils.getLong(buf + STX_SIZE);
         }

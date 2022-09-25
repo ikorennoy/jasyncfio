@@ -51,6 +51,36 @@ static jbyte get_ioring_op_unlinkat(void) {
 static jbyte get_ioring_op_renameat(void) {
     return IORING_OP_RENAMEAT;
 }
+static jbyte get_ioring_op_conntect(void) {
+    return IORING_OP_CONNECT;
+}
+static jbyte get_ioring_op_accept(void) {
+    return IORING_OP_ACCEPT;
+}
+static jbyte get_ioring_op_timeout(void) {
+    return IORING_OP_TIMEOUT;
+}
+static jbyte get_ioring_op_timeout_remove(void) {
+    return IORING_OP_TIMEOUT_REMOVE;
+}
+static jbyte get_ioring_op_sendmsg(void) {
+    return IORING_OP_SENDMSG;
+}
+static jbyte get_ioring_op_recvmsg(void) {
+    return IORING_OP_RECVMSG;
+}
+static jbyte get_ioring_op_send(void) {
+    return IORING_OP_SEND;
+}
+static jbyte get_ioring_op_recv(void) {
+    return IORING_OP_RECV;
+}
+static jbyte get_ioring_op_shutdown(void) {
+    return IORING_OP_SHUTDOWN;
+}
+static jbyte get_ioring_op_splice(void) {
+    return IORING_OP_SPLICE;
+}
 
 static jint get_ioring_enter_getevents(void) {
     return IORING_ENTER_GETEVENTS;
@@ -128,6 +158,16 @@ static JNINativeMethod method_table[] = {
     {"ioRingOpFallocate", "()B", (void *) get_ioring_op_fallocate},
     {"ioRingOpUnlinkAt", "()B", (void *) get_ioring_op_unlinkat},
     {"ioRingOpRenameAt", "()B", (void *) get_ioring_op_renameat},
+    {"ioRingOpConnect", "()B", (void *) get_ioring_op_conntect},
+    {"ioRingOpAccept", "()B", (void *) get_ioring_op_accept},
+    {"ioRingOpTimeout", "()B", (void *) get_ioring_op_timeout},
+    {"ioRingOpTimeoutRemove", "()B", (void *) get_ioring_op_timeout_remove},
+    {"ioRingOpSendMsg", "()B", (void *) get_ioring_op_sendmsg},
+    {"ioRingOpRecvMsg", "()B", (void *) get_ioring_op_recvmsg},
+    {"ioRingOpSend", "()B", (void *) get_ioring_op_send},
+    {"ioRingOpRecv", "()B", (void *) get_ioring_op_recv},
+    {"ioRingOpSplice", "()B", (void *) get_ioring_op_splice},
+    {"ioRingOpShutdown", "()B", (void *) get_ioring_op_shutdown},
     {"ioRingRegisterBuffers", "()I", (void *) get_ioring_register_buffers},
     {"ioRingUnregisterBuffers", "()I", (void *) get_ioring_unregister_buffers},
     {"ioRingRegisterFiles", "()I", (void *) get_ioring_register_files},

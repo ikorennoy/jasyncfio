@@ -1,6 +1,6 @@
 package one.jasyncfio;
 
-public class CompletionQueue {
+class CompletionQueue {
     // offsets
     private static final int CQE_USER_DATA_FIELD = 0;
     private static final int CQE_RES_FIELD = 8;
@@ -23,7 +23,7 @@ public class CompletionQueue {
     private final int ringFd;
     private final long ringFlags;
 
-    public CompletionQueue(long kHead,
+    CompletionQueue(long kHead,
                            long kTail,
                            long kRingMask,
                            long kRingEntries,
@@ -56,7 +56,7 @@ public class CompletionQueue {
         int tail = MemoryUtils.getIntVolatile(kTail);
         int i = 0;
         while (ringHead != tail) {
-            long cqeAddress = kCompletionArray + (ringHead & ringMask) * CQE_SIZE;
+            long cqeAddress = kCompletionArray + (long) (ringHead & ringMask) * CQE_SIZE;
 
             long userData = MemoryUtils.getLong(cqeAddress + CQE_USER_DATA_FIELD);
             int res = MemoryUtils.getInt(cqeAddress + CQE_RES_FIELD);
@@ -65,7 +65,7 @@ public class CompletionQueue {
             ringHead += 1;
             MemoryUtils.putIntOrdered(kHead, ringHead);
             i++;
-            UserDataUtils.decode(res, flags, userData, callback);
+            callback.handle(res, flags, userData);
         }
         return i;
     }

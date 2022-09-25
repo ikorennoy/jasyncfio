@@ -1,10 +1,8 @@
 package one.jasyncfio;
 
-import java.io.IOException;
-
 import static one.jasyncfio.Native.*;
 
-public class SubmissionQueue {
+class SubmissionQueue {
     private static final long SQE_SIZE = 64;
 
     private static final int SQE_OP_CODE_FIELD = 0;
@@ -13,11 +11,15 @@ public class SubmissionQueue {
     private static final int SQE_FD_FIELD = 4; // s32
     private static final int SQE_OFFSET_FIELD = 8;
     private static final int SQE_ADDRESS_FIELD = 16;
-    private static final int SQE_LEN_FIELD = 24; // u32
-    private static final int SQE_RW_FLAGS_FIELD = 28; // u32
-    private static final int SQE_USER_DATA_FIELD = 32; // u64
+    private static final int SQE_LEN_FIELD = 24;
+    private static final int SQE_RW_FLAGS_FIELD = 28;
+    private static final int SQE_USER_DATA_FIELD = 32;
+
     private static final int SQE_BUF_INDEX = 40; // u16
 
+    private static final int SQE_PERSONALITY = 42;
+
+    private static final int SQE_FILE_INDEX = 44;
 
     private final long kHead;
     private final long kTail;
@@ -27,8 +29,8 @@ public class SubmissionQueue {
     private final long kArray;
     private final long submissionArrayQueueAddress;
 
-    final int ringSize;
-    final long kRingPointer;
+    public final int ringSize;
+    public final long kRingPointer;
 
 
     private final int ringEntries;
@@ -36,6 +38,7 @@ public class SubmissionQueue {
     private int head;
     private int tail;
     private final int ringFd;
+
     private final long ringFlags;
 
     public SubmissionQueue(long kHead,
@@ -49,7 +52,8 @@ public class SubmissionQueue {
                            int ringSize,
                            long kRingPointer,
                            int ringFd,
-                           long ringFlags) {
+                           long ringFlags
+    ) {
         this.kHead = kHead;
         this.kTail = kTail;
         this.kRingEntries = kRingEntries;
@@ -75,15 +79,16 @@ public class SubmissionQueue {
         }
     }
 
-    private int getFlags() {
+    public int getFlags() {
         return MemoryUtils.getIntVolatile(kFlags);
     }
 
-    private boolean isIoPoll() {
-        return (ringFlags & Native.IORING_SETUP_IOPOLL) == Native.IORING_SETUP_IOPOLL;
+
+    public int submit(int minComplete) {
+        return submit(tail - head, minComplete, IORING_ENTER_GETEVENTS);
     }
 
-    int submit() throws Throwable {
+    public int submit() {
         int submit = tail - head;
         if (!isIoPoll()) {
             return submit > 0 ? submit(submit, submit, Native.IORING_ENTER_GETEVENTS) : 0;
@@ -92,222 +97,33 @@ public class SubmissionQueue {
         }
     }
 
-    boolean addRead(int fd, long bufferAddress, long offset, int length, int opId) throws Throwable {
-        return enqueueSqe(
-                Native.IORING_OP_READ,
-                0,
-                0,
-                fd,
-                bufferAddress,
-                length,
-                offset,
-                opId,
-                0
-        );
+    private boolean isIoPoll() {
+        return (ringFlags & Native.IORING_SETUP_IOPOLL) == Native.IORING_SETUP_IOPOLL;
     }
 
-    void addNoOp(int opId) throws Throwable {
-        enqueueSqe(
-                Native.IORING_OP_NOP,
-                0,
-                0,
-                -1,
-                0,
-                0,
-                0,
-                opId,
-                0
-        );
+    public int submitAndWait() {
+        int submit = tail - head;
+        return submit(Math.max(submit, 0), 1, Native.IORING_ENTER_GETEVENTS);
     }
 
-    void addWrite(int fd, long bufferAddress, long offset, int length, int opId) throws Throwable {
-        enqueueSqe(Native.IORING_OP_WRITE,
-                0,
-                0,
-                fd,
-                bufferAddress,
-                length,
-                offset,
-                opId,
-                0
-        );
-    }
-
-    void addWritev(int fd, long iovecArrAddress, long offset, int iovecArrSize, int opId) throws Throwable {
-        enqueueSqe(Native.IORING_OP_WRITEV,
-                0,
-                0,
-                fd,
-                iovecArrAddress,
-                iovecArrSize,
-                offset,
-                opId,
-                0
-        );
-    }
-
-    void addWriteFixed(int fd, long buffAddress, long offset, int length, int bufIndex, int opId) throws Throwable {
-        enqueueSqe(Native.IORING_OP_WRITE_FIXED,
-                0,
-                0,
-                fd,
-                buffAddress,
-                length,
-                offset,
-                opId,
-                bufIndex
-        );
-    }
-
-    void addReadFixed(int fd, long buffAddress, long offset, int length, int bufIndex, int opdId) throws Throwable {
-        enqueueSqe(IORING_OP_READ_FIXED,
-                0,
-                0,
-                fd,
-                buffAddress,
-                length,
-                offset,
-                opdId,
-                bufIndex
-        );
-    }
-
-    void addReadv(int fd, long iovecArrAddress, long offset, int iovecArrSize, int opId) throws Throwable {
-        enqueueSqe(Native.IORING_OP_READV,
-                0,
-                0,
-                fd,
-                iovecArrAddress,
-                iovecArrSize,
-                offset,
-                opId,
-                0
-        );
-    }
-
-    void addStatx(int dirfd, long pathAddress, int statxFlags, int mask, long statxBufferAddress, int opId) throws Throwable {
-        enqueueSqe(Native.IORING_OP_STATX,
-                0,
-                statxFlags,
-                dirfd,
-                pathAddress,
-                mask,
-                statxBufferAddress,
-                opId,
-                0
-        );
-    }
-
-    void addFsync(int fd, int fsyncFlags, int opId) throws Throwable {
-        enqueueSqe(Native.IORING_OP_FSYNC,
-                0,
-                fsyncFlags,
-                fd,
-                0,
-                0,
-                0,
-                opId,
-                0
-        );
-    }
-
-    void addFallocate(int fd, long length, int mode, long offset, int opId) throws Throwable {
-        enqueueSqe(Native.IORING_OP_FALLOCATE,
-                0,
-                0,
-                fd,
-                length,
-                mode,
-                offset,
-                opId,
-                0
-        );
-    }
-
-    void addUnlinkAt(int dirFd, long pathAddress, int flags, int opId) throws Throwable {
-        enqueueSqe(Native.IORING_OP_UNLINKAT,
-                0,
-                flags,
-                dirFd,
-                pathAddress,
-                0,
-                0,
-                opId,
-                0
-        );
-    }
-
-    void addRenameAt(int oldDirFd, long oldPathAddress, int newDirFd, long newPathAddress, int flags, int opId) throws Throwable {
-        enqueueSqe(
-                Native.IORING_OP_RENAMEAT,
-                0,
-                flags,
-                oldDirFd,
-                oldPathAddress,
-                newDirFd,
-                newPathAddress,
-                opId,
-                0
-        );
-    }
-
-    boolean addEventFdRead(int eventFd, long eventfdReadBuf, int position, int limit, int opId) throws Throwable {
-        return enqueueSqe(Native.IORING_OP_READ,
-                0,
-                0,
-                eventFd,
-                eventfdReadBuf + position,
-                limit - position,
-                0,
-                opId,
-                0
-        );
-    }
-
-    void addOpenAt(int dirFd, long pathAddress, int openFlags, int mode, int opId) throws Throwable {
-        enqueueSqe(Native.IORING_OP_OPENAT,
-                0,
-                openFlags,
-                dirFd,
-                pathAddress,
-                mode,
-                0,
-                opId,
-                0
-        );
-    }
-
-    void addClose(int fd, int opId) throws Throwable {
-        enqueueSqe(Native.IORING_OP_CLOSE,
-                0,
-                0,
-                fd,
-                0,
-                0,
-                0,
-                opId,
-                0
-        );
-    }
-
-    private boolean enqueueSqe(byte op, int flags, int rwFlags, int fd,
-                               long bufferAddress, int length, long offset, int data, int bufIndex) throws Throwable {
+    public boolean enqueueSqe(byte op, int flags, int rwFlags, int fd,
+                              long bufferAddress, int length, long offset, long data, int bufIndex, int fileIndex) {
         int pending = tail - head;
         boolean submit = pending == ringEntries;
         if (submit) {
             int submitted = submit();
             if (submitted == 0) {
-                throw new IOException("submission ring is full");
+                throw new RuntimeException("submission ring is full");
             }
         }
         long sqe = submissionArrayQueueAddress + (tail++ & ringMask) * SQE_SIZE;
-        setData(sqe, op, flags, rwFlags, fd, bufferAddress, length, offset, data, bufIndex);
+        setData(sqe, op, flags, rwFlags, fd, bufferAddress, length, offset, data, bufIndex, fileIndex);
         return submit;
     }
 
     private void setData(long sqe, byte op, int flags, int rwFlags, int fd, long bufferAddress, int length,
-                         long offset, int data, int bufIndex) {
-
+                         long offset, long userData, int bufIndex, int fileIndex
+    ) {
         MemoryUtils.putByte(sqe + SQE_OP_CODE_FIELD, op);
         MemoryUtils.putByte(sqe + SQE_FLAGS_FIELD, (byte) flags);
         MemoryUtils.putInt(sqe + SQE_FD_FIELD, fd);
@@ -315,12 +131,12 @@ public class SubmissionQueue {
         MemoryUtils.putLong(sqe + SQE_ADDRESS_FIELD, bufferAddress);
         MemoryUtils.putInt(sqe + SQE_LEN_FIELD, length);
         MemoryUtils.putInt(sqe + SQE_RW_FLAGS_FIELD, rwFlags);
-        long userData = UserDataUtils.encode(fd, op, data);
         MemoryUtils.putLong(sqe + SQE_USER_DATA_FIELD, userData);
         MemoryUtils.putInt(sqe + SQE_BUF_INDEX, bufIndex);
+        MemoryUtils.putInt(sqe + SQE_FILE_INDEX, fileIndex);
     }
 
-    private int submit(int toSubmit, int minComplete, int flags) throws Throwable {
+    private int submit(int toSubmit, int minComplete, int flags) {
         int ret;
         boolean needEnter = true;
         MemoryUtils.putIntOrdered(kTail, tail);
@@ -338,12 +154,12 @@ public class SubmissionQueue {
         }
         head = MemoryUtils.getIntVolatile(kHead);
         if (ret < 0) {
-            throw new IOException(String.format("Error code: %d; message: %s", -ret, Native.decodeErrno(ret)));
+            throw new RuntimeException(String.format("Error code: %d; message: %s", -ret, Native.decodeErrno(ret)));
         }
         return ret;
     }
 
-    int getTail() {
+    public int getTail() {
         return tail;
     }
 }

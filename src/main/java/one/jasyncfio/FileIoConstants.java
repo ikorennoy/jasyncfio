@@ -1,6 +1,6 @@
 package one.jasyncfio;
 
-public class FileIoConstants {
+class FileIoConstants {
 
     static native int oRdOnly();
 
@@ -27,4 +27,12 @@ public class FileIoConstants {
     static native int oNoAtime();
 
     static native int oSync();
+
+    static native int pollin();
+
+    static native int spliceFMove();
+
+    static native int spliceFNonblock();
+
+    static native int spliceFMore();
 }
