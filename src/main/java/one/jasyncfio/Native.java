@@ -85,6 +85,10 @@ class Native {
 
     public static native void closeRing(int ringFd, long sqRingPtr, int sqRingSize, long cqRingPtr, int cqRingSize);
 
+    public static native long probeBufferSize();
+
+    public static native long probeOpSize();
+
     /**
      * took from netty io uring project
      */
@@ -144,12 +148,14 @@ class Native {
     public static final byte IORING_OP_SEND = UringConstants.ioRingOpSend();
     public static final byte IORING_OP_RECV = UringConstants.ioRingOpRecv();
     public static final byte IORING_OP_SHUTDOWN = UringConstants.ioRingOpShutdown();
+    public static final byte IORING_OP_SEND_ZC = UringConstants.ioRingOpSendZc();
     public static final byte IORING_OP_SPLICE = UringConstants.ioRingOpSplice();
 
     public static final int IORING_REGISTER_BUFFERS = UringConstants.ioRingRegisterBuffers();
     public static final int IORING_UNREGISTER_BUFFERS = UringConstants.ioRingUnregisterBuffers();
     public static final int IORING_REGISTER_FILES = UringConstants.ioRingRegisterFiles();
     public static final int IORING_UNREGISTER_FILES = UringConstants.ioRingUnregisterFiles();
+    public static final int IORING_REGISTER_PROBE = UringConstants.ioRingRegisterProbe();
     public static final int IORING_ENTER_GETEVENTS = UringConstants.ioRingEnterGetEvents();
     public static final int IORING_ENTER_SQ_WAKEUP = UringConstants.ioRingEnterSqWakeup();
     public static final int IORING_SQ_NEED_WAKEUP = UringConstants.ioRingSqNeedWakeup();

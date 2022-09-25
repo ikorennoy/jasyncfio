@@ -81,6 +81,9 @@ static jbyte get_ioring_op_shutdown(void) {
 static jbyte get_ioring_op_splice(void) {
     return IORING_OP_SPLICE;
 }
+static jbyte get_ioring_op_send_zc(void) {
+    return IORING_OP_SEND_ZC;
+}
 
 static jint get_ioring_enter_getevents(void) {
     return IORING_ENTER_GETEVENTS;
@@ -127,6 +130,9 @@ static jint get_ioring_register_files(void) {
 static jint get_ioring_unregister_files(void) {
     return IORING_UNREGISTER_FILES;
 }
+static jint get_ioring_register_probe(void) {
+    return IORING_REGISTER_PROBE;
+}
 
 
 
@@ -168,10 +174,12 @@ static JNINativeMethod method_table[] = {
     {"ioRingOpRecv", "()B", (void *) get_ioring_op_recv},
     {"ioRingOpSplice", "()B", (void *) get_ioring_op_splice},
     {"ioRingOpShutdown", "()B", (void *) get_ioring_op_shutdown},
+    {"ioRingOpSendZc", "()B", (void *) get_ioring_op_send_zc},
     {"ioRingRegisterBuffers", "()I", (void *) get_ioring_register_buffers},
     {"ioRingUnregisterBuffers", "()I", (void *) get_ioring_unregister_buffers},
     {"ioRingRegisterFiles", "()I", (void *) get_ioring_register_files},
     {"ioRingUnregisterFiles", "()I", (void *) get_ioring_unregister_files},
+    {"ioRingRegisterProbe", "()I", (void *) get_ioring_register_probe},
 };
 
 jint jni_io_uring_constants_on_load(JNIEnv *env) {

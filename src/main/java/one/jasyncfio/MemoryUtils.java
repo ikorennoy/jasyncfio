@@ -91,6 +91,10 @@ class MemoryUtils {
         return unsafe.getInt(address);
     }
 
+    public static byte getByte(long address) {
+        return unsafe.getByte(address);
+    }
+
     public static short getShort(long address) {
         return unsafe.getShort(address);
     }
