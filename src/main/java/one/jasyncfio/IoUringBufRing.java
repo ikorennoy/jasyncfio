@@ -102,7 +102,12 @@ public class IoUringBufRing {
 
     void recycleBuffer(int id) {
         addBuffer(id);
+        buffers[id].clear();
         IoUringBufRingStruct.publishTail(bufRingBaseAddress, (short) 1);
+    }
+
+    ByteBuffer getBuffer(int id) {
+        return buffers[id];
     }
 
 

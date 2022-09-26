@@ -3,7 +3,6 @@ package one.jasyncfio;
 import one.jasyncfio.collections.IntObjectMap;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 
 abstract class Ring {
     final Uring ring;
@@ -35,10 +34,13 @@ abstract class Ring {
         Command<?> command = commands.remove((int) data);
         if (command != null) {
             if (isIoringCqeFBufferSet(flags)) {
-                System.out.println("true");
-                System.out.println("bufId: " + (flags >> 16));
-                bufRing.recycleBuffer(flags >> 16);
-
+                // todo send it to callback
+//                System.out.println("bufId: " + (flags >> 16));
+//                ByteBuffer buffer = bufRing.getBuffer(flags >> 16);
+//                buffer.position(res);
+//                buffer.flip();
+//                System.out.println(StandardCharsets.UTF_8.decode(buffer));
+//                bufRing.recycleBuffer(flags >> 16);
             }
             if (res >= 0) {
                 command.complete(res);
