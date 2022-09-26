@@ -7,6 +7,7 @@ import java.nio.ByteBuffer;
 //  struct tests
 //  pool BufRingResult
 //  generify ResultProvider
+//  check if feature supported
 public class IoUringBufRing {
 
     private static class IoUringBufReg {
