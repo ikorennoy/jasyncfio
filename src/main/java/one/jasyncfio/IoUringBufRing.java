@@ -1,9 +1,12 @@
 package one.jasyncfio;
 
 import java.nio.ByteBuffer;
-import java.util.HashMap;
-import java.util.Map;
 
+// todo optimized io_uring_buf_ring_cq_advance
+//  abstract file proper api
+//  struct tests
+//  pool BufRingResult
+//  generify ResultProvider
 public class IoUringBufRing {
 
     private static class IoUringBufReg {
