@@ -85,6 +85,11 @@ class UringConstants {
     static native int ioRingUnregisterFiles();
 
     static native int ioRingRegisterProbe();
+    public static native int ioRingRegisterPbufRing();
 
     static native byte ioRingOpSplice();
+
+    static native int iosqeBufferSelect();
+
+    static native int ioRingCqeFBuffer();
 }

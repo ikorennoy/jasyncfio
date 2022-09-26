@@ -89,6 +89,10 @@ class Native {
 
     public static native long probeOpSize();
 
+    public static native long ioUringBufSize();
+
+    public static native long ioUringBufRegSize();
+
     /**
      * took from netty io uring project
      */
@@ -155,6 +159,7 @@ class Native {
     public static final int IORING_UNREGISTER_BUFFERS = UringConstants.ioRingUnregisterBuffers();
     public static final int IORING_REGISTER_FILES = UringConstants.ioRingRegisterFiles();
     public static final int IORING_UNREGISTER_FILES = UringConstants.ioRingUnregisterFiles();
+    public static final int IORING_REGISTER_PBUF_RING = UringConstants.ioRingRegisterPbufRing();
     public static final int IORING_REGISTER_PROBE = UringConstants.ioRingRegisterProbe();
     public static final int IORING_ENTER_GETEVENTS = UringConstants.ioRingEnterGetEvents();
     public static final int IORING_ENTER_SQ_WAKEUP = UringConstants.ioRingEnterSqWakeup();
@@ -167,6 +172,9 @@ class Native {
     public static final int IORING_SETUP_CQ_SIZE = UringConstants.ioRingSetupCqSize();
     public static final int IORING_SETUP_CLAMP = UringConstants.ioRingSetupClamp();
     public static final int IORING_SETUP_ATTACH_WQ = UringConstants.ioRingSetupAttachWq();
+    public static final int IOSQE_BUFFER_SELECT = UringConstants.iosqeBufferSelect();
+
+    public static final int IORING_CQE_F_BUFFER = UringConstants.ioRingCqeFBuffer();
 
     public static final int O_RDONLY = FileIoConstants.oRdOnly();
     public static final int O_WRONLY = FileIoConstants.oWrOnly();

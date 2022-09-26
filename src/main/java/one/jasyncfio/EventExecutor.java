@@ -1,6 +1,6 @@
 package one.jasyncfio;
 
-abstract class EventExecutor implements AutoCloseable {
+public abstract class EventExecutor implements AutoCloseable {
 
     abstract <T> T executeCommand(Command<T> command);
 
@@ -14,6 +14,12 @@ abstract class EventExecutor implements AutoCloseable {
 
     abstract int sleepableRingFd();
 
+    public abstract void recycleBufRingResult(BufRingResult x);
+
+    int bufRingId() {
+        return 0;
+    }
+
     public static class Builder {
         private int entries = 4096;
         private boolean ioRingSetupSqPoll = false;
@@ -25,6 +31,10 @@ abstract class EventExecutor implements AutoCloseable {
         private boolean ioRingSetupClamp = false;
         private boolean ioRingSetupAttachWq = false;
         private int attachWqRingFd = 0;
+
+        private boolean withBufRing = false;
+        private int bufRingSize = 0;
+        private int bufRingBufSize = 0;
 
         private Builder() {
         }
@@ -104,16 +114,32 @@ abstract class EventExecutor implements AutoCloseable {
             return this;
         }
 
+        /**
+         * Setup buf ring feature
+         *
+         * @param bufRingSize    number of buffers in the ring, must be power of 2
+         * @param bufRingBufSize buffer size
+         */
+        public Builder withBufRing(int bufRingSize, int bufRingBufSize) {
+            this.withBufRing = true;
+            this.bufRingSize = bufRingSize;
+            this.bufRingBufSize = bufRingBufSize;
+            return this;
+        }
+
 
         public EventExecutor build() {
             if (entries > 4096 || !isPowerOfTwo(entries)) {
                 throw new IllegalArgumentException("entries must be power of 2 and less than 4096");
             }
             if (ioRingSetupCqSize && cqSize < entries) {
-                throw new IllegalStateException("cqSize must be greater than entries");
+                throw new IllegalArgumentException("cqSize must be greater than entries");
             }
             if (ioRingSetupSqAff && !ioRingSetupSqPoll) {
                 throw new IllegalArgumentException("IORING_SETUP_SQ_AFF is only meaningful when IORING_SETUP_SQPOLL is specified");
+            }
+            if (withBufRing && (bufRingBufSize <= 0 || bufRingSize <= 0 || !isPowerOfTwo(bufRingSize))) {
+                throw new IllegalArgumentException("bufRingBufSize and bufRingSize must be positive and bufRingSize must be power of 2");
             }
             EventExecutor pollEventExecutor = new EventExecutorImpl(entries,
                     ioRingSetupSqPoll,
@@ -124,13 +150,17 @@ abstract class EventExecutor implements AutoCloseable {
                     cqSize,
                     ioRingSetupClamp,
                     ioRingSetupAttachWq,
-                    attachWqRingFd
+                    attachWqRingFd,
+                    withBufRing,
+                    bufRingSize,
+                    bufRingBufSize
             );
             pollEventExecutor.start();
             return pollEventExecutor;
         }
 
     }
+
     public static EventExecutor initDefault() {
         return new Builder().build();
     }

@@ -3,9 +3,9 @@ package one.jasyncfio;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class IoUringProbeUtilsTest {
+public class IoUringProbeTest {
     private final EventExecutor eventExecutor = EventExecutor.initDefault();
-    private final IoUringProbeUtils uringProbeUtils = new IoUringProbeUtils(eventExecutor.sleepableRingFd());
+    private final IoUringProbe uringProbeUtils = new IoUringProbe(eventExecutor.sleepableRingFd());
 
 
     @Test

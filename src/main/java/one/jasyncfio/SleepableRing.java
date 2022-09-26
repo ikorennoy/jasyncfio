@@ -13,12 +13,15 @@ class SleepableRing extends Ring {
                   int sqThreadCpu,
                   int cqSize,
                   int attachWqRingFd,
+                  boolean withBufRing,
+                  int bufRingBufSize,
+                  int numOfBuffers,
                   int eventFd,
                   long eventFdBuffer,
                   EventExecutor executor,
                   IntObjectMap<Command<?>> commands
     ) {
-        super(entries, flags, sqThreadIdle, sqThreadCpu, cqSize, attachWqRingFd, commands);
+        super(entries, flags, sqThreadIdle, sqThreadCpu, cqSize, attachWqRingFd, withBufRing, bufRingBufSize, numOfBuffers, commands);
         this.eventFd = eventFd;
         this.eventFdBuffer = eventFdBuffer;
         this.executor = executor;

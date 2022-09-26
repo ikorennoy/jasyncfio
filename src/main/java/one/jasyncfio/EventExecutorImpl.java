@@ -21,6 +21,11 @@ class EventExecutorImpl extends EventExecutor {
         }
 
         @Override
+        public void onSuccess(Object object) {
+
+        }
+
+        @Override
         public void onError(Throwable ex) {
 
         }
@@ -62,7 +67,11 @@ class EventExecutorImpl extends EventExecutor {
                       int cqSize,
                       boolean ioRingSetupClamp,
                       boolean ioRingSetupAttachWq,
-                      int attachWqRingFd) {
+                      int attachWqRingFd,
+                      boolean withBufRing,
+                      int numOfBuffers,
+                      int bufRingBufSize
+    ) {
         this.commands = new IntObjectHashMap<>(entries);
 
         int flags = 0;
@@ -82,8 +91,10 @@ class EventExecutorImpl extends EventExecutor {
             flags |= Native.IORING_SETUP_ATTACH_WQ;
         }
 
-        sleepableRing = new SleepableRing(entries, flags, sqThreadIdle, sqThreadCpu, cqSize, attachWqRingFd, eventFd, eventFdBuffer, this, commands);
-        pollRing = new PollRing(entries, flags | Native.IORING_SETUP_IOPOLL, sqThreadIdle, sqThreadCpu, cqSize, attachWqRingFd, commands);
+
+        sleepableRing = new SleepableRing(entries, flags, sqThreadIdle, sqThreadCpu, cqSize, attachWqRingFd, withBufRing, bufRingBufSize, numOfBuffers, eventFd, eventFdBuffer, this, commands);
+        pollRing = new PollRing(entries, flags | Native.IORING_SETUP_IOPOLL, sqThreadIdle, sqThreadCpu, cqSize, attachWqRingFd, withBufRing, bufRingBufSize, numOfBuffers, commands);
+
         this.t = new Thread(this::run, "EventExecutor");
     }
 
@@ -281,5 +292,9 @@ class EventExecutorImpl extends EventExecutor {
 
     int sleepableRingFd() {
         return sleepableRing.ring.getRingFd();
+    }
+
+    public void recycleBufRingResult(BufRingResult bufRingRes) {
+        bufRingRes.getOwnerRing().recycleBuffer(bufRingRes.getBufferId());
     }
 }

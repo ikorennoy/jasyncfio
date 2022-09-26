@@ -36,7 +36,7 @@ public class BufferedFile extends AbstractFile {
                 patAddress,
                 mode,
                 executor,
-                AsyncResultProvider.newInstance()
+                IntegerAsyncResultProvider.newInstance()
         )).thenApply((res) -> new BufferedFile(path, patAddress, res, PollableStatus.NON_POLLABLE, executor));
     }
 }

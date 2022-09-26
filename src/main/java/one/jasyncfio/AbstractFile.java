@@ -55,7 +55,7 @@ abstract class AbstractFile {
                         iovecArray.getIovecArrayAddress(),
                         length,
                         executor,
-                        AsyncResultProvider.newInstance()
+                        IntegerAsyncResultProvider.newInstance()
                 )).whenComplete((bytesRead, ex) -> {
             if (bytesRead != null) {
                 iovecArray.updatePositions(bytesRead);
@@ -113,7 +113,7 @@ abstract class AbstractFile {
                         iovecArray.getIovecArrayAddress(),
                         length,
                         executor,
-                        AsyncResultProvider.newInstance()
+                        IntegerAsyncResultProvider.newInstance()
                 )).whenComplete((res, ex) -> {
             if (res != null) {
                 iovecArray.updatePositions(res);
@@ -133,7 +133,7 @@ abstract class AbstractFile {
                         pathAddress,
                         statxBuf,
                         executor,
-                        AsyncResultProvider.newInstance()
+                        IntegerAsyncResultProvider.newInstance()
                 )).thenApply((res) -> {
             long size = StatxUtils.getSize(statxBuf);
             MemoryUtils.freeMemory(statxBuf);
@@ -150,7 +150,7 @@ abstract class AbstractFile {
                 Command.dataSync(
                         fd,
                         executor,
-                        AsyncResultProvider.newInstance()
+                        IntegerAsyncResultProvider.newInstance()
                 )
         );
     }
@@ -225,7 +225,7 @@ abstract class AbstractFile {
                         MemoryUtils.getDirectBufferAddress(buffer) + bufPosition,
                         pollableStatus,
                         executor,
-                        AsyncResultProvider.newInstance()
+                        IntegerAsyncResultProvider.newInstance()
                 )).whenComplete((res, ex) -> {
             if (res != null && res > 0) {
                 buffer.position(bufPosition + res);
@@ -256,7 +256,7 @@ abstract class AbstractFile {
                         MemoryUtils.getDirectBufferAddress(buffer) + bufPos,
                         pollableStatus,
                         executor,
-                        AsyncResultProvider.newInstance()
+                        IntegerAsyncResultProvider.newInstance()
                 )
         ).whenComplete((written, ex) -> {
             if (written != null && written > 0) {
@@ -326,7 +326,7 @@ abstract class AbstractFile {
                         0,
                         offset,
                         executor,
-                        AsyncResultProvider.newInstance()
+                        IntegerAsyncResultProvider.newInstance()
                 )
         );
     }
@@ -343,7 +343,20 @@ abstract class AbstractFile {
                         pathAddress,
                         0,
                         executor,
-                        AsyncResultProvider.newInstance()
+                        IntegerAsyncResultProvider.newInstance()
+                )
+        );
+    }
+
+    public CompletableFuture<BufRingResult> readBufRing() {
+        return executor.executeCommand(
+                Command.readBufRing(
+                        fd,
+                        -1,
+                        1024,
+                        PollableStatus.NON_POLLABLE,
+                        executor,
+                        ByteBufferAsyncResultProvider.newInstance()
                 )
         );
     }
@@ -357,7 +370,7 @@ abstract class AbstractFile {
                 Command.close(
                         fd,
                         executor,
-                        AsyncResultProvider.newInstance()
+                        IntegerAsyncResultProvider.newInstance()
                 )
         );
     }

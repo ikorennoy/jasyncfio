@@ -99,6 +99,14 @@ class MemoryUtils {
         return unsafe.getShort(address);
     }
 
+    public static void putShort(long address, short value) {
+        unsafe.putShort(address, value);
+    }
+
+    public static void putShortVolatile(long address, short value) {
+        unsafe.putShortVolatile(null, address, value);
+    }
+
     public static long getDirectBufferAddress(Buffer buffer) {
         if (!buffer.isDirect()) {
             throw new IllegalArgumentException("buffer is not direct");
