@@ -21,6 +21,11 @@ class EventExecutorImpl extends EventExecutor {
         }
 
         @Override
+        public void onSuccess(Object object) {
+
+        }
+
+        @Override
         public void onError(Throwable ex) {
 
         }
@@ -88,7 +93,7 @@ class EventExecutorImpl extends EventExecutor {
 
 
         sleepableRing = new SleepableRing(entries, flags, sqThreadIdle, sqThreadCpu, cqSize, attachWqRingFd, withBufRing, bufRingBufSize, numOfBuffers, eventFd, eventFdBuffer, this, commands);
-        pollRing = new PollRing(entries, flags | Native.IORING_SETUP_IOPOLL, sqThreadIdle, sqThreadCpu, cqSize, attachWqRingFd, commands);
+        pollRing = new PollRing(entries, flags | Native.IORING_SETUP_IOPOLL, sqThreadIdle, sqThreadCpu, cqSize, attachWqRingFd, withBufRing, bufRingBufSize, numOfBuffers, commands);
 
         this.t = new Thread(this::run, "EventExecutor");
     }
@@ -287,5 +292,9 @@ class EventExecutorImpl extends EventExecutor {
 
     int sleepableRingFd() {
         return sleepableRing.ring.getRingFd();
+    }
+
+    public void recycleBufRingResult(BufRingResult bufRingRes) {
+        bufRingRes.getOwnerRing().recycleBuffer(bufRingRes.getBufferId());
     }
 }

@@ -27,10 +27,10 @@ class IntegerAsyncResultProvider implements ResultProvider<CompletableFuture<Int
 
     static IntegerAsyncResultProvider newInstance() {
         Poolable<IntegerAsyncResultProvider> handle = pool.borrowObject();
-        IntegerAsyncResultProvider fileCommandResultCallback = handle.getObject();
-        fileCommandResultCallback.handle = handle;
-        fileCommandResultCallback.res = new CompletableFuture<>();
-        return fileCommandResultCallback;
+        IntegerAsyncResultProvider inst = handle.getObject();
+        inst.handle = handle;
+        inst.res = new CompletableFuture<>();
+        return inst;
     }
 
     @Override
@@ -41,6 +41,9 @@ class IntegerAsyncResultProvider implements ResultProvider<CompletableFuture<Int
             release();
         }
     }
+
+    @Override
+    public void onSuccess(Object object) {}
 
     @Override
     public void onError(Throwable ex) {

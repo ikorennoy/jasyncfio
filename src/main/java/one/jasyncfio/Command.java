@@ -90,6 +90,14 @@ class Command<T> implements Runnable {
         executor.ringFromCommand(this).addOperation(this, opId);
     }
 
+    void complete(Object obj) {
+        try {
+            resultProvider.onSuccess(obj);
+        } finally {
+            release();
+        }
+    }
+
     void complete(int result) {
         try {
             resultProvider.onSuccess(result);

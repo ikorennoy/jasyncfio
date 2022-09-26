@@ -3,6 +3,7 @@ package one.jasyncfio;
 import one.jasyncfio.collections.IntObjectMap;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 abstract class Ring {
     final Uring ring;
@@ -34,18 +35,16 @@ abstract class Ring {
         Command<?> command = commands.remove((int) data);
         if (command != null) {
             if (isIoringCqeFBufferSet(flags)) {
-                // todo send it to callback
-//                System.out.println("bufId: " + (flags >> 16));
-//                ByteBuffer buffer = bufRing.getBuffer(flags >> 16);
-//                buffer.position(res);
-//                buffer.flip();
-//                System.out.println(StandardCharsets.UTF_8.decode(buffer));
-//                bufRing.recycleBuffer(flags >> 16);
-            }
-            if (res >= 0) {
-                command.complete(res);
+                int bufferId = flags >> 16;
+                ByteBuffer buffer = bufRing.getBuffer(bufferId);
+                buffer.position(res);
+                command.complete(new BufRingResult(buffer, res,  bufferId, this));
             } else {
-                command.error(new IOException(String.format("Error code: %d; message: %s", -res, Native.decodeErrno(res))));
+                if (res >= 0) {
+                    command.complete(res);
+                } else {
+                    command.error(new IOException(String.format("Error code: %d; message: %s", -res, Native.decodeErrno(res))));
+                }
             }
         }
     }
@@ -64,6 +63,10 @@ abstract class Ring {
 
     int processCompletedTasks() {
         return completionQueue.processEvents(callback);
+    }
+
+    void recycleBuffer(int bufferId) {
+        bufRing.recycleBuffer(bufferId);
     }
 
     <T> void addOperation(Command<T> op, long opId) {

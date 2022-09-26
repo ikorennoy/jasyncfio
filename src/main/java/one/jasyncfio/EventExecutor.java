@@ -1,6 +1,6 @@
 package one.jasyncfio;
 
-abstract class EventExecutor implements AutoCloseable {
+public abstract class EventExecutor implements AutoCloseable {
 
     abstract <T> T executeCommand(Command<T> command);
 
@@ -13,6 +13,8 @@ abstract class EventExecutor implements AutoCloseable {
     abstract void start();
 
     abstract int sleepableRingFd();
+
+    public abstract void recycleBufRingResult(BufRingResult x);
 
     int bufRingId() {
         return 0;

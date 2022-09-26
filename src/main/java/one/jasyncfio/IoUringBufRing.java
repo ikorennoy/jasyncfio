@@ -1,6 +1,8 @@
 package one.jasyncfio;
 
 import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.Map;
 
 public class IoUringBufRing {
 
@@ -110,9 +112,9 @@ public class IoUringBufRing {
         return buffers[id];
     }
 
-
     private void initBbArrayElement(int id) {
-        buffers[id] = ((ByteBuffer) bufferBaseBb.position(id * bufferSize)).slice();
+        ByteBuffer slice = ((ByteBuffer) bufferBaseBb.position(id * bufferSize)).slice();
+        buffers[id] = slice;
     }
 
     private void addBuffer(int id) {
