@@ -32,11 +32,11 @@ public class IoUringBufRing {
         }
 
         static void publishTail(long address, short value) {
-            MemoryUtils.putShortVolatile(address, value);
+            MemoryUtils.putShortVolatile(address + TAIL, (short) (getTail(address) + value));
         }
 
         static short getTail(long address) {
-            return MemoryUtils.getShort(address);
+            return MemoryUtils.getShort(address + TAIL);
         }
 
         static long getIoUringBuf(long address, int tail, int offset, int mask) {
@@ -70,6 +70,7 @@ public class IoUringBufRing {
     private final ByteBuffer bufRingBuffer;
     private final long bufRingBaseAddress;
     private final long bufferBaseAddress;
+    private final ByteBuffer bufferBaseBb;
 
 
     public IoUringBufRing(EventExecutor executor, int bufSize, int numOfBuffers) {
@@ -78,13 +79,18 @@ public class IoUringBufRing {
         this.bufRingSize = (int) ((Native.ioUringBufSize() + bufSize) * numOfBuffers);
         this.bufRingBuffer = MemoryUtils.allocateAlignedByteBuffer(bufRingSize, Native.getPageSize());
         this.bufRingBaseAddress = MemoryUtils.getDirectBufferAddress(bufRingBuffer);
+
+        // init buf ring struct
         IoUringBufRingStruct.putTail(bufRingBaseAddress, (short) 0);
         ByteBuffer registerBufRingBuffer = ByteBuffer.allocateDirect((int) IoUringBufReg.SIZE);
         long registerBufRingBufferAddress = MemoryUtils.getDirectBufferAddress(registerBufRingBuffer);
+
         IoUringBufReg.putRingAddr(registerBufRingBufferAddress, bufRingBaseAddress);
         IoUringBufReg.putRingEntries(registerBufRingBufferAddress, numOfBuffers);
         IoUringBufReg.putBgId(registerBufRingBufferAddress, (short) 0);
+
         this.bufferBaseAddress = bufRingBaseAddress + Native.ioUringBufSize() * numOfBuffers;
+        this.bufferBaseBb = ((ByteBuffer) bufRingBuffer.position((int) (Native.ioUringBufSize() * numOfBuffers))).slice();
         Native.ioUringRegister(executor.sleepableRingFd(), Native.IORING_REGISTER_PBUF_RING, registerBufRingBufferAddress, 1);
         for (int i = 0; i < numOfBuffers; i++) {
             addBuffer(i);
@@ -92,19 +98,25 @@ public class IoUringBufRing {
         IoUringBufRingStruct.publishTail(bufferBaseAddress, (short) numOfBuffers);
     }
 
+    public ByteBuffer getNextBuffer() {
+        return ((ByteBuffer) bufferBaseBb.position(1 * 1024)).slice();
+    }
+
+
     private void addBuffer(int offset) {
         long ioUringBuf = IoUringBufRingStruct.getIoUringBuf(
                 bufRingBaseAddress,
                 IoUringBufRingStruct.getTail(bufferBaseAddress),
-                offset, getBufRingMask());
+                offset,
+                getBufRingMask());
 
-        IoUringBuf.setAddr(ioUringBuf, getBufferAddress(offset));
+        IoUringBuf.setAddr(ioUringBuf, getRingBufferAddress(offset));
         IoUringBuf.setLen(ioUringBuf, bufSize);
         IoUringBuf.setBid(ioUringBuf, (short) offset);
 
     }
 
-    private long getBufferAddress(int bufferId) {
+    private long getRingBufferAddress(int bufferId) {
         return bufferBaseAddress + (long) bufferId * bufSize;
     }
 

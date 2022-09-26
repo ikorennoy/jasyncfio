@@ -88,4 +88,6 @@ class UringConstants {
     public static native int ioRingRegisterPbufRing();
 
     static native byte ioRingOpSplice();
+
+    static native int iosqeBufferSelect();
 }

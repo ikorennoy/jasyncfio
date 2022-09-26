@@ -204,6 +204,30 @@ class Command<T> implements Runnable {
         );
     }
 
+    static <T> Command<T> readBufRing(
+            int fd,
+            int offset,
+            int length,
+            PollableStatus pollableStatus,
+            EventExecutor executor,
+            ResultProvider<T> resultProvider
+    ) {
+        return init(
+                Native.IORING_OP_READ,
+                Native.IOSQE_BUFFER_SELECT,
+                0,
+                fd,
+                0,
+                length,
+                offset,
+                0,
+                0,
+                pollableStatus,
+                executor,
+                resultProvider
+        );
+    }
+
     static <T> Command<T> size(
             long pathAddress,
             long statxBuffer,

@@ -222,7 +222,7 @@ static void java_io_uring_register(JNIEnv *env, jclass clazz, jint fd, jint opco
 
     result = sys_io_uring_register(fd, opcode, (void *) arg, nr_args);
     if (result < 0) {
-        throwRuntimeExceptionErrorNo(env, "failed to call sys_io_uring_register", errno);
+        throwRuntimeExceptionErrorNo(env, "failed to call sys_io_uring_register: ", errno);
     }
 }
 
