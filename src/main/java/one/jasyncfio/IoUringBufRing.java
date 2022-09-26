@@ -66,6 +66,9 @@ public class IoUringBufRing {
 
     private final ByteBuffer bufRingBuffer;
     private final long bufRingBaseAddress;
+
+    private final ByteBuffer bufferBaseBb;
+    private final ByteBuffer[] buffers;
     private final long bufferBaseAddress;
 
 
@@ -75,7 +78,7 @@ public class IoUringBufRing {
         int bufRingSize = (int) ((Native.ioUringBufSize() + bufferSize) * numOfBuffers);
         this.bufRingBuffer = MemoryUtils.allocateAlignedByteBuffer(bufRingSize, Native.getPageSize());
         this.bufRingBaseAddress = MemoryUtils.getDirectBufferAddress(bufRingBuffer);
-
+        this.buffers = new ByteBuffer[numOfBuffers];
         // init buf ring struct
         IoUringBufRingStruct.putTail(bufRingBaseAddress, (short) 0);
 
@@ -87,10 +90,12 @@ public class IoUringBufRing {
         IoUringBufReg.putBgId(registerBufRingBufferAddress, (short) 0);
 
         this.bufferBaseAddress = bufRingBaseAddress + Native.ioUringBufSize() * numOfBuffers;
+        this.bufferBaseBb = ((ByteBuffer) bufRingBuffer.position((int) (Native.ioUringBufSize() * numOfBuffers))).slice();
 
         Native.ioUringRegister(ringFd, Native.IORING_REGISTER_PBUF_RING, registerBufRingBufferAddress, 1);
         for (int i = 0; i < numOfBuffers; i++) {
             addBuffer(i);
+            initBbArrayElement(i);
         }
         IoUringBufRingStruct.publishTail(bufRingBaseAddress, (short) numOfBuffers);
     }
@@ -100,6 +105,10 @@ public class IoUringBufRing {
         IoUringBufRingStruct.publishTail(bufRingBaseAddress, (short) 1);
     }
 
+
+    private void initBbArrayElement(int id) {
+        buffers[id] = ((ByteBuffer) bufferBaseBb.position(id * bufferSize)).slice();
+    }
 
     private void addBuffer(int id) {
         long ioUringBuf = IoUringBufRingStruct.getIoUringBuf(

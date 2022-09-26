@@ -7,8 +7,8 @@ import cn.danielw.fop.Poolable;
 
 import java.util.concurrent.CompletableFuture;
 
-class AsyncResultProvider implements ResultProvider<CompletableFuture<Integer>> {
-    private static final AsyncResultProviderAllocator allocator = new AsyncResultProviderAllocator();
+class IntegerAsyncResultProvider implements ResultProvider<CompletableFuture<Integer>> {
+    private static final IntegerAsyncResultProviderAllocator allocator = new IntegerAsyncResultProviderAllocator();
 
     private static final PoolConfig poolConfig = new PoolConfig() {
         {
@@ -16,18 +16,18 @@ class AsyncResultProvider implements ResultProvider<CompletableFuture<Integer>> 
             setMaxSize(50);
         }
     };
-    private static final ObjectPool<AsyncResultProvider> pool = new DisruptorObjectPool<>(poolConfig, allocator);
-    private Poolable<AsyncResultProvider> handle;
+    private static final ObjectPool<IntegerAsyncResultProvider> pool = new DisruptorObjectPool<>(poolConfig, allocator);
+    private Poolable<IntegerAsyncResultProvider> handle;
 
     private CompletableFuture<Integer> res;
 
-    AsyncResultProvider() {
+    IntegerAsyncResultProvider() {
     }
 
 
-    static AsyncResultProvider newInstance() {
-        Poolable<AsyncResultProvider> handle = pool.borrowObject();
-        AsyncResultProvider fileCommandResultCallback = handle.getObject();
+    static IntegerAsyncResultProvider newInstance() {
+        Poolable<IntegerAsyncResultProvider> handle = pool.borrowObject();
+        IntegerAsyncResultProvider fileCommandResultCallback = handle.getObject();
         fileCommandResultCallback.handle = handle;
         fileCommandResultCallback.res = new CompletableFuture<>();
         return fileCommandResultCallback;
