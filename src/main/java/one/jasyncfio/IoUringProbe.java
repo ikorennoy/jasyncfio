@@ -2,7 +2,7 @@ package one.jasyncfio;
 
 import java.nio.ByteBuffer;
 
-public class IoUringProbeUtils {
+public class IoUringProbe {
 
     // io_uring_probe
     private static final int LAST_OP = 0; // __u8
@@ -22,7 +22,7 @@ public class IoUringProbeUtils {
     private final long probeOpsArrayAddressBase;
 
 
-    IoUringProbeUtils(int ringFd) {
+    IoUringProbe(int ringFd) {
         long probeBufferAddress = MemoryUtils.getDirectBufferAddress(probeBuffer);
         Native.ioUringRegister(ringFd, Native.IORING_REGISTER_PROBE, probeBufferAddress, 256);
         probeOpsArrayAddressBase = probeBufferAddress + OPS;

@@ -4,8 +4,6 @@ import java.util.Locale;
 
 class Native {
 
-
-
     static {
         try {
             String os = System.getProperty("os.name", "").toLowerCase(Locale.ROOT);
@@ -175,6 +173,8 @@ class Native {
     public static final int IORING_SETUP_CLAMP = UringConstants.ioRingSetupClamp();
     public static final int IORING_SETUP_ATTACH_WQ = UringConstants.ioRingSetupAttachWq();
     public static final int IOSQE_BUFFER_SELECT = UringConstants.iosqeBufferSelect();
+
+    public static final int IORING_CQE_F_BUFFER = UringConstants.ioRingCqeFBuffer();
 
     public static final int O_RDONLY = FileIoConstants.oRdOnly();
     public static final int O_WRONLY = FileIoConstants.oWrOnly();

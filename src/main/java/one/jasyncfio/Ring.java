@@ -3,6 +3,7 @@ package one.jasyncfio;
 import one.jasyncfio.collections.IntObjectMap;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 abstract class Ring {
     final Uring ring;
@@ -11,16 +12,34 @@ abstract class Ring {
     private final IntObjectMap<Command<?>> commands;
     private final CompletionCallback callback = this::handle;
 
-    Ring(int entries, int flags, int sqThreadIdle, int sqThreadCpu, int cqSize, int attachWqRingFd,  IntObjectMap<Command<?>> commands) {
+    private final IoUringBufRing bufRing;
+
+    Ring(int entries, int flags, int sqThreadIdle, int sqThreadCpu, int cqSize, int attachWqRingFd, boolean withBufRing, int bufRingBufSize, int numOfBuffers, IntObjectMap<Command<?>> commands) {
         this.commands = commands;
         ring = Native.setupIoUring(entries, flags, sqThreadIdle, sqThreadCpu, cqSize, attachWqRingFd);
         submissionQueue = ring.getSubmissionQueue();
         completionQueue = ring.getCompletionQueue();
+
+        if (withBufRing) {
+            bufRing = new IoUringBufRing(ring.getRingFd(), bufRingBufSize, numOfBuffers);
+        } else {
+            bufRing = null;
+        }
+    }
+
+    private boolean isIoringCqeFBufferSet(int flags) {
+        return (flags & Native.IORING_CQE_F_BUFFER) == Native.IORING_CQE_F_BUFFER;
     }
 
     private void handle(int res, int flags, long data) {
         Command<?> command = commands.remove((int) data);
         if (command != null) {
+            if (isIoringCqeFBufferSet(flags)) {
+                System.out.println("true");
+                System.out.println("bufId: " + (flags >> 16));
+                bufRing.recycleBuffer(flags >> 16);
+
+            }
             if (res >= 0) {
                 command.complete(res);
             } else {

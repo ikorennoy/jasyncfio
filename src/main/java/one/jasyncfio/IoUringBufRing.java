@@ -25,7 +25,6 @@ public class IoUringBufRing {
 
     private static class IoUringBufRingStruct {
         private static final int TAIL = 14;
-        private static final int IO_URING_BUF = 14;
 
         static void putTail(long address, short value) {
             MemoryUtils.putShort(address + TAIL, value);
@@ -40,8 +39,7 @@ public class IoUringBufRing {
         }
 
         static long getIoUringBuf(long address, int tail, int offset, int mask) {
-            long ioUringBufArrayBase = address + IO_URING_BUF;
-            return ioUringBufArrayBase + ((tail + offset) & mask) * Native.ioUringBufSize();
+            return address + ((tail + offset) & mask) * Native.ioUringBufSize();
         }
     }
 
@@ -63,25 +61,24 @@ public class IoUringBufRing {
         }
     }
 
-    private final int bufSize;
+    private final int bufferSize;
     private final int numOfBuffers;
 
-    private final int bufRingSize;
     private final ByteBuffer bufRingBuffer;
     private final long bufRingBaseAddress;
     private final long bufferBaseAddress;
-    private final ByteBuffer bufferBaseBb;
 
 
-    public IoUringBufRing(EventExecutor executor, int bufSize, int numOfBuffers) {
-        this.bufSize = bufSize;
+    public IoUringBufRing(int ringFd, int bufferSize, int numOfBuffers) {
+        this.bufferSize = bufferSize;
         this.numOfBuffers = numOfBuffers;
-        this.bufRingSize = (int) ((Native.ioUringBufSize() + bufSize) * numOfBuffers);
+        int bufRingSize = (int) ((Native.ioUringBufSize() + bufferSize) * numOfBuffers);
         this.bufRingBuffer = MemoryUtils.allocateAlignedByteBuffer(bufRingSize, Native.getPageSize());
         this.bufRingBaseAddress = MemoryUtils.getDirectBufferAddress(bufRingBuffer);
 
         // init buf ring struct
         IoUringBufRingStruct.putTail(bufRingBaseAddress, (short) 0);
+
         ByteBuffer registerBufRingBuffer = ByteBuffer.allocateDirect((int) IoUringBufReg.SIZE);
         long registerBufRingBufferAddress = MemoryUtils.getDirectBufferAddress(registerBufRingBuffer);
 
@@ -90,34 +87,35 @@ public class IoUringBufRing {
         IoUringBufReg.putBgId(registerBufRingBufferAddress, (short) 0);
 
         this.bufferBaseAddress = bufRingBaseAddress + Native.ioUringBufSize() * numOfBuffers;
-        this.bufferBaseBb = ((ByteBuffer) bufRingBuffer.position((int) (Native.ioUringBufSize() * numOfBuffers))).slice();
-        Native.ioUringRegister(executor.sleepableRingFd(), Native.IORING_REGISTER_PBUF_RING, registerBufRingBufferAddress, 1);
+
+        Native.ioUringRegister(ringFd, Native.IORING_REGISTER_PBUF_RING, registerBufRingBufferAddress, 1);
         for (int i = 0; i < numOfBuffers; i++) {
             addBuffer(i);
         }
-        IoUringBufRingStruct.publishTail(bufferBaseAddress, (short) numOfBuffers);
+        IoUringBufRingStruct.publishTail(bufRingBaseAddress, (short) numOfBuffers);
     }
 
-    public ByteBuffer getNextBuffer() {
-        return ((ByteBuffer) bufferBaseBb.position(1 * 1024)).slice();
+    void recycleBuffer(int id) {
+        addBuffer(id);
+        IoUringBufRingStruct.publishTail(bufRingBaseAddress, (short) 1);
     }
 
 
-    private void addBuffer(int offset) {
+    private void addBuffer(int id) {
         long ioUringBuf = IoUringBufRingStruct.getIoUringBuf(
                 bufRingBaseAddress,
-                IoUringBufRingStruct.getTail(bufferBaseAddress),
-                offset,
+                IoUringBufRingStruct.getTail(bufRingBaseAddress),
+                id,
                 getBufRingMask());
 
-        IoUringBuf.setAddr(ioUringBuf, getRingBufferAddress(offset));
-        IoUringBuf.setLen(ioUringBuf, bufSize);
-        IoUringBuf.setBid(ioUringBuf, (short) offset);
+        IoUringBuf.setAddr(ioUringBuf, getRingBufferAddress(id));
+        IoUringBuf.setLen(ioUringBuf, bufferSize);
+        IoUringBuf.setBid(ioUringBuf, (short) id);
 
     }
 
     private long getRingBufferAddress(int bufferId) {
-        return bufferBaseAddress + (long) bufferId * bufSize;
+        return bufferBaseAddress + (long) bufferId * bufferSize;
     }
 
     private int getBufRingMask() {

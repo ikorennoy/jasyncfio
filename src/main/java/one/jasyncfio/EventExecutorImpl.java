@@ -62,7 +62,11 @@ class EventExecutorImpl extends EventExecutor {
                       int cqSize,
                       boolean ioRingSetupClamp,
                       boolean ioRingSetupAttachWq,
-                      int attachWqRingFd) {
+                      int attachWqRingFd,
+                      boolean withBufRing,
+                      int numOfBuffers,
+                      int bufRingBufSize
+    ) {
         this.commands = new IntObjectHashMap<>(entries);
 
         int flags = 0;
@@ -82,8 +86,10 @@ class EventExecutorImpl extends EventExecutor {
             flags |= Native.IORING_SETUP_ATTACH_WQ;
         }
 
-        sleepableRing = new SleepableRing(entries, flags, sqThreadIdle, sqThreadCpu, cqSize, attachWqRingFd, eventFd, eventFdBuffer, this, commands);
+
+        sleepableRing = new SleepableRing(entries, flags, sqThreadIdle, sqThreadCpu, cqSize, attachWqRingFd, withBufRing, bufRingBufSize, numOfBuffers, eventFd, eventFdBuffer, this, commands);
         pollRing = new PollRing(entries, flags | Native.IORING_SETUP_IOPOLL, sqThreadIdle, sqThreadCpu, cqSize, attachWqRingFd, commands);
+
         this.t = new Thread(this::run, "EventExecutor");
     }
 

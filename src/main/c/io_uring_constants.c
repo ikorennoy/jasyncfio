@@ -139,6 +139,9 @@ static jint get_ioring_register_pbuf_ring(void) {
 static jint get_iosqe_buffer_select(void) {
     return IOSQE_BUFFER_SELECT;
 }
+static jint get_ioring_cqe_f_buffer(void) {
+    return IORING_CQE_F_BUFFER;
+}
 
 
 static JNINativeMethod method_table[] = {
@@ -187,6 +190,7 @@ static JNINativeMethod method_table[] = {
     {"ioRingRegisterProbe", "()I", (void *) get_ioring_register_probe},
     {"ioRingRegisterPbufRing", "()I", (void *) get_ioring_register_pbuf_ring},
     {"iosqeBufferSelect", "()I", (void *) get_iosqe_buffer_select},
+    {"ioRingCqeFBuffer", "()I", (void *) get_ioring_cqe_f_buffer},
 };
 
 jint jni_io_uring_constants_on_load(JNIEnv *env) {
