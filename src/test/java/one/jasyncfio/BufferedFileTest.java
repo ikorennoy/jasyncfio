@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class BufferedFileTest {
-    private final EventExecutor executor = EventExecutor.builder().withBufRing(2, 1024).build();
+    private final EventExecutor executor = EventExecutor.initDefault();
 
     @TempDir
     private Path tmpDir;
