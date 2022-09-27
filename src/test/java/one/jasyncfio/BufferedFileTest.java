@@ -8,10 +8,8 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
@@ -28,7 +26,7 @@ public class BufferedFileTest {
     private Path tmpDir;
 
     @Test
-    public void atomicAppend() throws Exception {
+    void atomicAppend() throws Exception {
         Random random = new Random();
         Path tempFile = Files.createTempFile(tmpDir, "temp-", " file");
         int nThreads = 16;
@@ -63,11 +61,11 @@ public class BufferedFileTest {
     }
 
     @Test
-    public void read() throws Exception {
+    void read() throws Exception {
         StringBuilder builder = new StringBuilder();
         builder.setLength(4);
 
-        CommonFileTests.Pair<Path, BufferedFile> testFile = prepareFile();
+        CommonFileTests.Pair<Path, AbstractFile> testFile = prepareFile();
 
         try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(testFile.e1.toFile()))) {
             for (int i = 0; i < 4000; i++) {
@@ -97,7 +95,7 @@ public class BufferedFileTest {
     }
 
     @Test
-    public void scatteringRead_1() throws Exception {
+    void scatteringRead_1() throws Exception {
         int numBuffers = 3;
         int bufferCap = 3;
 
@@ -105,7 +103,7 @@ public class BufferedFileTest {
         for (int i = 0; i < numBuffers; i++) {
             buffers[i] = ByteBuffer.allocateDirect(bufferCap);
         }
-        CommonFileTests.Pair<Path, BufferedFile> pair = prepareFile();
+        CommonFileTests.Pair<Path, AbstractFile> pair = prepareFile();
         try (FileOutputStream fileOutputStream = new FileOutputStream(pair.e1.toFile())) {
             for (int i = -128; i < 128; i++) {
                 fileOutputStream.write(i);
@@ -128,13 +126,13 @@ public class BufferedFileTest {
     }
 
     @Test
-    public void scatteringRead_2() throws Exception {
+    void scatteringRead_2() throws Exception {
         ByteBuffer[] byteBuffers = Arrays.asList(
                         ByteBuffer.allocateDirect(10),
                         ByteBuffer.allocateDirect(10))
                 .toArray(new ByteBuffer[0]);
 
-        CommonFileTests.Pair<Path, BufferedFile> pathBufferedFilePair = prepareFile();
+        CommonFileTests.Pair<Path, AbstractFile> pathBufferedFilePair = prepareFile();
 
         try (FileOutputStream fileOutputStream = new FileOutputStream(pathBufferedFilePair.e1.toFile())) {
             for (int i = 0; i < 15; i++) {
@@ -147,7 +145,7 @@ public class BufferedFileTest {
     }
 
     @Test
-    public void buffersUpdate() throws Exception {
+    void buffersUpdate() throws Exception {
         int bufsNum = 4;
         ByteBuffer[] buffers = new ByteBuffer[bufsNum];
         for (int i = 0; i < bufsNum; i++) {
@@ -159,7 +157,7 @@ public class BufferedFileTest {
         buffers[2].put((byte)3); buffers[2].flip();
         buffers[3].put((byte)4); buffers[3].flip();
 
-        CommonFileTests.Pair<Path, BufferedFile> pair = prepareFile(OpenOption.READ_WRITE);
+        CommonFileTests.Pair<Path, AbstractFile> pair = prepareFile(OpenOption.READ_WRITE);
 
         pair.e2.write(buffers, 0, 2).get(1000, TimeUnit.MILLISECONDS);
         ByteBuffer bb = ByteBuffer.allocateDirect(10);
@@ -172,52 +170,144 @@ public class BufferedFileTest {
     }
 
     @Test
-    public void preAllocate_notEmptyFile() throws Exception {
-        CommonFileTests.preAllocate_notEmptyFile(executor, BufferedFile.class);
+    void preAllocate_notEmptyFile() throws Exception {
+        CommonFileTests.preAllocate_notEmptyFile(prepareFile(OpenOption.WRITE_ONLY));
     }
 
     @Test
-    public void size_smallFile() throws Exception {
-        CommonFileTests.size_smallFile(executor, BufferedFile.class);
+    void size_smallFile() throws Exception {
+        CommonFileTests.size_smallFile(prepareFile(OpenOption.READ_WRITE));
     }
 
     @Test
-    public void size_largeFile() throws Exception {
-        CommonFileTests.size_largeFile(executor, BufferedFile.class);
+    void size_largeFile() throws Exception {
+        CommonFileTests.size_largeFile(prepareFile(OpenOption.READ_WRITE));
     }
 
     @Test
-    public void close() throws Exception {
-        CommonFileTests.close(executor, BufferedFile.class);
+    void close() throws Exception {
+        CommonFileTests.close(prepareFile(OpenOption.READ_WRITE));
     }
 
     @Test
-    public void size_zero() throws Exception {
-        CommonFileTests.size_zero(executor, BufferedFile.class);
+    void size_zero() throws Exception {
+        CommonFileTests.size_zero(prepareFile());
     }
 
     @Test
-    public void dataSync() throws Exception {
-        CommonFileTests.dataSync(executor, BufferedFile.class);
+    void dataSync() throws Exception {
+        CommonFileTests.dataSync(prepareFile());
     }
 
     @Test
-    public void preAllocate_emptyFile() throws Exception {
-        CommonFileTests.preAllocate_emptyFile(executor, BufferedFile.class);
+    void preAllocate_emptyFile() throws Exception {
+        CommonFileTests.preAllocate_emptyFile(prepareFile(OpenOption.WRITE_ONLY));
     }
 
     @Test
-    public void remove() throws Exception {
-        CommonFileTests.remove(executor, BufferedFile.class);
+    void remove() throws Exception {
+        CommonFileTests.remove(prepareFile());
     }
 
-    private CommonFileTests.Pair<Path, BufferedFile> prepareFile(OpenOption... openOptions) throws Exception {
+    @Test
+    void dataSync_closedFile() throws Exception {
+        CommonFileTests.dataSync_closedFile(prepareFile());
+    }
+
+    @Test
+    void remove_removed() throws Exception {
+        CommonFileTests.remove_removed(prepareFile());
+    }
+
+    @Test
+    void remove_readOnly() throws Exception {
+        CommonFileTests.remove_readOnly(prepareFile());
+    }
+
+    @Test
+    void remove_closed() throws Exception {
+        CommonFileTests.remove_closed(prepareFile());
+    }
+
+    @Test
+    void write() throws Exception {
+        CommonFileTests.write(prepareFile(OpenOption.READ_WRITE));
+    }
+
+    @Test
+    void write_lengthGreaterThanBufferSize() throws Exception {
+        CommonFileTests.write_lengthGreaterThanBufferSize(prepareFile(OpenOption.READ_WRITE));
+    }
+
+    @Test
+    void read_1() throws Exception {
+        CommonFileTests.read_1(prepareFile(OpenOption.READ_WRITE));
+    }
+
+    @Test
+    void read_lengthGreaterThanBufferSize() throws Exception {
+        CommonFileTests.read_lengthGreaterThanBufferSize(prepareFile(OpenOption.READ_WRITE));
+    }
+
+    @Test
+    void read_positionGreaterThanFileSize() throws Exception {
+        CommonFileTests.read_positionGreaterThanFileSize(prepareFile(OpenOption.READ_WRITE));
+    }
+
+    @Test
+    void write_positionGreaterThanFileSize() throws Exception {
+        CommonFileTests.write_positionGreaterThanFileSize(prepareFile(OpenOption.READ_WRITE));
+    }
+
+    @Test
+    void write_lengthLessThenBufferSize() throws Exception {
+        CommonFileTests.write_lengthLessThenBufferSize(prepareFile(OpenOption.READ_WRITE));
+    }
+
+    @Test
+    void write_trackPosition() throws Exception {
+        CommonFileTests.write_trackPosition(prepareFile(OpenOption.READ_WRITE));
+    }
+
+    @Test
+    void write_lengthZero() throws Exception {
+        CommonFileTests.write_lengthZero(prepareFile(OpenOption.READ_WRITE));
+    }
+
+    @Test
+    void writev() throws Exception {
+        CommonFileTests.write_lengthZero(prepareFile(OpenOption.READ_WRITE));
+    }
+
+    @Test
+    void read_lengthLessThenBufferSize() throws Exception {
+        CommonFileTests.read_lengthLessThenBufferSize(prepareFile(OpenOption.READ_WRITE));
+    }
+
+    @Test
+    void read_bufferGreaterThanFile() throws Exception {
+        CommonFileTests.read_bufferGreaterThanFile(prepareFile(OpenOption.READ_WRITE));
+    }
+
+    @Test
+    void read_bufferLessThanFile() throws Exception {
+        CommonFileTests.read_bufferLessThanFile(prepareFile(OpenOption.READ_WRITE));
+    }
+
+    @Test
+    void open_newFile() throws Exception {
+        CommonFileTests.open_newFile(prepareFile());
+    }
+
+
+
+    private CommonFileTests.Pair<Path, AbstractFile> prepareFile(OpenOption... openOptions) throws Exception {
         Path tempFile = Files.createTempFile(tmpDir, "test-", " file");
         BufferedFile file = BufferedFile.open(tempFile, executor, openOptions).get(1000, TimeUnit.MILLISECONDS);
         return new CommonFileTests.Pair<>(tempFile, file);
     }
 
-    private CommonFileTests.Pair<Path, BufferedFile> prepareFile() throws Exception {
+    private CommonFileTests.Pair<Path, AbstractFile> prepareFile() throws Exception {
         return prepareFile(OpenOption.READ_ONLY);
     }
 

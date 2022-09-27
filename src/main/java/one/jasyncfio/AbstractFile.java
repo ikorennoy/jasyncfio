@@ -387,4 +387,8 @@ abstract class AbstractFile {
                 )
         );
     }
+
+    int getRawFd() {
+        return fd;
+    }
 }
