@@ -12,6 +12,7 @@ import java.nio.file.StandardOpenOption;
 import java.sql.Time;
 import java.util.Collections;
 import java.util.Random;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -29,8 +30,7 @@ public class CommonFileTests {
         }
     }
 
-    static <T> void preAllocate_notEmptyFile(EventExecutor executor, Class<T> tClass) throws Exception {
-        Pair<Path, AbstractFile> testFilePair = getTestFile(executor, tClass, OpenOption.WRITE_ONLY);
+    static <T> void preAllocate_notEmptyFile(Pair<Path, AbstractFile> testFilePair) throws Exception {
         Path tempFile = testFilePair.e1;
         AbstractFile abstractFile = testFilePair.e2;
         assertEquals(0, abstractFile.size().get(1000, TimeUnit.MILLISECONDS));
@@ -40,8 +40,7 @@ public class CommonFileTests {
         Files.deleteIfExists(tempFile);
     }
 
-    static <T> void size_smallFile(EventExecutor executor, Class<T> tClass) throws Exception {
-        Pair<Path, AbstractFile> testFilePair = getTestFile(executor, tClass, OpenOption.READ_WRITE);
+    static <T> void size_smallFile(Pair<Path, AbstractFile> testFilePair) throws Exception {
         Path tempFile = testFilePair.e1;
         AbstractFile abstractFile = testFilePair.e2;
         Random random = new Random();
@@ -53,8 +52,7 @@ public class CommonFileTests {
         Files.deleteIfExists(tempFile);
     }
 
-    static <T> void size_largeFile(EventExecutor executor, Class<T> tClass) throws Exception {
-        Pair<Path, AbstractFile> testFilePair = getTestFile(executor, tClass, OpenOption.READ_WRITE);
+    static <T> void size_largeFile(Pair<Path, AbstractFile> testFilePair) throws Exception {
         Path tempFile = testFilePair.e1;
         AbstractFile abstractFile = testFilePair.e2;
         long testSize = Integer.MAX_VALUE * 2L;
@@ -67,36 +65,37 @@ public class CommonFileTests {
         Files.deleteIfExists(tempFile);
     }
 
-    static <T> void close(EventExecutor executor, Class<T> tClass) throws Exception {
-        Pair<Path, AbstractFile> testFilePair = getTestFile(executor, tClass, OpenOption.READ_WRITE);
+    static <T> void close(Pair<Path, AbstractFile> testFilePair) throws Exception {
         AbstractFile abstractFile = testFilePair.e2;
         abstractFile.close().get(1000, TimeUnit.MILLISECONDS);
         assertThrows(ExecutionException.class,
                 () -> abstractFile.read(ByteBuffer.allocateDirect(10)).get(1000, TimeUnit.MILLISECONDS));
     }
 
-    static <T> void size_zero(EventExecutor executor, Class<T> tClass) throws Exception {
-        Pair<Path, AbstractFile> testFile = getTestFile(executor, tClass);
+    static <T> void size_zero(Pair<Path, AbstractFile> testFile) throws Exception {
         assertEquals(0, testFile.e2.size().get(1000, TimeUnit.MILLISECONDS));
     }
 
-    static <T> void dataSync(EventExecutor executor, Class<T> tClass) throws Exception {
-        Pair<Path, AbstractFile> testFile = getTestFile(executor, tClass);
+    static <T> void dataSync(Pair<Path, AbstractFile> testFile) throws Exception {
         assertEquals(0, testFile.e2.dataSync().get(1000, TimeUnit.MILLISECONDS));
     }
 
-    static <T> void preAllocate_emptyFile(EventExecutor executor, Class<T> tClass) throws Exception {
-        Pair<Path, AbstractFile> testFile = getTestFile(executor, tClass, OpenOption.WRITE_ONLY);
+    static <T> void preAllocate_emptyFile(Pair<Path, AbstractFile> testFile) throws Exception {
         assertEquals(0, testFile.e2.size().get(1000, TimeUnit.MILLISECONDS));
         assertEquals(0, testFile.e2.preAllocate(1024, 0).get(1000, TimeUnit.MILLISECONDS));
         assertEquals(1024, testFile.e2.size().get(1000, TimeUnit.MILLISECONDS));
     }
 
-    static <T> void remove(EventExecutor executor, Class<T> tClass) throws Exception {
-        Pair<Path, AbstractFile> testFile = getTestFile(executor, tClass);
+    static void remove(Pair<Path, AbstractFile> testFile) throws Exception {
         assertTrue(Files.exists(testFile.e1));
         assertEquals(0, testFile.e2.remove().get(1000, TimeUnit.MILLISECONDS));
         assertFalse(Files.exists(testFile.e1));
+    }
+
+    static void dataSync_closedFile(AbstractFile testFile) throws Exception {
+        testFile.close().get(1000, TimeUnit.MILLISECONDS);
+        CompletableFuture<Integer> dataSync = testFile.dataSync();
+        assertThrows(ExecutionException.class, () -> dataSync.get(1000, TimeUnit.MILLISECONDS));
     }
 
 
@@ -110,20 +109,5 @@ public class CommonFileTests {
                 bytes,
                 StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING
         );
-    }
-
-    private static <T> Pair<Path, AbstractFile> getTestFile(
-            EventExecutor executor, Class<T> tClass,
-            one.jasyncfio.OpenOption... openOptions
-    ) throws Exception {
-        final Path tempFile = Files.createTempFile("test-", " file");
-        final AbstractFile file;
-        if (tClass == BufferedFile.class) {
-            file = BufferedFile.open(tempFile, executor, openOptions).get(1000, TimeUnit.MILLISECONDS);
-        } else {
-            throw new IllegalArgumentException("unknown class: " + tClass);
-        }
-
-        return new Pair<>(tempFile, file);
     }
 }
