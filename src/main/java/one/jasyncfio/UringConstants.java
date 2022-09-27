@@ -92,4 +92,6 @@ class UringConstants {
     static native int iosqeBufferSelect();
 
     static native int ioRingCqeFBuffer();
+
+    static native int ioRingUnregisterPbufRing();
 }

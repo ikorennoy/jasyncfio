@@ -368,7 +368,7 @@ abstract class AbstractFile {
                         length,
                         pollableStatus,
                         executor,
-                        ByteBufferAsyncResultProvider.newInstance()
+                        BufRingAsyncResultProvider.newInstance()
                 )
         );
     }

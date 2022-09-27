@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 //  pool BufRingResult
 //  generify ResultProvider
 //  check if feature supported
-class IoUringBufRing {
+class IoUringBufRing implements AutoCloseable {
 
     private static final AtomicInteger sequencer = new AtomicInteger();
 
@@ -120,6 +120,12 @@ class IoUringBufRing {
 
     ByteBuffer getBuffer(int id) {
         return buffers[id];
+    }
+
+    @Override
+    public void close() throws Exception {
+        ByteBuffer registerBufRingBuffer = ByteBuffer.allocateDirect((int) IoUringBufReg.SIZE);
+        IoUringBufReg.putBgId(MemoryUtils.getDirectBufferAddress(registerBufRingBuffer), this.id);
     }
 
     private void initBbArrayElement(int id) {
