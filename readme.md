@@ -14,16 +14,15 @@ Jasyncfio provides an asynchronous file I/O API based on the Linux io_uring inte
 ## Examples
 
 ```java
-EventExecutorGroup eventExecutorGroup = EventExecutorGroup.initDefault();
+EventExecutor eventExecutor = EventExecutor.initDefault();
 
-CompletableFuture<BufferedFile> bufferedFileCompletableFuture =
-        eventExecutorGroup.openBufferedFile(filePath, OpenOption.CREATE, OpenOption.WRITE_ONLY);
+CompletableFuture<BufferedFile> bufferedFileCompletableFuture = BufferedFile.open(Paths.get("path/to/file"), eventExecutor);
+BufferedFile file = bufferedFileCompletableFuture.get();
 
-BufferedFile bufferedFile = bufferedFileCompletableFuture.get();
+ByteBuffer byteBuffer = ByteBuffer.allocateDirect(1024);
+CompletableFuture<Integer> readCompletableFuture = file.read(byteBuffer);
 
-ByteBuffer buffer = ByteBuffer.allocateDirect(1024);
-CompletableFuture<Integer> writeCompletableFuture = bufferedFile.write(0, buffer);
-Integer writtenBytes = writeCompletableFuture.get();
+Integer readBytes = readCompletableFuture.get();
 ```
 
 If you want to dive deeper, there are more examples with explanations on the [wiki](https://github.com/ikorennoy/jasyncfio/wiki).
