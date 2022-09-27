@@ -91,4 +91,8 @@ abstract class Ring {
     boolean hasInKernel() {
         return submissionQueue.getTail() != completionQueue.getHead();
     }
+
+    int getBufRingId() {
+        return bufRing.getId();
+    }
 }

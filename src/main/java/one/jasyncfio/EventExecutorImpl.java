@@ -143,6 +143,17 @@ class EventExecutorImpl extends EventExecutor {
 
 
     @Override
+    int bufRingId(PollableStatus pollableStatus) {
+        final int id;
+        if (PollableStatus.POLLABLE == pollableStatus) {
+            id = pollRing.getBufRingId();
+        } else {
+            id = sleepableRing.getBufRingId();
+        }
+        return id;
+    }
+
+    @Override
     <T> Ring ringFromCommand(Command<T> command) {
         final Ring result;
         if (command.getOp() == Native.IORING_OP_READ || command.getOp() == Native.IORING_OP_WRITE) {

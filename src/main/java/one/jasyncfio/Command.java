@@ -212,9 +212,9 @@ class Command<T> implements Runnable {
         );
     }
 
-    static <T> Command<T> readBufRing(
+    static <T> Command<T> readProvidedBuf(
             int fd,
-            int offset,
+            long offset,
             int length,
             PollableStatus pollableStatus,
             EventExecutor executor,
@@ -228,7 +228,7 @@ class Command<T> implements Runnable {
                 0,
                 length,
                 offset,
-                0,
+                executor.bufRingId(pollableStatus),
                 0,
                 pollableStatus,
                 executor,

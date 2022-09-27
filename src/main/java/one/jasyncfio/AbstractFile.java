@@ -348,13 +348,13 @@ abstract class AbstractFile {
         );
     }
 
-    public CompletableFuture<BufRingResult> readBufRing() {
+    public CompletableFuture<BufRingResult> readFixedBuffer(long position, int length) {
         return executor.executeCommand(
-                Command.readBufRing(
+                Command.readProvidedBuf(
                         fd,
-                        -1,
-                        1024,
-                        PollableStatus.NON_POLLABLE,
+                        position,
+                        length,
+                        pollableStatus,
                         executor,
                         ByteBufferAsyncResultProvider.newInstance()
                 )

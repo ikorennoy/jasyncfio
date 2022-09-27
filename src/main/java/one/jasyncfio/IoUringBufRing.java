@@ -1,6 +1,7 @@
 package one.jasyncfio;
 
 import java.nio.ByteBuffer;
+import java.util.concurrent.atomic.AtomicInteger;
 
 // todo optimized io_uring_buf_ring_cq_advance
 //  abstract file proper api
@@ -9,6 +10,8 @@ import java.nio.ByteBuffer;
 //  generify ResultProvider
 //  check if feature supported
 public class IoUringBufRing {
+
+    private static final AtomicInteger sequencer = new AtomicInteger();
 
     private static class IoUringBufReg {
         private static final int RING_ADDR = 0; // __u64
@@ -77,6 +80,8 @@ public class IoUringBufRing {
     private final ByteBuffer[] buffers;
     private final long bufferBaseAddress;
 
+    private final short id;
+
 
     public IoUringBufRing(int ringFd, int bufferSize, int numOfBuffers) {
         this.bufferSize = bufferSize;
@@ -90,10 +95,11 @@ public class IoUringBufRing {
 
         ByteBuffer registerBufRingBuffer = ByteBuffer.allocateDirect((int) IoUringBufReg.SIZE);
         long registerBufRingBufferAddress = MemoryUtils.getDirectBufferAddress(registerBufRingBuffer);
+        this.id = (short) sequencer.getAndIncrement();
 
         IoUringBufReg.putRingAddr(registerBufRingBufferAddress, bufRingBaseAddress);
         IoUringBufReg.putRingEntries(registerBufRingBufferAddress, numOfBuffers);
-        IoUringBufReg.putBgId(registerBufRingBufferAddress, (short) 0);
+        IoUringBufReg.putBgId(registerBufRingBufferAddress, this.id);
 
         this.bufferBaseAddress = bufRingBaseAddress + Native.ioUringBufSize() * numOfBuffers;
         this.bufferBaseBb = ((ByteBuffer) bufRingBuffer.position((int) (Native.ioUringBufSize() * numOfBuffers))).slice();
@@ -140,5 +146,9 @@ public class IoUringBufRing {
 
     private int getBufRingMask() {
         return numOfBuffers - 1;
+    }
+
+    int getId() {
+        return 0;
     }
 }
