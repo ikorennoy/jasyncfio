@@ -2,7 +2,7 @@ package one.jasyncfio;
 
 import java.util.concurrent.CompletableFuture;
 
-public class ByteBufferAsyncResultProvider implements ResultProvider<CompletableFuture<BufRingResult>> {
+class ByteBufferAsyncResultProvider implements ResultProvider<CompletableFuture<BufRingResult>> {
 
     private final CompletableFuture<BufRingResult> res = new CompletableFuture<>();
 

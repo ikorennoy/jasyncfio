@@ -7,7 +7,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-public class Utils {
+class Utils {
     static File loadLib(String name) throws IOException {
         InputStream in = Native.class.getResourceAsStream("/" + name);
         File fileOut;

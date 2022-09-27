@@ -17,7 +17,7 @@ public enum OpenOption {
     SYNC;
 
 
-    public static int toFlags(OpenOption... options) {
+    static int toFlags(OpenOption... options) {
         int flags = 0;
         if (options.length == 0) {
             flags = Native.O_RDONLY;

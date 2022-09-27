@@ -2,7 +2,7 @@ package one.jasyncfio;
 
 import java.nio.ByteBuffer;
 
-public class IoUringProbe {
+class IoUringProbe {
 
     // io_uring_probe
     private static final int LAST_OP = 0; // __u8

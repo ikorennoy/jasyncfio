@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 //  pool BufRingResult
 //  generify ResultProvider
 //  check if feature supported
-public class IoUringBufRing {
+class IoUringBufRing {
 
     private static final AtomicInteger sequencer = new AtomicInteger();
 
