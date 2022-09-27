@@ -136,6 +136,9 @@ static jint get_ioring_register_probe(void) {
 static jint get_ioring_register_pbuf_ring(void) {
     return IORING_REGISTER_PBUF_RING;
 }
+static jint get_ioring_unregister_pbuf_ring(void) {
+    return IORING_UNREGISTER_PBUF_RING;
+}
 static jint get_iosqe_buffer_select(void) {
     return IOSQE_BUFFER_SELECT;
 }
@@ -189,6 +192,7 @@ static JNINativeMethod method_table[] = {
     {"ioRingUnregisterFiles", "()I", (void *) get_ioring_unregister_files},
     {"ioRingRegisterProbe", "()I", (void *) get_ioring_register_probe},
     {"ioRingRegisterPbufRing", "()I", (void *) get_ioring_register_pbuf_ring},
+    {"ioRingUnregisterPbufRing", "()I", (void *) get_ioring_unregister_pbuf_ring},
     {"iosqeBufferSelect", "()I", (void *) get_iosqe_buffer_select},
     {"ioRingCqeFBuffer", "()I", (void *) get_ioring_cqe_f_buffer},
 };

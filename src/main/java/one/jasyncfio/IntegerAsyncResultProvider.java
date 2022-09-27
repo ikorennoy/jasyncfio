@@ -43,7 +43,8 @@ class IntegerAsyncResultProvider implements ResultProvider<CompletableFuture<Int
     }
 
     @Override
-    public void onSuccess(Object object) {}
+    public void onSuccess(Object object) {
+    }
 
     @Override
     public void onError(Throwable ex) {

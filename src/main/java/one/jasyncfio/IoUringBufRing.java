@@ -72,6 +72,7 @@ class IoUringBufRing {
 
     private final int bufferSize;
     private final int numOfBuffers;
+    private final int ringFd;
 
     private final ByteBuffer bufRingBuffer;
     private final long bufRingBaseAddress;
@@ -86,6 +87,7 @@ class IoUringBufRing {
     public IoUringBufRing(int ringFd, int bufferSize, int numOfBuffers) {
         this.bufferSize = bufferSize;
         this.numOfBuffers = numOfBuffers;
+        this.ringFd = ringFd;
         int bufRingSize = (int) ((Native.ioUringBufSize() + bufferSize) * numOfBuffers);
         this.bufRingBuffer = MemoryUtils.allocateAlignedByteBuffer(bufRingSize, Native.getPageSize());
         this.bufRingBaseAddress = MemoryUtils.getDirectBufferAddress(bufRingBuffer);
@@ -122,6 +124,13 @@ class IoUringBufRing {
         return buffers[id];
     }
 
+    public void close() {
+        ByteBuffer registerBufRingBuffer = ByteBuffer.allocateDirect((int) IoUringBufReg.SIZE);
+        long registerStructBufAddress = MemoryUtils.getDirectBufferAddress(registerBufRingBuffer);
+        IoUringBufReg.putBgId(registerStructBufAddress, this.id);
+        Native.ioUringRegister(ringFd, Native.IORING_UNREGISTER_PBUF_RING, registerStructBufAddress, 1);
+    }
+
     private void initBbArrayElement(int id) {
         ByteBuffer slice = ((ByteBuffer) bufferBaseBb.position(id * bufferSize)).slice();
         buffers[id] = slice;
@@ -149,6 +158,6 @@ class IoUringBufRing {
     }
 
     int getId() {
-        return 0;
+        return id;
     }
 }

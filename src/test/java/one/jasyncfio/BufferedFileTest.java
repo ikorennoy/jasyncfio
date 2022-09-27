@@ -1,5 +1,6 @@
 package one.jasyncfio;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -20,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class BufferedFileTest {
-    private final EventExecutor executor = EventExecutor.initDefault();
+    private final EventExecutor executor = EventExecutor.builder().withBufRing(2, 1024).build();
 
     @TempDir
     private Path tmpDir;
@@ -299,7 +300,15 @@ public class BufferedFileTest {
         CommonFileTests.open_newFile(prepareFile());
     }
 
-
+    @Test
+    @Disabled("required 5.19+ CI kernel version")
+    void bufRing() throws Exception {
+        EventExecutor ee = EventExecutor.builder()
+                .withBufRing(4, 4096).build();
+        Path tempFile = Files.createTempFile(tmpDir, "test-", " file");
+        BufferedFile file = BufferedFile.open(tempFile, ee, OpenOption.READ_WRITE).get(1000, TimeUnit.MILLISECONDS);
+        CommonFileTests.bufRing(new CommonFileTests.Pair<>(tempFile, file));
+    }
 
     private CommonFileTests.Pair<Path, AbstractFile> prepareFile(OpenOption... openOptions) throws Exception {
         Path tempFile = Files.createTempFile(tmpDir, "test-", " file");

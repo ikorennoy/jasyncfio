@@ -160,6 +160,7 @@ class Native {
     public static final int IORING_REGISTER_FILES = UringConstants.ioRingRegisterFiles();
     public static final int IORING_UNREGISTER_FILES = UringConstants.ioRingUnregisterFiles();
     public static final int IORING_REGISTER_PBUF_RING = UringConstants.ioRingRegisterPbufRing();
+    public static final int IORING_UNREGISTER_PBUF_RING = UringConstants.ioRingUnregisterPbufRing();
     public static final int IORING_REGISTER_PROBE = UringConstants.ioRingRegisterProbe();
     public static final int IORING_ENTER_GETEVENTS = UringConstants.ioRingEnterGetEvents();
     public static final int IORING_ENTER_SQ_WAKEUP = UringConstants.ioRingEnterSqWakeup();

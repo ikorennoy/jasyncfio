@@ -51,6 +51,7 @@ abstract class Ring {
 
     void close() {
         ring.close();
+        bufRing.close();
     }
 
     abstract void park();
@@ -94,5 +95,9 @@ abstract class Ring {
 
     int getBufRingId() {
         return bufRing.getId();
+    }
+
+    boolean isBufRingInitialized() {
+        return bufRing != null;
     }
 }
