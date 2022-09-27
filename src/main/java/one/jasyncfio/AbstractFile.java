@@ -228,6 +228,7 @@ abstract class AbstractFile {
                         IntegerAsyncResultProvider.newInstance()
                 )).whenComplete((res, ex) -> {
             if (res != null && res > 0) {
+                System.out.println("res: " + res);
                 buffer.position(bufPosition + res);
             }
         });
