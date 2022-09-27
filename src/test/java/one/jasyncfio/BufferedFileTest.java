@@ -163,7 +163,7 @@ public class BufferedFileTest {
 
         pair.e2.write(buffers, 0, 2).get(1000, TimeUnit.MILLISECONDS);
         ByteBuffer bb = ByteBuffer.allocateDirect(10);
-        pair.e2.read(bb);
+        pair.e2.read(bb).get(1000, TimeUnit.MILLISECONDS);
         bb.flip();
         assertEquals((byte) 1, bb.get());
         assertEquals((byte) 2, bb.get());
