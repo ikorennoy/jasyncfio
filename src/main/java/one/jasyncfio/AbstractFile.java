@@ -348,6 +348,18 @@ abstract class AbstractFile {
         );
     }
 
+    /**
+     * Reads using ring buffer pool.
+     * Can only be used if the file was opened with an EventExecutor that was created with the
+     * {@link EventExecutor.Builder#withBufRing(int, int)} parameter.
+     * After processing the result of reading you must call the {@link BufRingResult#close} method to return the buffer
+     * ownership to the kernel.
+     * <p>
+     * Requires kernel 5.19+
+     *
+     * @param position The file position at which the transfer is to begin; must be non-negative
+     * @param length   The content length; must be non-negative
+     */
     public CompletableFuture<BufRingResult> readFixedBuffer(long position, int length) {
         return executor.executeCommand(
                 Command.readProvidedBuf(
