@@ -298,12 +298,11 @@ public class CommonFileTests {
 
     }
 
-    static void bufRing_severalBuffers(Pair<Path, AbstractFile> testFile) throws Exception {
+    static void bufRing(Pair<Path, AbstractFile> testFile) throws Exception {
         String expected = prepareString(1000);
         writeStringToFile(expected, testFile.e1);
 
         BufRingResult bufRingResult = testFile.e2.readFixedBuffer(-1, 4096).get(100, TimeUnit.MILLISECONDS);
-
         StringBuilder builder = new StringBuilder();
         while (bufRingResult.getReadBytes() != 0) {
             bufRingResult.getBuffer().flip();

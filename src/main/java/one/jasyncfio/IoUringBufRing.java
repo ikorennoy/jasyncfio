@@ -158,6 +158,6 @@ class IoUringBufRing {
     }
 
     int getId() {
-        return 0;
+        return id;
     }
 }
