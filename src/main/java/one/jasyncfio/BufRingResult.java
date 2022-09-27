@@ -2,11 +2,12 @@ package one.jasyncfio;
 
 import java.nio.ByteBuffer;
 
-public class BufRingResult {
+public class BufRingResult implements AutoCloseable {
     private ByteBuffer buffer;
     private int readBytes;
     private int bufferId;
     private Ring ownerRing;
+
     BufRingResult(ByteBuffer buffer, int readBytes, int bufferId, Ring ownerRing) {
         this.buffer = buffer;
         this.readBytes = readBytes;
@@ -28,5 +29,10 @@ public class BufRingResult {
 
     Ring getOwnerRing() {
         return ownerRing;
+    }
+
+    @Override
+    public void close() throws Exception {
+        ownerRing.recycleBuffer(bufferId);
     }
 }

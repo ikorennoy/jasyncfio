@@ -34,17 +34,17 @@ abstract class Ring {
     private void handle(int res, int flags, long data) {
         Command<?> command = commands.remove((int) data);
         if (command != null) {
-            if (isIoringCqeFBufferSet(flags)) {
-                int bufferId = flags >> 16;
-                ByteBuffer buffer = bufRing.getBuffer(bufferId);
-                buffer.position(res);
-                command.complete(new BufRingResult(buffer, res,  bufferId, this));
-            } else {
-                if (res >= 0) {
-                    command.complete(res);
+            if (res >= 0) {
+                if (isIoringCqeFBufferSet(flags)) {
+                    int bufferId = flags >> 16;
+                    ByteBuffer buffer = bufRing.getBuffer(bufferId);
+                    buffer.position(res);
+                    command.complete(new BufRingResult(buffer, res, bufferId, this));
                 } else {
-                    command.error(new IOException(String.format("Error code: %d; message: %s", -res, Native.decodeErrno(res))));
+                    command.complete(res);
                 }
+            } else {
+                command.error(new IOException(String.format("Error code: %d; message: %s", -res, Native.decodeErrno(res))));
             }
         }
     }
@@ -90,5 +90,9 @@ abstract class Ring {
 
     boolean hasInKernel() {
         return submissionQueue.getTail() != completionQueue.getHead();
+    }
+
+    int getBufRingId() {
+        return bufRing.getId();
     }
 }

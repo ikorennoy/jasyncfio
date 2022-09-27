@@ -8,8 +8,10 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
@@ -150,14 +152,19 @@ public class BufferedFileTest {
         ByteBuffer[] buffers = new ByteBuffer[bufsNum];
         for (int i = 0; i < bufsNum; i++) {
             buffers[i] = ByteBuffer.allocateDirect(10);
-            buffers[i].put((byte) i).flip();
         }
+
+        buffers[0].put((byte)1); buffers[0].flip();
+        buffers[1].put((byte)2); buffers[1].flip();
+        buffers[2].put((byte)3); buffers[2].flip();
+        buffers[3].put((byte)4); buffers[3].flip();
+
         CommonFileTests.Pair<Path, BufferedFile> pair = prepareFile(OpenOption.READ_WRITE);
-        pair.e2.write(buffers, 0, 3).get(1000, TimeUnit.MILLISECONDS);
+
+        pair.e2.write(buffers, 0, 2).get(1000, TimeUnit.MILLISECONDS);
         ByteBuffer bb = ByteBuffer.allocateDirect(10);
-        pair.e2.read(bb, 0L);
+        pair.e2.read(bb).get(1000, TimeUnit.MILLISECONDS);
         bb.flip();
-        assertEquals((byte) 0, bb.get());
         assertEquals((byte) 1, bb.get());
         assertEquals((byte) 2, bb.get());
         assertThrows(BufferUnderflowException.class, bb::get);

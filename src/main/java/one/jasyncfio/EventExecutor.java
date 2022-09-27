@@ -16,9 +16,7 @@ public abstract class EventExecutor implements AutoCloseable {
 
     public abstract void recycleBufRingResult(BufRingResult x);
 
-    int bufRingId() {
-        return 0;
-    }
+    abstract int bufRingId(PollableStatus pollableStatus);
 
     public static class Builder {
         private int entries = 4096;
