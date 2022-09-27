@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 //  pool BufRingResult
 //  generify ResultProvider
 //  check if feature supported
-class IoUringBufRing implements AutoCloseable {
+class IoUringBufRing {
 
     private static final AtomicInteger sequencer = new AtomicInteger();
 
@@ -72,6 +72,7 @@ class IoUringBufRing implements AutoCloseable {
 
     private final int bufferSize;
     private final int numOfBuffers;
+    private final int ringFd;
 
     private final ByteBuffer bufRingBuffer;
     private final long bufRingBaseAddress;
@@ -86,6 +87,7 @@ class IoUringBufRing implements AutoCloseable {
     public IoUringBufRing(int ringFd, int bufferSize, int numOfBuffers) {
         this.bufferSize = bufferSize;
         this.numOfBuffers = numOfBuffers;
+        this.ringFd = ringFd;
         int bufRingSize = (int) ((Native.ioUringBufSize() + bufferSize) * numOfBuffers);
         this.bufRingBuffer = MemoryUtils.allocateAlignedByteBuffer(bufRingSize, Native.getPageSize());
         this.bufRingBaseAddress = MemoryUtils.getDirectBufferAddress(bufRingBuffer);
@@ -122,10 +124,11 @@ class IoUringBufRing implements AutoCloseable {
         return buffers[id];
     }
 
-    @Override
-    public void close() throws Exception {
+    public void close() {
         ByteBuffer registerBufRingBuffer = ByteBuffer.allocateDirect((int) IoUringBufReg.SIZE);
-        IoUringBufReg.putBgId(MemoryUtils.getDirectBufferAddress(registerBufRingBuffer), this.id);
+        long registerStructBufAddress = MemoryUtils.getDirectBufferAddress(registerBufRingBuffer);
+        IoUringBufReg.putBgId(registerStructBufAddress, this.id);
+        Native.ioUringRegister(ringFd, Native.IORING_UNREGISTER_PBUF_RING, registerStructBufAddress, 1);
     }
 
     private void initBbArrayElement(int id) {

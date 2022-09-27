@@ -1,9 +1,5 @@
 package one.jasyncfio;
 
-import org.apache.commons.math3.stat.inference.TestUtils;
-import org.junit.jupiter.api.Assertions;
-
-import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
@@ -11,10 +7,7 @@ import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.sql.Time;
-import java.util.Collections;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -287,6 +280,51 @@ public class CommonFileTests {
         assertTrue(Files.exists(testFile.e1));
     }
 
+    static void bufRing_oneBuffer(Pair<Path, AbstractFile> testFile) throws Exception {
+        String expected = prepareString(1000);
+        writeStringToFile(expected, testFile.e1);
+
+        BufRingResult bufRingResult = testFile.e2.readFixedBuffer(-1, 4096)
+                .get(1000, TimeUnit.MILLISECONDS);
+
+        StringBuilder builder = new StringBuilder();
+        while (bufRingResult.getReadBytes() != 0) {
+            bufRingResult.getBuffer().flip();
+            builder.append(StandardCharsets.UTF_8.decode(bufRingResult.getBuffer()));
+            bufRingResult.close();
+            bufRingResult = testFile.e2.readFixedBuffer(-1, 4096).get(1000, TimeUnit.MILLISECONDS);
+        }
+        assertEquals(expected, builder.toString());
+
+    }
+
+    static void bufRing_severalBuffers(Pair<Path, AbstractFile> testFile) throws Exception {
+        String expected = prepareString(1000);
+        writeStringToFile(expected, testFile.e1);
+
+        BufRingResult bufRingResult = testFile.e2.readFixedBuffer(-1, 4096).get(100, TimeUnit.MILLISECONDS);
+
+        StringBuilder builder = new StringBuilder();
+        while (bufRingResult.getReadBytes() != 0) {
+            bufRingResult.getBuffer().flip();
+            builder.append(StandardCharsets.UTF_8.decode(bufRingResult.getBuffer()));
+            bufRingResult.close();
+            bufRingResult = testFile.e2.readFixedBuffer(-1, 4096).get(1000, TimeUnit.MILLISECONDS);
+        }
+
+        assertEquals(expected, builder.toString());
+    }
+
+    static void bufRing_notRegistered(Pair<Path, AbstractFile> testFile) {
+        assertThrows(IllegalStateException.class, () -> testFile.e2.readFixedBuffer(-1, 1024).get());
+    }
+
+    static void bufRing_registeredNoBuffers(Pair<Path, AbstractFile> testFile) throws Exception {
+        BufRingResult bufRingResult = testFile.e2.readFixedBuffer(-1, 1024).get();
+        assertThrows(ExecutionException.class, () -> testFile.e2.readFixedBuffer(-1, 1024).get());
+        bufRingResult.close();
+    }
+
 
     static String prepareString(int iters) {
         StringBuilder sb = new StringBuilder();
@@ -299,10 +337,6 @@ public class CommonFileTests {
 
     static void writeStringToFile(String stringToWrite, Path f) throws IOException {
         Files.write(f, stringToWrite.getBytes(StandardCharsets.UTF_8));
-    }
-
-    static String getTempFile(Path dir) throws Exception {
-        return dir.resolve("temp").toAbsolutePath().toString();
     }
 
 

@@ -137,7 +137,7 @@ static jint get_ioring_register_pbuf_ring(void) {
     return IORING_REGISTER_PBUF_RING;
 }
 static jint get_ioring_unregister_pbuf_ring(void) {
-    return IORING_UNREGISTER_PBUF_RING
+    return IORING_UNREGISTER_PBUF_RING;
 }
 static jint get_iosqe_buffer_select(void) {
     return IOSQE_BUFFER_SELECT;
