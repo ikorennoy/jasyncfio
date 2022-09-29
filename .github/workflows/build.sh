@@ -16,7 +16,7 @@ release() {
 }
 
 build() {
-  ./gradlew build --no-daemon --scan
+  ./gradlew build --no-daemon --stacktrace
 }
 
 case "$1" in
