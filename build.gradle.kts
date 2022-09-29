@@ -4,9 +4,9 @@ plugins {
     java
     `maven-publish`
     signing
-    id("me.champeau.jmh") version "0.6.4"
-    id("com.github.johnrengelman.shadow") version "7.1.2"
-    id("io.github.gradle-nexus.publish-plugin") version "1.1.0"
+    id("me.champeau.jmh") version(deps.jmh_plugin)
+    id("com.github.johnrengelman.shadow") version(deps.shadow_plugin)
+    id("io.github.gradle-nexus.publish-plugin") version(deps.nexus_publish)
 }
 
 val jvmTargetVersion = "8"
@@ -205,11 +205,10 @@ nexusPublishing {
 
 
 dependencies {
-    implementation("org.jctools:jctools-core:3.3.0")
-    implementation("cn.danielw:fast-object-pool:2.2.1")
-    implementation("com.conversantmedia:disruptor:1.2.15")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.2")
-    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.8.2")
-    testImplementation("org.openjdk.jmh:jmh-core:1.34")
-
+    implementation("org.jctools:jctools-core:${deps.jctools}")
+    implementation("cn.danielw:fast-object-pool:${deps.object_pool}")
+    implementation("com.conversantmedia:disruptor:${deps.object_pool_disruptor}")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:${deps.junit_jupiter}")
+    testImplementation("org.junit.jupiter:junit-jupiter-engine:${deps.junit_jupiter}")
+    testImplementation("org.openjdk.jmh:jmh-core:${deps.jmh_core}")
 }
