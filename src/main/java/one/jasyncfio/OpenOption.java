@@ -14,7 +14,8 @@ public enum OpenOption {
     DSYNC,
     EXCL,
     NOATIME,
-    SYNC;
+    SYNC,
+    DIRECT;
 
 
     static int toFlags(OpenOption... options) {
@@ -60,6 +61,9 @@ public enum OpenOption {
                         break;
                     case SYNC:
                         flags |= Native.O_SYNC;
+                        break;
+                    case DIRECT:
+                        flags |= Native.O_DIRECT;
                         break;
                 }
             }
