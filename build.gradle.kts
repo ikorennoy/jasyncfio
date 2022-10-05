@@ -149,6 +149,10 @@ tasks.withType(Test::class) {
     useJUnitPlatform()
 }
 
+tasks.withType<Sign>().configureEach {
+    onlyIf { !version.toString().endsWith("SNAPSHOT") }
+}
+
 publishing {
     publications {
         create<MavenPublication>("maven") {
