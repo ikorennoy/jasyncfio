@@ -107,7 +107,7 @@ fun getCompileObjectArgs(sourceFile: File, outputFile: File): List<String> {
         "gcc",
         "-c",
         "-g",
-        "-Ofast",
+        "-O2",
         "-D_GNU_SOURCE",
         "-fpic",
         "-Wall",
