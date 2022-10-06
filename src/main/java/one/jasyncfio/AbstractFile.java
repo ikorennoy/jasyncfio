@@ -213,6 +213,11 @@ abstract class AbstractFile {
      * @return the number of bytes read
      */
     public CompletableFuture<Integer> read(ByteBuffer buffer, long position, int length) {
+        if (buffer.capacity() < length) {
+            CompletableFuture<Integer> future = new CompletableFuture<>();
+            future.completeExceptionally(new IllegalArgumentException("Buffer capacity less then length"));
+            return future;
+        }
         if (buffer.remaining() == 0) {
             return CompletableFuture.completedFuture(0);
         }
@@ -228,6 +233,7 @@ abstract class AbstractFile {
                         IntegerAsyncResultProvider.newInstance()
                 )).whenComplete((res, ex) -> {
             if (res != null && res > 0) {
+                System.out.println("set pos");
                 buffer.position(bufPosition + res);
             }
         });
