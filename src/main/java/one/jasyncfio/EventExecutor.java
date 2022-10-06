@@ -14,8 +14,6 @@ public abstract class EventExecutor implements AutoCloseable {
 
     abstract int sleepableRingFd();
 
-    public abstract void recycleBufRingResult(BufRingResult x);
-
     abstract int bufRingId(PollableStatus pollableStatus);
 
     public static class Builder {
@@ -33,6 +31,7 @@ public abstract class EventExecutor implements AutoCloseable {
         private boolean withBufRing = false;
         private int bufRingSize = 0;
         private int bufRingBufSize = 0;
+        private long sleepTimeoutMs = 1000;
 
         private Builder() {
         }
@@ -125,6 +124,18 @@ public abstract class EventExecutor implements AutoCloseable {
             return this;
         }
 
+        /**
+         * Sets the timeout in milliseconds after which the io_uring event loop will be stopped.
+         * A small value leads to increased latency and reduced throughput, while a large value leads to high CPU consumption.
+         * The default value is 1000.
+         *
+         * @param sleepTimeoutMs Timeout in milliseconds after which the event loop will be paused
+         */
+        public Builder sleepTimeout(long sleepTimeoutMs) {
+            this.sleepTimeoutMs = sleepTimeoutMs;
+            return this;
+        }
+
 
         public EventExecutor build() {
             if (entries > 4096 || !isPowerOfTwo(entries)) {
@@ -151,7 +162,9 @@ public abstract class EventExecutor implements AutoCloseable {
                     attachWqRingFd,
                     withBufRing,
                     bufRingSize,
-                    bufRingBufSize
+                    bufRingBufSize,
+                    sleepTimeoutMs
+
             );
             pollEventExecutor.start();
             return pollEventExecutor;

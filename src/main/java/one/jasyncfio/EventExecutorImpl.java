@@ -6,6 +6,7 @@ import org.jctools.queues.MpscChunkedArrayQueue;
 
 import java.util.Queue;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.IntSupplier;
 
@@ -49,6 +50,11 @@ class EventExecutorImpl extends EventExecutor {
     final IntObjectMap<Command<?>> commands;
     private final Thread t;
 
+    private final long sleepTimeoutNs;
+    private long startWork = -1;
+
+
+
     private final IntSupplier sequencer = new IntSupplier() {
         private int i = 0;
 
@@ -70,9 +76,11 @@ class EventExecutorImpl extends EventExecutor {
                       int attachWqRingFd,
                       boolean withBufRing,
                       int numOfBuffers,
-                      int bufRingBufSize
+                      int bufRingBufSize,
+                      long sleepTimeoutMs
     ) {
         this.commands = new IntObjectHashMap<>(entries);
+        this.sleepTimeoutNs = TimeUnit.NANOSECONDS.convert(sleepTimeoutMs, TimeUnit.MILLISECONDS);;
 
         int flags = 0;
         if (ioRingSetupSqPoll) {
@@ -178,7 +186,10 @@ class EventExecutorImpl extends EventExecutor {
             try {
                 state.compareAndSet(AWAKE, WAIT);
                 if (canSleep()) {
-                    park();
+                    if (sleepTimeout()) {
+                        park();
+                        resetSleepTimeout();
+                    }
                 }
             } catch (Throwable t) {
                 handleLoopException(t);
@@ -195,6 +206,14 @@ class EventExecutorImpl extends EventExecutor {
                 break;
             }
         }
+    }
+
+    private boolean sleepTimeout() {
+        return System.nanoTime() - startWork >= sleepTimeoutNs;
+    }
+
+    private void resetSleepTimeout() {
+        startWork = System.nanoTime();
     }
 
     @Override
@@ -308,7 +327,4 @@ class EventExecutorImpl extends EventExecutor {
         return sleepableRing.ring.getRingFd();
     }
 
-    public void recycleBufRingResult(BufRingResult bufRingRes) {
-        bufRingRes.getOwnerRing().recycleBuffer(bufRingRes.getBufferId());
-    }
 }
