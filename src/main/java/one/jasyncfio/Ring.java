@@ -93,6 +93,10 @@ abstract class Ring {
         return submissionQueue.getTail() != completionQueue.getHead();
     }
 
+    int getBufRingBufferSize() {
+        return bufRing.getBufferSize();
+    }
+
     int getBufRingId() {
         return bufRing.getId();
     }

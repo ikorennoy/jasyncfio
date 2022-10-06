@@ -284,7 +284,7 @@ public class CommonFileTests {
         String expected = prepareString(1000);
         writeStringToFile(expected, testFile.e1);
 
-        BufRingResult bufRingResult = testFile.e2.readFixedBuffer(-1, 4096)
+        BufRingResult bufRingResult = testFile.e2.readFixedBuffer(-1)
                 .get(1000, TimeUnit.MILLISECONDS);
 
         StringBuilder builder = new StringBuilder();
@@ -292,7 +292,7 @@ public class CommonFileTests {
             bufRingResult.getBuffer().flip();
             builder.append(StandardCharsets.UTF_8.decode(bufRingResult.getBuffer()));
             bufRingResult.close();
-            bufRingResult = testFile.e2.readFixedBuffer(-1, 4096).get(1000, TimeUnit.MILLISECONDS);
+            bufRingResult = testFile.e2.readFixedBuffer(-1).get(1000, TimeUnit.MILLISECONDS);
         }
         assertEquals(expected, builder.toString());
 
@@ -302,25 +302,25 @@ public class CommonFileTests {
         String expected = prepareString(1000);
         writeStringToFile(expected, testFile.e1);
 
-        BufRingResult bufRingResult = testFile.e2.readFixedBuffer(-1, 4096).get(100, TimeUnit.MILLISECONDS);
+        BufRingResult bufRingResult = testFile.e2.readFixedBuffer(-1).get(100, TimeUnit.MILLISECONDS);
         StringBuilder builder = new StringBuilder();
         while (bufRingResult.getReadBytes() != 0) {
             bufRingResult.getBuffer().flip();
             builder.append(StandardCharsets.UTF_8.decode(bufRingResult.getBuffer()));
             bufRingResult.close();
-            bufRingResult = testFile.e2.readFixedBuffer(-1, 4096).get(1000, TimeUnit.MILLISECONDS);
+            bufRingResult = testFile.e2.readFixedBuffer(-1).get(1000, TimeUnit.MILLISECONDS);
         }
 
         assertEquals(expected, builder.toString());
     }
 
     static void bufRing_notRegistered(Pair<Path, AbstractFile> testFile) {
-        assertThrows(IllegalStateException.class, () -> testFile.e2.readFixedBuffer(-1, 1024).get());
+        assertThrows(IllegalStateException.class, () -> testFile.e2.readFixedBuffer(-1).get());
     }
 
     static void bufRing_registeredNoBuffers(Pair<Path, AbstractFile> testFile) throws Exception {
-        BufRingResult bufRingResult = testFile.e2.readFixedBuffer(-1, 1024).get();
-        assertThrows(ExecutionException.class, () -> testFile.e2.readFixedBuffer(-1, 1024).get());
+        BufRingResult bufRingResult = testFile.e2.readFixedBuffer(-1).get();
+        assertThrows(ExecutionException.class, () -> testFile.e2.readFixedBuffer(-1).get());
         bufRingResult.close();
     }
 

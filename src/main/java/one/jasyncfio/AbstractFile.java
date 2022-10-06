@@ -364,14 +364,12 @@ abstract class AbstractFile {
      * Requires kernel 5.19+
      *
      * @param position The file position at which the transfer is to begin; must be non-negative
-     * @param length   The content length; must be non-negative
      */
-    public CompletableFuture<BufRingResult> readFixedBuffer(long position, int length) {
+    public CompletableFuture<BufRingResult> readFixedBuffer(long position) {
         return executor.executeCommand(
                 Command.readProvidedBuf(
                         fd,
                         position,
-                        length,
                         pollableStatus,
                         executor,
                         BufRingAsyncResultProvider.newInstance()

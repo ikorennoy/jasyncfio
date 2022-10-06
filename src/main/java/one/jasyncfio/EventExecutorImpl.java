@@ -149,6 +149,19 @@ class EventExecutorImpl extends EventExecutor {
         return id;
     }
 
+    @Override
+    int bufRingBufferSize(PollableStatus pollableStatus) {
+        if (!pollRing.isBufRingInitialized() && !sleepableRing.isBufRingInitialized()) {
+            throw new IllegalStateException("Buf ring is not initialized");
+        }
+        final int size;
+        if (PollableStatus.POLLABLE == pollableStatus) {
+            size = pollRing.getBufRingBufferSize();
+        } else {
+            size = sleepableRing.getBufRingBufferSize();
+        }
+        return size;
+    }
 
     @Override
     int bufRingId(PollableStatus pollableStatus) {

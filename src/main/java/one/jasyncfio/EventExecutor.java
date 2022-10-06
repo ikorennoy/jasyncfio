@@ -16,6 +16,8 @@ public abstract class EventExecutor implements AutoCloseable {
 
     abstract int bufRingId(PollableStatus pollableStatus);
 
+    abstract int bufRingBufferSize(PollableStatus pollableStatus);
+
     public static class Builder {
         private int entries = 4096;
         private boolean ioRingSetupSqPoll = false;
