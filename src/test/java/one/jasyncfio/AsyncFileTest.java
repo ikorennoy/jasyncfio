@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class BufferedFileTest {
+public class AsyncFileTest {
     private final EventExecutor executor = EventExecutor.initDefault();
 
     @TempDir
@@ -38,15 +38,15 @@ public class BufferedFileTest {
             pool.execute(() -> {
                 for (int j = 0; j < writes; j++) {
                     try {
-                        BufferedFile bufferedFile = BufferedFile.open(tempFile, executor, OpenOption.WRITE_ONLY, OpenOption.APPEND).get(1000, TimeUnit.MILLISECONDS);
+                        AsyncFile asyncFile = AsyncFile.open(tempFile, executor, OpenOption.WRITE_ONLY, OpenOption.APPEND).get(1000, TimeUnit.MILLISECONDS);
                         ByteBuffer buffer = ByteBuffer.allocateDirect(1);
                         buffer.put((byte) 'c');
                         buffer.flip();
                         if (random.nextBoolean()) {
                             ByteBuffer[] buffers = new ByteBuffer[]{buffer};
-                            bufferedFile.write(buffers);
+                            asyncFile.write(buffers);
                         } else {
-                            bufferedFile.write(buffer);
+                            asyncFile.write(buffer);
                         }
                     } catch (Exception e) {
                         throw new RuntimeException(e);
@@ -56,8 +56,8 @@ public class BufferedFileTest {
         }
         pool.shutdown();
         pool.awaitTermination(1, TimeUnit.MINUTES);
-        BufferedFile bufferedFile = BufferedFile.open(tempFile, executor, OpenOption.WRITE_ONLY, OpenOption.APPEND).get(1000, TimeUnit.MILLISECONDS);
-        assertEquals((nThreads * writes), bufferedFile.size().get(1000, TimeUnit.MILLISECONDS));
+        AsyncFile asyncFile = AsyncFile.open(tempFile, executor, OpenOption.WRITE_ONLY, OpenOption.APPEND).get(1000, TimeUnit.MILLISECONDS);
+        assertEquals((nThreads * writes), asyncFile.size().get(1000, TimeUnit.MILLISECONDS));
         Files.deleteIfExists(tempFile);
     }
 
@@ -306,13 +306,13 @@ public class BufferedFileTest {
         EventExecutor ee = EventExecutor.builder()
                 .withBufRing(4, 4096).build();
         Path tempFile = Files.createTempFile(tmpDir, "test-", " file");
-        BufferedFile file = BufferedFile.open(tempFile, ee, OpenOption.READ_WRITE).get(1000, TimeUnit.MILLISECONDS);
+        AsyncFile file = AsyncFile.open(tempFile, ee, OpenOption.READ_WRITE).get(1000, TimeUnit.MILLISECONDS);
         CommonFileTests.bufRing(new CommonFileTests.Pair<>(tempFile, file));
     }
 
     private CommonFileTests.Pair<Path, AbstractFile> prepareFile(OpenOption... openOptions) throws Exception {
         Path tempFile = Files.createTempFile(tmpDir, "test-", " file");
-        BufferedFile file = BufferedFile.open(tempFile, executor, openOptions).get(1000, TimeUnit.MILLISECONDS);
+        AsyncFile file = AsyncFile.open(tempFile, executor, openOptions).get(1000, TimeUnit.MILLISECONDS);
         return new CommonFileTests.Pair<>(tempFile, file);
     }
 

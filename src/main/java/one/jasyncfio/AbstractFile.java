@@ -393,6 +393,10 @@ abstract class AbstractFile {
         );
     }
 
+    public ByteBuffer allocateAlignedBuffer(int size, int alignment) {
+        return MemoryUtils.allocateAlignedByteBuffer(size, alignment);
+    }
+
     int getRawFd() {
         return fd;
     }
