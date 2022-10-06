@@ -16,8 +16,8 @@ Jasyncfio provides an asynchronous file I/O API based on the Linux io_uring inte
 ```java
 EventExecutor eventExecutor = EventExecutor.initDefault();
 
-CompletableFuture<BufferedFile> bufferedFileCompletableFuture = BufferedFile.open(Paths.get("path/to/file"), eventExecutor);
-BufferedFile file = bufferedFileCompletableFuture.get();
+CompletableFuture<AsyncFile> asyncFileCompletableFuture = AsyncFile.open(Paths.get("path/to/file"), eventExecutor);
+AsyncFile file = asyncFileCompletableFuture.get();
 
 ByteBuffer byteBuffer = ByteBuffer.allocateDirect(1024);
 CompletableFuture<Integer> readCompletableFuture = file.read(byteBuffer);
