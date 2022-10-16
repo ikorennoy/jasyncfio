@@ -301,6 +301,11 @@ public class AsyncFileTest {
     }
 
     @Test
+    void read_aligned() throws Exception {
+        CommonFileTests.read_aligned(prepareFile(OpenOption.READ_WRITE, OpenOption.DIRECT));
+    }
+
+    @Test
     @Disabled("required 5.19+ CI kernel version")
     void bufRing() throws Exception {
         EventExecutor ee = EventExecutor.builder()

@@ -124,10 +124,6 @@ class IoUringBufRing {
         return buffers[id];
     }
 
-    public int getBufferSize() {
-        return bufferSize;
-    }
-
     public void close() {
         ByteBuffer registerBufRingBuffer = ByteBuffer.allocateDirect((int) IoUringBufReg.SIZE);
         long registerStructBufAddress = MemoryUtils.getDirectBufferAddress(registerBufRingBuffer);
@@ -163,5 +159,9 @@ class IoUringBufRing {
 
     int getId() {
         return id;
+    }
+
+    int getBufferSize() {
+        return bufferSize;
     }
 }

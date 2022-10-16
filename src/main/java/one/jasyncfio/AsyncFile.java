@@ -37,6 +37,21 @@ public class AsyncFile extends AbstractFile {
                 mode,
                 executor,
                 IntegerAsyncResultProvider.newInstance()
-        )).thenApply((res) -> new AsyncFile(path, patAddress, res, PollableStatus.NON_POLLABLE, executor));
+        )).thenApply((res) -> {
+            boolean isDirect = false;
+            for (int i = 0; i < openOption.length; i++) {
+                if (openOption[i] == OpenOption.DIRECT) {
+                    isDirect = true;
+                    break;
+                }
+            }
+            final PollableStatus pollableStatus;
+            if (isDirect) {
+                pollableStatus = PollableStatus.POLLABLE;
+            } else {
+                pollableStatus = PollableStatus.NON_POLLABLE;
+            }
+            return new AsyncFile(path, patAddress, res, pollableStatus, executor);
+        });
     }
 }

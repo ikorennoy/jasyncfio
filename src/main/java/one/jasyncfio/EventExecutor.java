@@ -16,7 +16,7 @@ public abstract class EventExecutor implements AutoCloseable {
 
     abstract int bufRingId(PollableStatus pollableStatus);
 
-    abstract int bufRingBufferSize(PollableStatus pollableStatus);
+    abstract int getBufferLength(PollableStatus pollableStatus);
 
     public static class Builder {
         private int entries = 4096;
@@ -127,11 +127,11 @@ public abstract class EventExecutor implements AutoCloseable {
         }
 
         /**
-         * Sets the timeout in milliseconds after which the io_uring event loop will be stopped.
-         * A small value leads to increased latency and reduced throughput, while a large value leads to high CPU consumption.
-         * The default value is 1000.
+         * The time after which the EventLoop thread will be put to sleep. The higher the value, the higher
+         * the CPU consumption, but the lower the latency, the lower the CPU consumption and the higher the latency.
+         * Default value is 1000 milliseconds
          *
-         * @param sleepTimeoutMs Timeout in milliseconds after which the event loop will be paused
+         * @param sleepTimeoutMs sleep timeout in milliseconds
          */
         public Builder sleepTimeout(long sleepTimeoutMs) {
             this.sleepTimeoutMs = sleepTimeoutMs;
@@ -166,7 +166,6 @@ public abstract class EventExecutor implements AutoCloseable {
                     bufRingSize,
                     bufRingBufSize,
                     sleepTimeoutMs
-
             );
             pollEventExecutor.start();
             return pollEventExecutor;

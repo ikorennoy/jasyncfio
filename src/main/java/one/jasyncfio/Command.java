@@ -114,6 +114,21 @@ class Command<T> implements Runnable {
         }
     }
 
+    static <T> Command<T> nop(EventExecutor executor, ResultProvider<T> resultProvider) {
+        return init(Native.IORING_OP_NOP,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                PollableStatus.NON_POLLABLE,
+                executor,
+                resultProvider);
+    }
+
     static <T> Command<T> writeVectored(
             int fd,
             long offset,
@@ -225,7 +240,7 @@ class Command<T> implements Runnable {
                 0,
                 fd,
                 0,
-                executor.bufRingBufferSize(pollableStatus),
+                executor.getBufferLength(pollableStatus),
                 offset,
                 executor.bufRingId(pollableStatus),
                 0,

@@ -50,10 +50,8 @@ class EventExecutorImpl extends EventExecutor {
     final IntObjectMap<Command<?>> commands;
     private final Thread t;
 
-    private final long sleepTimeoutNs;
+    private final long sleepTimeout;
     private long startWork = -1;
-
-
 
     private final IntSupplier sequencer = new IntSupplier() {
         private int i = 0;
@@ -80,7 +78,6 @@ class EventExecutorImpl extends EventExecutor {
                       long sleepTimeoutMs
     ) {
         this.commands = new IntObjectHashMap<>(entries);
-        this.sleepTimeoutNs = TimeUnit.NANOSECONDS.convert(sleepTimeoutMs, TimeUnit.MILLISECONDS);;
 
         int flags = 0;
         if (ioRingSetupSqPoll) {
@@ -100,6 +97,7 @@ class EventExecutorImpl extends EventExecutor {
         }
 
 
+        this.sleepTimeout = TimeUnit.NANOSECONDS.convert(sleepTimeoutMs, TimeUnit.MILLISECONDS);
         sleepableRing = new SleepableRing(entries, flags, sqThreadIdle, sqThreadCpu, cqSize, attachWqRingFd, withBufRing, bufRingBufSize, numOfBuffers, eventFd, eventFdBuffer, this, commands);
         pollRing = new PollRing(entries, flags | Native.IORING_SETUP_IOPOLL, sqThreadIdle, sqThreadCpu, cqSize, attachWqRingFd, withBufRing, bufRingBufSize, numOfBuffers, commands);
 
@@ -117,8 +115,7 @@ class EventExecutorImpl extends EventExecutor {
     }
 
     private void wakeup(boolean inEventLoop) {
-        int localState = state.get();
-        if (!inEventLoop && (localState != AWAKE && state.compareAndSet(WAIT, AWAKE))) {
+        if (!inEventLoop && state.getAndSet(AWAKE) != AWAKE) {
             unpark();
         }
     }
@@ -149,19 +146,6 @@ class EventExecutorImpl extends EventExecutor {
         return id;
     }
 
-    @Override
-    int bufRingBufferSize(PollableStatus pollableStatus) {
-        if (!pollRing.isBufRingInitialized() && !sleepableRing.isBufRingInitialized()) {
-            throw new IllegalStateException("Buf ring is not initialized");
-        }
-        final int size;
-        if (PollableStatus.POLLABLE == pollableStatus) {
-            size = pollRing.getBufRingBufferSize();
-        } else {
-            size = sleepableRing.getBufRingBufferSize();
-        }
-        return size;
-    }
 
     @Override
     int bufRingId(PollableStatus pollableStatus) {
@@ -175,6 +159,20 @@ class EventExecutorImpl extends EventExecutor {
             id = sleepableRing.getBufRingId();
         }
         return id;
+    }
+
+    @Override
+    int getBufferLength(PollableStatus pollableStatus) {
+        if (!pollRing.isBufRingInitialized() && !sleepableRing.isBufRingInitialized()) {
+            throw new IllegalStateException("Buf ring is not initialized");
+        }
+        final int bufferSize;
+        if (PollableStatus.POLLABLE == pollableStatus) {
+            bufferSize = pollRing.getBufferLength();
+        } else {
+            bufferSize = sleepableRing.getBufferLength();
+        }
+        return bufferSize;
     }
 
     @Override
@@ -194,20 +192,19 @@ class EventExecutorImpl extends EventExecutor {
 
     private void run() {
         addEventFdRead();
-
         while (true) {
             try {
-                state.compareAndSet(AWAKE, WAIT);
+                state.set(WAIT);
                 if (canSleep()) {
                     if (sleepTimeout()) {
-                        park();
+                        submitTasksAndWait();
                         resetSleepTimeout();
                     }
                 }
             } catch (Throwable t) {
                 handleLoopException(t);
             } finally {
-                state.compareAndSet(WAIT, AWAKE);
+                state.set(AWAKE);
             }
             drain();
             if (state.get() == STOP) {
@@ -221,12 +218,12 @@ class EventExecutorImpl extends EventExecutor {
         }
     }
 
-    private boolean sleepTimeout() {
-        return System.nanoTime() - startWork >= sleepTimeoutNs;
-    }
-
     private void resetSleepTimeout() {
         startWork = System.nanoTime();
+    }
+
+    private boolean sleepTimeout() {
+        return System.nanoTime() - startWork >= sleepTimeout;
     }
 
     @Override
@@ -247,11 +244,15 @@ class EventExecutorImpl extends EventExecutor {
     }
 
     private void submitIo() {
-        sleepableRing.submitIo();
-        pollRing.submitIo();
+        if (sleepableRing.hasPending()) {
+            sleepableRing.submitIo();
+        }
+        if (pollRing.hasInKernel() || pollRing.hasPending()) {
+            pollRing.submissionQueue.submit();
+        }
     }
 
-    private void park() {
+    private void submitTasksAndWait() {
         sleepableRing.park();
     }
 

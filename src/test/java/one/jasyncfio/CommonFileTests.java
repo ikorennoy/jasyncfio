@@ -28,7 +28,21 @@ public class CommonFileTests {
         }
     }
 
-    static <T> void preAllocate_notEmptyFile(Pair<Path, AbstractFile> testFilePair) throws Exception {
+    static void read_aligned(Pair<Path, AbstractFile> testFilePair) throws Exception {
+        String expected = prepareString(100);
+        long pageSize = Native.getPageSize();
+        int resultLength = expected.getBytes().length;
+        writeStringToFile(expected, testFilePair.e1);
+        ByteBuffer buffer = MemoryUtils.allocateAlignedByteBuffer((int) pageSize, pageSize);
+        Integer integer = testFilePair.e2.read(buffer, -1L).get(1000, TimeUnit.MILLISECONDS);
+        System.out.println(integer);
+        assertEquals(resultLength, buffer.position());
+        buffer.flip();
+        String actual = StandardCharsets.UTF_8.decode(buffer).toString();
+        assertEquals(expected.substring(0, resultLength), actual);
+    }
+
+    static void preAllocate_notEmptyFile(Pair<Path, AbstractFile> testFilePair) throws Exception {
         Path tempFile = testFilePair.e1;
         AbstractFile abstractFile = testFilePair.e2;
         assertEquals(0, abstractFile.size().get(1000, TimeUnit.MILLISECONDS));
@@ -38,7 +52,7 @@ public class CommonFileTests {
         Files.deleteIfExists(tempFile);
     }
 
-    static <T> void size_smallFile(Pair<Path, AbstractFile> testFilePair) throws Exception {
+    static void size_smallFile(Pair<Path, AbstractFile> testFilePair) throws Exception {
         Path tempFile = testFilePair.e1;
         AbstractFile abstractFile = testFilePair.e2;
         Random random = new Random();
@@ -50,7 +64,7 @@ public class CommonFileTests {
         Files.deleteIfExists(tempFile);
     }
 
-    static <T> void size_largeFile(Pair<Path, AbstractFile> testFilePair) throws Exception {
+    static void size_largeFile(Pair<Path, AbstractFile> testFilePair) throws Exception {
         Path tempFile = testFilePair.e1;
         AbstractFile abstractFile = testFilePair.e2;
         long testSize = Integer.MAX_VALUE * 2L;
@@ -63,22 +77,22 @@ public class CommonFileTests {
         Files.deleteIfExists(tempFile);
     }
 
-    static <T> void close(Pair<Path, AbstractFile> testFilePair) throws Exception {
+    static void close(Pair<Path, AbstractFile> testFilePair) throws Exception {
         AbstractFile abstractFile = testFilePair.e2;
         abstractFile.close().get(1000, TimeUnit.MILLISECONDS);
         assertThrows(ExecutionException.class,
                 () -> abstractFile.read(ByteBuffer.allocateDirect(10)).get(1000, TimeUnit.MILLISECONDS));
     }
 
-    static <T> void size_zero(Pair<Path, AbstractFile> testFile) throws Exception {
+    static void size_zero(Pair<Path, AbstractFile> testFile) throws Exception {
         assertEquals(0, testFile.e2.size().get(1000, TimeUnit.MILLISECONDS));
     }
 
-    static <T> void dataSync(Pair<Path, AbstractFile> testFile) throws Exception {
+    static void dataSync(Pair<Path, AbstractFile> testFile) throws Exception {
         assertEquals(0, testFile.e2.dataSync().get(1000, TimeUnit.MILLISECONDS));
     }
 
-    static <T> void preAllocate_emptyFile(Pair<Path, AbstractFile> testFile) throws Exception {
+    static void preAllocate_emptyFile(Pair<Path, AbstractFile> testFile) throws Exception {
         assertEquals(0, testFile.e2.size().get(1000, TimeUnit.MILLISECONDS));
         assertEquals(0, testFile.e2.preAllocate(1024, 0).get(1000, TimeUnit.MILLISECONDS));
         assertEquals(1024, testFile.e2.size().get(1000, TimeUnit.MILLISECONDS));

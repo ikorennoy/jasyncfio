@@ -162,4 +162,8 @@ class SubmissionQueue {
     public int getTail() {
         return tail;
     }
+
+    public boolean hasPending() {
+        return tail - head > 0;
+    }
 }
