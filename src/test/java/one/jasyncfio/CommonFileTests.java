@@ -29,13 +29,12 @@ public class CommonFileTests {
     }
 
     static void read_aligned(Pair<Path, AbstractFile> testFilePair) throws Exception {
-        String expected = prepareString(100);
-        long pageSize = Native.getPageSize();
+        String expected = prepareString(100).substring(0, 512);
+        long alignment = 512;
         int resultLength = expected.getBytes().length;
         writeStringToFile(expected, testFilePair.e1);
-        ByteBuffer buffer = MemoryUtils.allocateAlignedByteBuffer((int) pageSize, pageSize);
+        ByteBuffer buffer = MemoryUtils.allocateAlignedByteBuffer((int) alignment, alignment);
         Integer integer = testFilePair.e2.read(buffer, -1L).get(1000, TimeUnit.MILLISECONDS);
-        System.out.println(integer);
         assertEquals(resultLength, buffer.position());
         buffer.flip();
         String actual = StandardCharsets.UTF_8.decode(buffer).toString();
