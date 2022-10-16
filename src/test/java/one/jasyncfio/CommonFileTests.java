@@ -34,7 +34,7 @@ public class CommonFileTests {
         int resultLength = expected.getBytes().length;
         writeStringToFile(expected, testFilePair.e1);
         ByteBuffer buffer = MemoryUtils.allocateAlignedByteBuffer((int) alignment, alignment);
-        Integer integer = testFilePair.e2.read(buffer, -1L).get(1000, TimeUnit.MILLISECONDS);
+        testFilePair.e2.read(buffer, -1L).get(1000, TimeUnit.MILLISECONDS);
         assertEquals(resultLength, buffer.position());
         buffer.flip();
         String actual = StandardCharsets.UTF_8.decode(buffer).toString();
@@ -312,7 +312,7 @@ public class CommonFileTests {
     }
 
     static void bufRing(Pair<Path, AbstractFile> testFile) throws Exception {
-        String expected = prepareString(1000);
+        String expected = prepareString(10);
         writeStringToFile(expected, testFile.e1);
 
         BufRingResult bufRingResult = testFile.e2.readFixedBuffer(-1).get(100, TimeUnit.MILLISECONDS);
