@@ -7,12 +7,14 @@ public class BufRingResult implements AutoCloseable {
     private int readBytes;
     private int bufferId;
     private Ring ownerRing;
+    private short bufRingId;
 
-    BufRingResult(ByteBuffer buffer, int readBytes, int bufferId, Ring ownerRing) {
+    BufRingResult(ByteBuffer buffer, int readBytes, int bufferId, Ring ownerRing, short bufRingId) {
         this.buffer = buffer;
         this.readBytes = readBytes;
         this.bufferId = bufferId;
         this.ownerRing = ownerRing;
+        this.bufRingId = bufRingId;
     }
 
     public ByteBuffer getBuffer() {
@@ -33,6 +35,6 @@ public class BufRingResult implements AutoCloseable {
 
     @Override
     public void close() throws Exception {
-        ownerRing.recycleBuffer(bufferId);
+        ownerRing.recycleBuffer(bufferId, bufRingId);
     }
 }

@@ -4,6 +4,7 @@ import one.jasyncfio.collections.IntObjectHashMap;
 import one.jasyncfio.collections.IntObjectMap;
 import org.jctools.queues.MpscChunkedArrayQueue;
 
+import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -72,9 +73,7 @@ class EventExecutorImpl extends EventExecutor {
                       boolean ioRingSetupClamp,
                       boolean ioRingSetupAttachWq,
                       int attachWqRingFd,
-                      boolean withBufRing,
-                      int numOfBuffers,
-                      int bufRingBufSize,
+                      List<BufRingDescriptor> bufRingDescriptorList,
                       long sleepTimeoutMs
     ) {
         this.commands = new IntObjectHashMap<>(entries);
@@ -98,8 +97,29 @@ class EventExecutorImpl extends EventExecutor {
 
 
         this.sleepTimeout = TimeUnit.NANOSECONDS.convert(sleepTimeoutMs, TimeUnit.MILLISECONDS);
-        sleepableRing = new SleepableRing(entries, flags, sqThreadIdle, sqThreadCpu, cqSize, attachWqRingFd, withBufRing, bufRingBufSize, numOfBuffers, eventFd, eventFdBuffer, this, commands);
-        pollRing = new PollRing(entries, flags | Native.IORING_SETUP_IOPOLL, sqThreadIdle, sqThreadCpu, cqSize, attachWqRingFd, withBufRing, bufRingBufSize, numOfBuffers, commands);
+        sleepableRing = new SleepableRing(
+                entries,
+                flags,
+                sqThreadIdle,
+                sqThreadCpu,
+                cqSize,
+                attachWqRingFd,
+                bufRingDescriptorList,
+                eventFd,
+                eventFdBuffer,
+                this,
+                commands
+        );
+        pollRing = new PollRing(
+                entries,
+                flags | Native.IORING_SETUP_IOPOLL,
+                sqThreadIdle,
+                sqThreadCpu,
+                cqSize,
+                attachWqRingFd,
+                bufRingDescriptorList,
+                commands
+        );
 
         this.t = new Thread(this::run, "EventExecutor");
     }
@@ -148,29 +168,15 @@ class EventExecutorImpl extends EventExecutor {
 
 
     @Override
-    int bufRingId(PollableStatus pollableStatus) {
-        if (!pollRing.isBufRingInitialized() && !sleepableRing.isBufRingInitialized()) {
-            throw new IllegalStateException("Buf ring is not initialized");
-        }
-        final int id;
-        if (PollableStatus.POLLABLE == pollableStatus) {
-            id = pollRing.getBufRingId();
-        } else {
-            id = sleepableRing.getBufRingId();
-        }
-        return id;
-    }
-
-    @Override
-    int getBufferLength(PollableStatus pollableStatus) {
+    int getBufferLength(PollableStatus pollableStatus, short bufRingId) {
         if (!pollRing.isBufRingInitialized() && !sleepableRing.isBufRingInitialized()) {
             throw new IllegalStateException("Buf ring is not initialized");
         }
         final int bufferSize;
         if (PollableStatus.POLLABLE == pollableStatus) {
-            bufferSize = pollRing.getBufferLength();
+            bufferSize = pollRing.getBufferLength(bufRingId);
         } else {
-            bufferSize = sleepableRing.getBufferLength();
+            bufferSize = sleepableRing.getBufferLength(bufRingId);
         }
         return bufferSize;
     }

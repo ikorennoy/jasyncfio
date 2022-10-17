@@ -230,6 +230,7 @@ class Command<T> implements Runnable {
     static <T> Command<T> readProvidedBuf(
             int fd,
             long offset,
+            short bufRingId,
             PollableStatus pollableStatus,
             EventExecutor executor,
             ResultProvider<T> resultProvider
@@ -240,9 +241,9 @@ class Command<T> implements Runnable {
                 0,
                 fd,
                 0,
-                executor.getBufferLength(pollableStatus),
+                executor.getBufferLength(pollableStatus, bufRingId),
                 offset,
-                executor.bufRingId(pollableStatus),
+                bufRingId,
                 0,
                 pollableStatus,
                 executor,

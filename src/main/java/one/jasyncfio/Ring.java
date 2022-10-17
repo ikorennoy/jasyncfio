@@ -4,6 +4,9 @@ import one.jasyncfio.collections.IntObjectMap;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 abstract class Ring {
     final Uring ring;
@@ -12,18 +15,32 @@ abstract class Ring {
     private final IntObjectMap<Command<?>> commands;
     private final CompletionCallback callback = this::handle;
 
-    private final IoUringBufRing bufRing;
+    private final Map<Short, IoUringBufRing> bufRings;
 
-    Ring(int entries, int flags, int sqThreadIdle, int sqThreadCpu, int cqSize, int attachWqRingFd, boolean withBufRing, int bufRingBufSize, int numOfBuffers, IntObjectMap<Command<?>> commands) {
+    Ring(int entries,
+         int flags,
+         int sqThreadIdle,
+         int sqThreadCpu,
+         int cqSize,
+         int attachWqRingFd,
+         List<BufRingDescriptor> bufRingDescriptorList,
+         IntObjectMap<Command<?>> commands
+    ) {
         this.commands = commands;
         ring = Native.setupIoUring(entries, flags, sqThreadIdle, sqThreadCpu, cqSize, attachWqRingFd);
         submissionQueue = ring.getSubmissionQueue();
         completionQueue = ring.getCompletionQueue();
 
-        if (withBufRing) {
-            bufRing = new IoUringBufRing(ring.getRingFd(), bufRingBufSize, numOfBuffers);
+
+        if (!bufRingDescriptorList.isEmpty()) {
+            bufRings = new HashMap<>();
+            for (BufRingDescriptor descriptor : bufRingDescriptorList) {
+                IoUringBufRing ioUringBufRing =
+                        new IoUringBufRing(ring.getRingFd(), descriptor.getBufRingBufSize(), descriptor.getBufRingSize(), descriptor.getBufRingId());
+                bufRings.put(descriptor.getBufRingId(), ioUringBufRing);
+            }
         } else {
-            bufRing = null;
+            bufRings = null;
         }
     }
 
@@ -37,9 +54,10 @@ abstract class Ring {
             if (res >= 0) {
                 if (isIoringCqeFBufferSet(flags)) {
                     int bufferId = flags >> 16;
+                    IoUringBufRing bufRing = bufRings.get((short) command.getBufIndex());
                     ByteBuffer buffer = bufRing.getBuffer(bufferId);
                     buffer.position(res);
-                    command.complete(new BufRingResult(buffer, res, bufferId, this));
+                    command.complete(new BufRingResult(buffer, res, bufferId, this, (short) command.getBufIndex()));
                 } else {
                     command.complete(res);
                 }
@@ -51,7 +69,7 @@ abstract class Ring {
 
     void close() {
         ring.close();
-        bufRing.close();
+        bufRings.values().forEach(IoUringBufRing::close);
     }
 
     abstract void park();
@@ -66,8 +84,8 @@ abstract class Ring {
         return completionQueue.processEvents(callback);
     }
 
-    void recycleBuffer(int bufferId) {
-        bufRing.recycleBuffer(bufferId);
+    void recycleBuffer(int bufferId, short bufRingId) {
+        bufRings.get(bufRingId).recycleBuffer(bufferId);
     }
 
     <T> void addOperation(Command<T> op, long opId) {
@@ -93,16 +111,13 @@ abstract class Ring {
         return submissionQueue.getTail() != completionQueue.getHead();
     }
 
-    int getBufRingId() {
-        return bufRing.getId();
-    }
 
-    int getBufferLength() {
-        return bufRing.getBufferSize();
+    int getBufferLength(short bufRingId) {
+        return bufRings.get(bufRingId).getBufferSize();
     }
 
     boolean isBufRingInitialized() {
-        return bufRing != null;
+        return bufRings != null;
     }
 
     boolean hasPending() {

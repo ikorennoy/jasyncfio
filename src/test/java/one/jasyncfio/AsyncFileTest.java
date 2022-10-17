@@ -310,10 +310,23 @@ public class AsyncFileTest {
     @Disabled("required 5.19+ CI kernel version")
     void bufRing() throws Exception {
         EventExecutor ee = EventExecutor.builder()
-                .withBufRing(4, 4096).build();
+                .addBufRing(4, 1024, (short) 0).build();
         Path tempFile = Files.createTempFile(tmpDir, "test-", " file");
         AsyncFile file = AsyncFile.open(tempFile, ee, OpenOption.READ_WRITE).get(1000, TimeUnit.MILLISECONDS);
-        CommonFileTests.bufRing(new CommonFileTests.Pair<>(tempFile, file));
+        CommonFileTests.bufRing(new CommonFileTests.Pair<>(tempFile, file), (short) 0);
+    }
+
+    @Test
+    @Disabled("required 5.19+ CI kernel version")
+    void bufRing_severalBufRings() throws Exception {
+        EventExecutor ee = EventExecutor.builder()
+                .addBufRing(2, 1024, (short) 0)
+                .addBufRing(2, 1024, (short) 1)
+                .build();
+
+        Path temp = Files.createTempFile(tmpDir, "test-", " file");
+        AsyncFile asyncFile = AsyncFile.open(temp, ee, OpenOption.READ_WRITE).get(1000, TimeUnit.MILLISECONDS);
+        CommonFileTests.bufRing_severalBufRings(new CommonFileTests.Pair<>(temp, asyncFile));
     }
 
     private CommonFileTests.Pair<Path, AbstractFile> prepareFile(OpenOption... openOptions) throws Exception {
