@@ -13,7 +13,7 @@ public class Benchmark implements Callable<Integer> {
     private String file;
 
     @CommandLine.Option(names = {"-d", "--depth"}, description = "IO Depth, default 128", paramLabel = "<int>")
-    private int ioDepth = 32;
+    private int ioDepth = 128;
 
     @CommandLine.Option(names = {"-b", "--buffer"}, description = "Buffer size, default 4096", paramLabel = "<int>")
     private int bufferSize = 4096;
@@ -25,13 +25,27 @@ public class Benchmark implements Callable<Integer> {
     )
     private int threads = 1;
 
+    @CommandLine.Option(
+            names = {"-s", "--submit"},
+            description = "Batch submit, default 32",
+            paramLabel = "<int>"
+    )
+    private int submissions = 32;
+
+    @CommandLine.Option(
+            names = {"-c", "--complete"},
+            description = "Batch complete, default 32",
+            paramLabel = "<int>"
+    )
+    private int completions = 32;
+
 
     private List<BenchmarkWorkerIoUring> workers = new ArrayList<>();
 
     @Override
     public Integer call() throws Exception {
         for (int i = 0; i < threads; i++) {
-            BenchmarkWorkerIoUring benchmarkWorkerIoUring = new BenchmarkWorkerIoUring(Paths.get(file), bufferSize, bufferSize, ioDepth);
+            BenchmarkWorkerIoUring benchmarkWorkerIoUring = new BenchmarkWorkerIoUring(Paths.get(file), bufferSize, bufferSize, ioDepth, submissions, completions);
             benchmarkWorkerIoUring.start();
             workers.add(benchmarkWorkerIoUring);
         }

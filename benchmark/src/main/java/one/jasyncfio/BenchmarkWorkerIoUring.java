@@ -1,38 +1,38 @@
 package one.jasyncfio;
 
-import one.jasyncfio.*;
-
-import javax.naming.Name;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.Random;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ThreadLocalRandom;
 
 @SuppressWarnings("ALL")
 public class BenchmarkWorkerIoUring implements Runnable {
-    private final Random random;
-    private final Thread t;
+    private volatile Thread t;
     private final EventExecutor executor;
     private final ByteBuffer[] buffers;
     private final Path path;
     private final int blockSize;
     private final int bufferSize;
+    private final int submissions;
+    private final int completions;
 
     volatile long calls = 0;
     volatile long done = 0;
     volatile long reaps = 0;
     volatile boolean isRunning = true;
 
-    public BenchmarkWorkerIoUring(Path path, int bufferSize, int blockSize, int ioDepth) {
+    public BenchmarkWorkerIoUring(Path path, int bufferSize, int blockSize, int ioDepth, int submissions, int completions) {
         this.path = path;
         this.blockSize = blockSize;
         this.bufferSize = bufferSize;
+        this.submissions = submissions;
+        this.completions = completions;
         executor = EventExecutor.initDefault();
         buffers = new ByteBuffer[ioDepth];
-        Arrays.fill(buffers, MemoryUtils.allocateAlignedByteBuffer(bufferSize, MemoryUtils.getPageSize()));
+        for (int i = 0; i < buffers.length; i++) {
+            buffers[i] = MemoryUtils.allocateAlignedByteBuffer(bufferSize, MemoryUtils.getPageSize());
+        }
         t = new Thread(this);
-        random = new Random(t.hashCode());
     }
 
     public void start() {
@@ -44,16 +44,18 @@ public class BenchmarkWorkerIoUring implements Runnable {
         try {
             AsyncFile file = AsyncFile.open(path, executor, OpenOption.READ_ONLY, OpenOption.NOATIME).get();
             long maxBlocks = Native.getFileSize(file.getRawFd()) / blockSize;
-
+            CompletableFuture[] submissionsArray = new CompletableFuture[submissions];
             do {
-                calls++;
-                Integer read = file.read(buffers[0], getOffset(maxBlocks), bufferSize).get();
-                reaps++;
-                if (read != bufferSize) {
-                    System.out.println("Unexpected: " + read);
+                for (int i = 0; i < submissions; i++) {
+                    buffers[i].clear();
+                    calls++;
+                    submissionsArray[i] = file.read(buffers[i], getOffset(maxBlocks), bufferSize);
                 }
-                buffers[0].clear();
-                done++;
+                for (int i = 0; i < completions; i++) {
+                    submissionsArray[i].get();
+                    reaps++;
+                    done++;
+                }
             } while (isRunning);
 
         } catch (Throwable ex) {
@@ -63,6 +65,6 @@ public class BenchmarkWorkerIoUring implements Runnable {
 
 
     private long getOffset(long maxBlocks) {
-        return (Math.abs(random.nextLong()) % (maxBlocks - 1)) * blockSize;
+        return (Math.abs(ThreadLocalRandom.current().nextLong()) % (maxBlocks - 1)) * blockSize;
     }
 }

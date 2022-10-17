@@ -9,7 +9,7 @@ repositories {
 }
 
 tasks.jar {
-    manifest.attributes["Main-Class"] = "one.jasyncfio.benchmark.Benchmark"
+    manifest.attributes["Main-Class"] = "one.jasyncfio.Benchmark"
     val dependencies = configurations
         .runtimeClasspath
         .get()
