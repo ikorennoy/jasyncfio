@@ -93,7 +93,6 @@ task("sharedLib", Exec::class) {
     commandLine = listOf(
         "gcc",
         "-shared",
-        "-Wl,-soname,libkuring-natives.so",
         "-o",
         sharedLib,
         syscallTarget.absolutePath,
@@ -106,27 +105,22 @@ task("sharedLib", Exec::class) {
 fun getCompileObjectArgs(sourceFile: File, outputFile: File): List<String> {
     return listOf(
         "gcc",
-        "-x",
-        "c",
         "-c",
-        "-fPIC",
         "-D_GNU_SOURCE",
-        "-nostdinc",
+        "-fpic",
+        "-Wall",
+        "-Wcast-qual",
+        "-Wshadow",
+        "-Wformat=2",
+        "-Wundef",
+        "-Werror=float-equal",
+        "-Werror=strict-prototypes",
         "-o",
         outputFile.absolutePath,
         "-I",
         "${jdkPath.absolutePath}/include",
         "-I",
         "${jdkPath.absolutePath}/include/linux",
-        "-isystem",
-        "/usr/lib/gcc/x86_64-linux-gnu/11/include",
-        "-isystem",
-        "/usr/local/include",
-        "-isystem",
-        "/usr/include/x86_64-linux-gnu",
-        "-isystem",
-        "/usr/include",
-        "-m64",
         sourceFile.absolutePath
     )
 }
