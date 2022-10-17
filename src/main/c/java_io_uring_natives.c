@@ -203,7 +203,12 @@ void setup_iouring(JNIEnv *env, struct io_uring *ring, int entries, int flags, i
     p.flags = flags;
     ring_fd = sys_io_uring_setup(entries, &p);
     if (ring_fd < 0) {
-        throwRuntimeExceptionErrorNo(env, "failed to create io_uring ring fd;", errno);
+        if (errno == ENOMEM) {
+            throwRuntimeExceptionErrorNo(env, "failed to allocate memory for io_uring ring; ", errno);
+        } else {
+            throwRuntimeExceptionErrorNo(env, "failed to create io_uring ring fd;", errno);
+        }
+        return;
     }
 
     ret = io_uring_mmap(ring_fd, &p, &ring->sq, &ring->cq);
@@ -213,7 +218,7 @@ void setup_iouring(JNIEnv *env, struct io_uring *ring, int entries, int flags, i
         ring->ring_fd = ring_fd;
     } else {
         close(ring_fd);
-        throwRuntimeExceptionErrorNo(env, "failed to create io_uring ring fd;", errno);
+        throwRuntimeExceptionErrorNo(env, "failed to create io_uring ring fd; ", ret);
     }
 }
 

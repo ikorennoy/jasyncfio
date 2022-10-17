@@ -1,5 +1,7 @@
 package one.jasyncfio;
 
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -21,10 +23,25 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class AsyncFileTest {
-    private final EventExecutor executor = EventExecutor.initDefault();
+    private EventExecutor executor;
 
     @TempDir
     private Path tmpDir;
+
+    @BeforeEach
+    public void before() {
+        executor =  EventExecutor.initDefault();
+    }
+
+    @AfterEach
+    public void after() {
+        try {
+            executor.close();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 
     @Test
     void atomicAppend() throws Exception {
