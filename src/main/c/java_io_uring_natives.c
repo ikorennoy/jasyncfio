@@ -325,7 +325,7 @@ static void release_string(JNIEnv *env, jclass clazz, jstring str, jlong str_ptr
     (*env)->ReleaseStringUTFChars(env, str, (char *) str_ptr);
 }
 
-static jlong get_direct_buffer_address(JNIEnv *env, jobject self, jobject buffer) {
+static jlong get_direct_buffer_address(JNIEnv *env, jclass clazz, jobject buffer) {
     return (jlong) ((*env)->GetDirectBufferAddress(env, buffer));
 }
 
