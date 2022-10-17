@@ -1,5 +1,8 @@
 package one.jasyncfio;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public abstract class EventExecutor implements AutoCloseable {
 
     abstract <T> T executeCommand(Command<T> command);
@@ -14,9 +17,7 @@ public abstract class EventExecutor implements AutoCloseable {
 
     abstract int sleepableRingFd();
 
-    abstract int bufRingId(PollableStatus pollableStatus);
-
-    abstract int getBufferLength(PollableStatus pollableStatus);
+    abstract int getBufferLength(PollableStatus pollableStatus, short bufRingId);
 
     public static class Builder {
         private int entries = 4096;
@@ -29,11 +30,9 @@ public abstract class EventExecutor implements AutoCloseable {
         private boolean ioRingSetupClamp = false;
         private boolean ioRingSetupAttachWq = false;
         private int attachWqRingFd = 0;
-
-        private boolean withBufRing = false;
-        private int bufRingSize = 0;
-        private int bufRingBufSize = 0;
         private long sleepTimeoutMs = 1000;
+
+        private final List<BufRingDescriptor> bufRingDescriptors = new ArrayList<>();
 
         private Builder() {
         }
@@ -114,17 +113,24 @@ public abstract class EventExecutor implements AutoCloseable {
         }
 
         /**
-         * Setup buf ring feature
+         * Setup buf ring with provided parameters. Later if you want to read to thus buf ring you must specify
+         * the bufRingId provided for this call
          *
          * @param bufRingSize    number of buffers in the ring, must be power of 2
          * @param bufRingBufSize buffer size
+         * @param bufRingId      id, which is used during the read request
          */
-        public Builder withBufRing(int bufRingSize, int bufRingBufSize) {
-            this.withBufRing = true;
-            this.bufRingSize = bufRingSize;
-            this.bufRingBufSize = bufRingBufSize;
+        public Builder addBufRing(int bufRingSize, int bufRingBufSize, short bufRingId) {
+            if (bufRingBufSize <= 0) {
+                throw new IllegalArgumentException("bufRingBufSize must be positive");
+            }
+            if (bufRingSize <= 0 || !isPowerOfTwo(bufRingSize)) {
+                throw new IllegalArgumentException("bufRingSize must be positive and power of 2");
+            }
+            bufRingDescriptors.add(new BufRingDescriptor(bufRingSize, bufRingBufSize, bufRingId));
             return this;
         }
+
 
         /**
          * The time after which the EventLoop thread will be put to sleep. The higher the value, the higher
@@ -149,9 +155,6 @@ public abstract class EventExecutor implements AutoCloseable {
             if (ioRingSetupSqAff && !ioRingSetupSqPoll) {
                 throw new IllegalArgumentException("IORING_SETUP_SQ_AFF is only meaningful when IORING_SETUP_SQPOLL is specified");
             }
-            if (withBufRing && (bufRingBufSize <= 0 || bufRingSize <= 0 || !isPowerOfTwo(bufRingSize))) {
-                throw new IllegalArgumentException("bufRingBufSize and bufRingSize must be positive and bufRingSize must be power of 2");
-            }
             EventExecutor pollEventExecutor = new EventExecutorImpl(entries,
                     ioRingSetupSqPoll,
                     sqThreadIdle,
@@ -162,9 +165,7 @@ public abstract class EventExecutor implements AutoCloseable {
                     ioRingSetupClamp,
                     ioRingSetupAttachWq,
                     attachWqRingFd,
-                    withBufRing,
-                    bufRingSize,
-                    bufRingBufSize,
+                    bufRingDescriptors,
                     sleepTimeoutMs
             );
             pollEventExecutor.start();

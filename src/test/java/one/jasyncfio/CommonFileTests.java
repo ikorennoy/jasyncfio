@@ -294,10 +294,10 @@ public class CommonFileTests {
     }
 
     static void bufRing_oneBuffer(Pair<Path, AbstractFile> testFile) throws Exception {
-        String expected = prepareString(1000);
+        String expected = prepareString(500);
         writeStringToFile(expected, testFile.e1);
 
-        BufRingResult bufRingResult = testFile.e2.readFixedBuffer(-1)
+        BufRingResult bufRingResult = testFile.e2.readFixedBuffer(-1, (short) 0)
                 .get(1000, TimeUnit.MILLISECONDS);
 
         StringBuilder builder = new StringBuilder();
@@ -305,35 +305,37 @@ public class CommonFileTests {
             bufRingResult.getBuffer().flip();
             builder.append(StandardCharsets.UTF_8.decode(bufRingResult.getBuffer()));
             bufRingResult.close();
-            bufRingResult = testFile.e2.readFixedBuffer(-1).get(1000, TimeUnit.MILLISECONDS);
+            bufRingResult = testFile.e2.readFixedBuffer(-1, (short) 0).get(1000, TimeUnit.MILLISECONDS);
         }
         assertEquals(expected, builder.toString());
 
     }
 
-    static void bufRing(Pair<Path, AbstractFile> testFile) throws Exception {
-        String expected = prepareString(10);
-        writeStringToFile(expected, testFile.e1);
+    public static void bufRing_severalBufRings(Pair<Path, AbstractFile> testFile) throws Exception {
+        bufRing(testFile, (short) 1);
+    }
 
-        BufRingResult bufRingResult = testFile.e2.readFixedBuffer(-1).get(100, TimeUnit.MILLISECONDS);
+    static void bufRing(Pair<Path, AbstractFile> testFile, short bufRingId) throws Exception {
+        String expected = prepareString(1000);
+        writeStringToFile(expected, testFile.e1);
+        BufRingResult bufRingResult = testFile.e2.readFixedBuffer(-1, bufRingId).get(100, TimeUnit.MILLISECONDS);
         StringBuilder builder = new StringBuilder();
         while (bufRingResult.getReadBytes() != 0) {
             bufRingResult.getBuffer().flip();
             builder.append(StandardCharsets.UTF_8.decode(bufRingResult.getBuffer()));
             bufRingResult.close();
-            bufRingResult = testFile.e2.readFixedBuffer(-1).get(1000, TimeUnit.MILLISECONDS);
+            bufRingResult = testFile.e2.readFixedBuffer(-1, bufRingId).get(1000, TimeUnit.MILLISECONDS);
         }
-
         assertEquals(expected, builder.toString());
     }
 
     static void bufRing_notRegistered(Pair<Path, AbstractFile> testFile) {
-        assertThrows(IllegalStateException.class, () -> testFile.e2.readFixedBuffer(-1).get());
+        assertThrows(IllegalStateException.class, () -> testFile.e2.readFixedBuffer(-1, (short) 0).get());
     }
 
     static void bufRing_registeredNoBuffers(Pair<Path, AbstractFile> testFile) throws Exception {
-        BufRingResult bufRingResult = testFile.e2.readFixedBuffer(-1).get();
-        assertThrows(ExecutionException.class, () -> testFile.e2.readFixedBuffer(-1).get());
+        BufRingResult bufRingResult = testFile.e2.readFixedBuffer(-1, (short) 0).get();
+        assertThrows(ExecutionException.class, () -> testFile.e2.readFixedBuffer(-1, (short) 0).get());
         bufRingResult.close();
     }
 
