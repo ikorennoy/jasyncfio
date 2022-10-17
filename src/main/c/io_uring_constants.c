@@ -3,146 +3,146 @@
 
 #define IO_URING_CONSTANTS_CLASS_NAME "one/jasyncfio/UringConstants"
 
-static jbyte get_ioring_op_read(void) {
+static jbyte get_ioring_op_read(JNIEnv* env, jclass clazz) {
     return IORING_OP_READ;
 }
-static jbyte get_ioring_op_nop(void) {
+static jbyte get_ioring_op_nop(JNIEnv* env, jclass clazz) {
     return IORING_OP_NOP;
 }
-static jbyte get_ioring_op_write(void) {
+static jbyte get_ioring_op_write(JNIEnv* env, jclass clazz) {
     return IORING_OP_WRITE;
 }
-static jbyte get_ioring_op_close(void) {
+static jbyte get_ioring_op_close(JNIEnv* env, jclass clazz) {
     return IORING_OP_CLOSE;
 }
-static jbyte get_ioring_op_openat(void) {
+static jbyte get_ioring_op_openat(JNIEnv* env, jclass clazz) {
     return IORING_OP_OPENAT;
 }
-static jbyte get_ioring_op_readv(void) {
+static jbyte get_ioring_op_readv(JNIEnv* env, jclass clazz) {
     return IORING_OP_READV;
 }
-static jbyte get_ioring_op_writev(void) {
+static jbyte get_ioring_op_writev(JNIEnv* env, jclass clazz) {
     return IORING_OP_WRITEV;
 }
-static jbyte get_ioring_op_fsync(void) {
+static jbyte get_ioring_op_fsync(JNIEnv* env, jclass clazz) {
     return IORING_OP_FSYNC;
 }
-static jbyte get_ioring_op_read_fixed(void) {
+static jbyte get_ioring_op_read_fixed(JNIEnv* env, jclass clazz) {
     return IORING_OP_READ_FIXED;
 }
-static jbyte get_ioring_op_write_fixed(void) {
+static jbyte get_ioring_op_write_fixed(JNIEnv* env, jclass clazz) {
     return IORING_OP_WRITE_FIXED;
 }
-static jbyte get_ioring_op_poll_add(void) {
+static jbyte get_ioring_op_poll_add(JNIEnv* env, jclass clazz) {
     return IORING_OP_POLL_ADD;
 }
-static jbyte get_ioring_op_poll_remove(void) {
+static jbyte get_ioring_op_poll_remove(JNIEnv* env, jclass clazz) {
     return IORING_OP_POLL_REMOVE;
 }
-static jbyte get_ioring_op_statx(void) {
+static jbyte get_ioring_op_statx(JNIEnv* env, jclass clazz) {
     return IORING_OP_STATX;
 }
-static jbyte get_ioring_op_fallocate(void) {
+static jbyte get_ioring_op_fallocate(JNIEnv* env, jclass clazz) {
     return IORING_OP_FALLOCATE;
 }
-static jbyte get_ioring_op_unlinkat(void) {
+static jbyte get_ioring_op_unlinkat(JNIEnv* env, jclass clazz) {
     return IORING_OP_UNLINKAT;
 }
-static jbyte get_ioring_op_renameat(void) {
+static jbyte get_ioring_op_renameat(JNIEnv* env, jclass clazz) {
     return IORING_OP_RENAMEAT;
 }
-static jbyte get_ioring_op_conntect(void) {
+static jbyte get_ioring_op_conntect(JNIEnv* env, jclass clazz) {
     return IORING_OP_CONNECT;
 }
-static jbyte get_ioring_op_accept(void) {
+static jbyte get_ioring_op_accept(JNIEnv* env, jclass clazz) {
     return IORING_OP_ACCEPT;
 }
-static jbyte get_ioring_op_timeout(void) {
+static jbyte get_ioring_op_timeout(JNIEnv* env, jclass clazz) {
     return IORING_OP_TIMEOUT;
 }
-static jbyte get_ioring_op_timeout_remove(void) {
+static jbyte get_ioring_op_timeout_remove(JNIEnv* env, jclass clazz) {
     return IORING_OP_TIMEOUT_REMOVE;
 }
-static jbyte get_ioring_op_sendmsg(void) {
+static jbyte get_ioring_op_sendmsg(JNIEnv* env, jclass clazz) {
     return IORING_OP_SENDMSG;
 }
-static jbyte get_ioring_op_recvmsg(void) {
+static jbyte get_ioring_op_recvmsg(JNIEnv* env, jclass clazz) {
     return IORING_OP_RECVMSG;
 }
-static jbyte get_ioring_op_send(void) {
+static jbyte get_ioring_op_send(JNIEnv* env, jclass clazz) {
     return IORING_OP_SEND;
 }
-static jbyte get_ioring_op_recv(void) {
+static jbyte get_ioring_op_recv(JNIEnv* env, jclass clazz) {
     return IORING_OP_RECV;
 }
-static jbyte get_ioring_op_shutdown(void) {
+static jbyte get_ioring_op_shutdown(JNIEnv* env, jclass clazz) {
     return IORING_OP_SHUTDOWN;
 }
-static jbyte get_ioring_op_splice(void) {
+static jbyte get_ioring_op_splice(JNIEnv* env, jclass clazz) {
     return IORING_OP_SPLICE;
 }
-static jbyte get_ioring_op_send_zc(void) {
+static jbyte get_ioring_op_send_zc(JNIEnv* env, jclass clazz) {
     return IORING_OP_SEND_ZC;
 }
 
-static jint get_ioring_enter_getevents(void) {
+static jint get_ioring_enter_getevents(JNIEnv* env, jclass clazz) {
     return IORING_ENTER_GETEVENTS;
 }
-static jint get_ioring_setup_sqpoll(void) {
+static jint get_ioring_setup_sqpoll(JNIEnv* env, jclass clazz) {
     return IORING_SETUP_SQPOLL;
 }
-static jint get_ioring_setup_iopoll(void) {
+static jint get_ioring_setup_iopoll(JNIEnv* env, jclass clazz) {
     return IORING_SETUP_IOPOLL;
 }
-static jint get_ioring_setup_sq_aff(void) {
+static jint get_ioring_setup_sq_aff(JNIEnv* env, jclass clazz) {
     return IORING_SETUP_SQ_AFF;
 }
-static jint get_ioring_setup_cqsize(void) {
+static jint get_ioring_setup_cqsize(JNIEnv* env, jclass clazz) {
     return IORING_SETUP_CQSIZE;
 }
-static jint get_ioring_enter_sq_wakeup(void) {
+static jint get_ioring_enter_sq_wakeup(JNIEnv* env, jclass clazz) {
     return IORING_ENTER_SQ_WAKEUP;
 }
-static jint get_ioring_sq_need_wakeup(void) {
+static jint get_ioring_sq_need_wakeup(JNIEnv* env, jclass clazz) {
     return IORING_SQ_NEED_WAKEUP;
 }
-static jint get_ioring_sq_cq_overflow(void) {
+static jint get_ioring_sq_cq_overflow(JNIEnv* env, jclass clazz) {
     return IORING_SQ_CQ_OVERFLOW;
 }
-static jint get_ioring_fsync_datasync(void) {
+static jint get_ioring_fsync_datasync(JNIEnv* env, jclass clazz) {
     return IORING_FSYNC_DATASYNC;
 }
-static jint get_ioring_setup_clamp(void) {
+static jint get_ioring_setup_clamp(JNIEnv* env, jclass clazz) {
     return IORING_SETUP_CLAMP;
 }
-static jint get_ioring_setup_attach_wq(void) {
+static jint get_ioring_setup_attach_wq(JNIEnv* env, jclass clazz) {
     return IORING_SETUP_ATTACH_WQ;
 }
-static jint get_ioring_register_buffers(void) {
+static jint get_ioring_register_buffers(JNIEnv* env, jclass clazz) {
     return IORING_REGISTER_BUFFERS;
 }
-static jint get_ioring_unregister_buffers(void) {
+static jint get_ioring_unregister_buffers(JNIEnv* env, jclass clazz) {
     return IORING_UNREGISTER_BUFFERS;
 }
-static jint get_ioring_register_files(void) {
+static jint get_ioring_register_files(JNIEnv* env, jclass clazz) {
     return IORING_REGISTER_FILES;
 }
-static jint get_ioring_unregister_files(void) {
+static jint get_ioring_unregister_files(JNIEnv* env, jclass clazz) {
     return IORING_UNREGISTER_FILES;
 }
-static jint get_ioring_register_probe(void) {
+static jint get_ioring_register_probe(JNIEnv* env, jclass clazz) {
     return IORING_REGISTER_PROBE;
 }
-static jint get_ioring_register_pbuf_ring(void) {
+static jint get_ioring_register_pbuf_ring(JNIEnv* env, jclass clazz) {
     return IORING_REGISTER_PBUF_RING;
 }
-static jint get_ioring_unregister_pbuf_ring(void) {
+static jint get_ioring_unregister_pbuf_ring(JNIEnv* env, jclass clazz) {
     return IORING_UNREGISTER_PBUF_RING;
 }
-static jint get_iosqe_buffer_select(void) {
+static jint get_iosqe_buffer_select(JNIEnv* env, jclass clazz) {
     return IOSQE_BUFFER_SELECT;
 }
-static jint get_ioring_cqe_f_buffer(void) {
+static jint get_ioring_cqe_f_buffer(JNIEnv* env, jclass clazz) {
     return IORING_CQE_F_BUFFER;
 }
 
