@@ -5,7 +5,7 @@ import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-class MemoryUtils {
+public class MemoryUtils {
 
     protected static sun.misc.Unsafe unsafe = (sun.misc.Unsafe) getUnsafe();
 
@@ -58,6 +58,10 @@ class MemoryUtils {
 
     public static void freeMemory(long ptr) {
         unsafe.freeMemory(ptr);
+    }
+
+    public static long getPageSize() {
+        return Native.getPageSize();
     }
 
     public static ByteBuffer allocateAlignedByteBuffer(int capacity, long align) {
