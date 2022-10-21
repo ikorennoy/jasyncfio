@@ -1,13 +1,13 @@
 package one.jasyncfio;
 
+import com.tdunning.math.stats.TDigest;
 import one.jasyncfio.collections.IntObjectHashMap;
 import one.jasyncfio.collections.IntObjectMap;
 import org.jctools.queues.MpscChunkedArrayQueue;
 
 import java.util.List;
 import java.util.Queue;
-import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.IntSupplier;
 
@@ -43,6 +43,7 @@ class EventExecutorImpl extends EventExecutor {
         }
     };
     private final Queue<Runnable> tasks = new MpscChunkedArrayQueue<>(65536);
+    private final ConcurrentMap<Command<?>, Long> commandStarts = new ConcurrentHashMap<>();
     private final Ring sleepableRing;
     private final Ring pollRing;
     private final AtomicInteger state = new AtomicInteger(AWAKE);
@@ -51,6 +52,10 @@ class EventExecutorImpl extends EventExecutor {
     final IntObjectMap<Command<?>> commands;
     private final Thread t;
 
+    private volatile long startUnparkNs;
+    private long prevStartUnpark = startUnparkNs;
+    private final TDigest unparkDelays = TDigest.createDigest(100.0);
+    private final TDigest commandExecutionDelays = TDigest.createDigest(100.0);
     private final long sleepTimeout;
     private long startWork = -1;
 
@@ -108,7 +113,9 @@ class EventExecutorImpl extends EventExecutor {
                 eventFd,
                 eventFdBuffer,
                 this,
-                commands
+                commands,
+                commandStarts,
+                commandExecutionDelays
         );
         pollRing = new PollRing(
                 entries,
@@ -118,7 +125,9 @@ class EventExecutorImpl extends EventExecutor {
                 cqSize,
                 attachWqRingFd,
                 bufRingDescriptorList,
-                commands
+                commands,
+                commandStarts,
+                commandExecutionDelays
         );
 
         this.t = new Thread(this::run, "EventExecutor");
@@ -135,7 +144,9 @@ class EventExecutorImpl extends EventExecutor {
     }
 
     private void wakeup(boolean inEventLoop) {
-        if (!inEventLoop && state.getAndSet(AWAKE) != AWAKE) {
+        int localState = state.get();
+        if (!inEventLoop && (localState != AWAKE && state.compareAndSet(WAIT, AWAKE))) {
+            startUnparkNs = System.nanoTime();
             unpark();
         }
     }
@@ -154,6 +165,7 @@ class EventExecutorImpl extends EventExecutor {
 
     @Override
     public <T> T executeCommand(Command<T> command) {
+        commandStarts.put(command, System.nanoTime());
         T resultHolder = command.getOperationResult();
         execute(command);
         return resultHolder;
@@ -211,6 +223,12 @@ class EventExecutorImpl extends EventExecutor {
                 handleLoopException(t);
             } finally {
                 state.set(AWAKE);
+
+                long startUnparkNsL = startUnparkNs;
+                if (startUnparkNsL != prevStartUnpark) {
+                    unparkDelays.add(System.nanoTime() - startUnparkNsL);
+                    prevStartUnpark = startUnparkNsL;
+                }
             }
             drain();
             if (state.get() == STOP) {
@@ -243,6 +261,28 @@ class EventExecutorImpl extends EventExecutor {
                 this,
                 eventFdReadResultProvider
         ));
+    }
+
+    @Override
+    public CompletableFuture<double[]> getCommandExecutionLatencies(double[] percentiles) {
+        return getCompletableFuture(percentiles, commandExecutionDelays);
+    }
+
+    @Override
+    public CompletableFuture<double[]> getWakeupLatencies(double[] percentiles) {
+        return getCompletableFuture(percentiles, unparkDelays);
+    }
+
+    private CompletableFuture<double[]> getCompletableFuture(double[] percentiles, TDigest digest) {
+        CompletableFuture<double[]> f = new CompletableFuture<>();
+        execute(() -> {
+            double[] res = new double[percentiles.length];
+            for (int i = 0; i < percentiles.length; i++) {
+                res[i] = digest.quantile(percentiles[i]);
+            }
+            f.complete(res);
+        });
+        return f;
     }
 
     private boolean canSleep() {

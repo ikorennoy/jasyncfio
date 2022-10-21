@@ -1,5 +1,6 @@
 package one.jasyncfio;
 
+import com.tdunning.math.stats.TDigest;
 import one.jasyncfio.collections.IntObjectMap;
 
 import java.io.IOException;
@@ -7,6 +8,7 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
 
 abstract class Ring {
     final Uring ring;
@@ -14,6 +16,10 @@ abstract class Ring {
     final SubmissionQueue submissionQueue;
     private final IntObjectMap<Command<?>> commands;
     private final CompletionCallback callback = this::handle;
+
+    private final ConcurrentMap<Command<?>, Long> commandStarts;
+
+    private final TDigest commandExecutionDelays;
 
     private final Map<Short, IoUringBufRing> bufRings;
 
@@ -24,9 +30,11 @@ abstract class Ring {
          int cqSize,
          int attachWqRingFd,
          List<BufRingDescriptor> bufRingDescriptorList,
-         IntObjectMap<Command<?>> commands
-    ) {
+         IntObjectMap<Command<?>> commands,
+         ConcurrentMap<Command<?>, Long> commandStarts, TDigest commandExecutionDelays) {
         this.commands = commands;
+        this.commandStarts = commandStarts;
+        this.commandExecutionDelays = commandExecutionDelays;
         ring = Native.setupIoUring(entries, flags, sqThreadIdle, sqThreadCpu, cqSize, attachWqRingFd);
         submissionQueue = ring.getSubmissionQueue();
         completionQueue = ring.getCompletionQueue();
@@ -50,6 +58,7 @@ abstract class Ring {
 
     private void handle(int res, int flags, long data) {
         Command<?> command = commands.remove((int) data);
+        Long startTime = commandStarts.remove(command);
         if (command != null) {
             if (res >= 0) {
                 if (isIoringCqeFBufferSet(flags)) {
@@ -65,6 +74,7 @@ abstract class Ring {
                 command.error(new IOException(String.format("Error code: %d; message: %s", -res, Native.decodeErrno(res))));
             }
         }
+        commandExecutionDelays.add(System.nanoTime() - startTime);
     }
 
     void close() {

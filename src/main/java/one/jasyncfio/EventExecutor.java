@@ -2,6 +2,7 @@ package one.jasyncfio;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public abstract class EventExecutor implements AutoCloseable {
 
@@ -18,6 +19,10 @@ public abstract class EventExecutor implements AutoCloseable {
     abstract int sleepableRingFd();
 
     abstract int getBufferLength(PollableStatus pollableStatus, short bufRingId);
+
+    public abstract CompletableFuture<double[]> getWakeupLatencies(double[] percentiles);
+
+    public abstract CompletableFuture<double[]> getCommandExecutionLatencies(double[] percentiles);
 
     public static class Builder {
         private int entries = 4096;

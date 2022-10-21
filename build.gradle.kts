@@ -210,6 +210,7 @@ dependencies {
     implementation("org.jctools:jctools-core:${deps.jctools}")
     implementation("cn.danielw:fast-object-pool:${deps.object_pool}")
     implementation("com.conversantmedia:disruptor:${deps.object_pool_disruptor}")
+    implementation("com.tdunning:t-digest:3.3")
     testImplementation("org.junit.jupiter:junit-jupiter-api:${deps.junit_jupiter}")
     testImplementation("org.junit.jupiter:junit-jupiter-engine:${deps.junit_jupiter}")
     testImplementation("org.openjdk.jmh:jmh-core:${deps.jmh_core}")

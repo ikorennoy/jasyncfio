@@ -8,7 +8,7 @@ import java.util.concurrent.ThreadLocalRandom;
 @SuppressWarnings("ALL")
 public class BenchmarkWorkerIoUring implements Runnable {
     private volatile Thread t;
-    private final EventExecutor executor;
+    public final EventExecutor executor;
     private final ByteBuffer[] buffers;
     private final Path path;
     private final int blockSize;
