@@ -21,6 +21,13 @@ public class BenchmarkWorkerIoUring implements Runnable {
     volatile long reaps = 0;
     volatile boolean isRunning = true;
 
+    private final CompletionCallback c = new CompletionCallback() {
+        @Override
+        public void handle(int res, int flags, long userData) {
+
+        }
+    };
+
     public BenchmarkWorkerIoUring(Path path, int bufferSize, int blockSize, int ioDepth, int submissions, int completions) {
         this.path = path;
         this.blockSize = blockSize;
@@ -39,25 +46,37 @@ public class BenchmarkWorkerIoUring implements Runnable {
         t.start();
     }
 
+    // todo add jmh for enqueue
+    //  jmh for processEvents
+
     @Override
     public void run() {
         try {
+            Uring uring = Native.setupIoUring(128, 0, 0, 0, 0, 0);
             AsyncFile file = AsyncFile.open(path, executor, OpenOption.READ_ONLY, OpenOption.NOATIME).get();
+            executor.close();
             long maxBlocks = Native.getFileSize(file.getRawFd()) / blockSize;
             CompletableFuture[] submissionsArray = new CompletableFuture[submissions];
             do {
                 for (int i = 0; i < submissions; i++) {
-                    buffers[i].clear();
-                    calls++;
-                    submissionsArray[i] = file.read(buffers[i], getOffset(maxBlocks), bufferSize);
+                    uring.getSubmissionQueue().enqueueSqe(
+                            Native.IORING_OP_READ,
+                            0,
+                            0,
+                            file.getRawFd(),
+                            MemoryUtils.getDirectBufferAddress(buffers[i]),
+                            bufferSize,
+                            getOffset(maxBlocks),
+                            0,
+                            0,
+                            0
+                    );
                 }
-                for (int i = 0; i < completions; i++) {
-                    submissionsArray[i].get();
-                    reaps++;
-                    done++;
-                }
+                int ret = uring.getSubmissionQueue().submit(completions);
+                calls++;
+                reaps += uring.getCompletionQueue().processEvents(c);
+                done += ret;
             } while (isRunning);
-
         } catch (Throwable ex) {
             ex.printStackTrace();
         }
