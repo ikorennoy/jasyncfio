@@ -2,12 +2,10 @@ package one.jasyncfio;
 
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadLocalRandom;
 
-@SuppressWarnings("ALL")
 public class BenchmarkWorkerIoUring implements Runnable {
-    private volatile Thread t;
+    private final Thread t;
     public final EventExecutor executor;
     private final ByteBuffer[] buffers;
     private final Path path;
@@ -52,9 +50,6 @@ public class BenchmarkWorkerIoUring implements Runnable {
         t.start();
     }
 
-    // todo add jmh for enqueue
-    //  jmh for processEvents
-
     @Override
     public void run() {
         try {
@@ -62,7 +57,6 @@ public class BenchmarkWorkerIoUring implements Runnable {
             AsyncFile file = AsyncFile.open(path, executor, OpenOption.READ_ONLY, OpenOption.NOATIME).get();
             executor.close();
             maxBlocks = Native.getFileSize(file.getRawFd()) / blockSize;
-            CompletableFuture[] submissionsArray = new CompletableFuture[batchSubmit];
             int ret;
             int prepped = 0;
             int inFlight = 0;
@@ -100,7 +94,7 @@ public class BenchmarkWorkerIoUring implements Runnable {
                         int diff = toSubmit - ret;
                         done += ret;
                         prepped -= diff;
-                        System.out.println("ret < toSubmit");
+                        // todo support re-submit
                     }
                     done += ret;
                     prepped = 0;
