@@ -14,7 +14,8 @@ public class BenchmarkWorkerIoUring implements Runnable {
     private final int batchSubmit;
     private final int batchComplete;
     private final int depth;
-
+    private int bufTail = 0;
+    private final int bufMask;
     private long maxBlocks;
 
     volatile long calls = 0;
@@ -38,6 +39,7 @@ public class BenchmarkWorkerIoUring implements Runnable {
         this.batchSubmit = batchSubmit;
         this.batchComplete = batchComplete;
         this.depth = depth;
+        this.bufMask = depth - 1;
         executor = EventExecutor.initDefault();
         buffers = new ByteBuffer[depth];
         for (int i = 0; i < buffers.length; i++) {
@@ -110,12 +112,13 @@ public class BenchmarkWorkerIoUring implements Runnable {
 
     private int prepMoreIos(Uring uring, int fd, int toPrep) {
         for (int i = 0; i < toPrep; i++) {
+            int idx = bufTail++ & bufMask;
             uring.getSubmissionQueue().enqueueSqe(
                     Native.IORING_OP_READ,
                     0,
                     0,
                     fd,
-                    MemoryUtils.getDirectBufferAddress(buffers[i]),
+                    MemoryUtils.getDirectBufferAddress(buffers[idx]),
                     bufferSize,
                     getOffset(maxBlocks),
                     0,
