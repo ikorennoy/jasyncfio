@@ -48,7 +48,7 @@ public class Benchmark implements Callable<Integer> {
     @Override
     public Integer call() throws Exception {
         for (int i = 0; i < threads; i++) {
-            BenchmarkWorkerIoUring benchmarkWorkerIoUring = new BenchmarkWorkerIoUring(Paths.get(file), bufferSize, bufferSize, ioDepth, submissions, completions);
+            BenchmarkWorkerIoUring benchmarkWorkerIoUring = new BenchmarkWorkerIoUring(Paths.get(file),  bufferSize, bufferSize, ioDepth, submissions, completions);
             benchmarkWorkerIoUring.start();
             workers.add(benchmarkWorkerIoUring);
         }

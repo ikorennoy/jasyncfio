@@ -13,8 +13,11 @@ public class BenchmarkWorkerIoUring implements Runnable {
     private final Path path;
     private final int blockSize;
     private final int bufferSize;
-    private final int submissions;
-    private final int completions;
+    private final int batchSubmit;
+    private final int batchComplete;
+    private final int depth;
+
+    private long maxBlocks;
 
     volatile long calls = 0;
     volatile long done = 0;
@@ -24,18 +27,21 @@ public class BenchmarkWorkerIoUring implements Runnable {
     private final CompletionCallback c = new CompletionCallback() {
         @Override
         public void handle(int res, int flags, long userData) {
-
+            if (res != bufferSize) {
+                System.out.println("unexpected res: " + res);
+            }
         }
     };
 
-    public BenchmarkWorkerIoUring(Path path, int bufferSize, int blockSize, int ioDepth, int submissions, int completions) {
+    public BenchmarkWorkerIoUring(Path path, int bufferSize, int blockSize, int depth, int batchSubmit, int batchComplete) {
         this.path = path;
         this.blockSize = blockSize;
         this.bufferSize = bufferSize;
-        this.submissions = submissions;
-        this.completions = completions;
+        this.batchSubmit = batchSubmit;
+        this.batchComplete = batchComplete;
+        this.depth = depth;
         executor = EventExecutor.initDefault();
-        buffers = new ByteBuffer[ioDepth];
+        buffers = new ByteBuffer[depth];
         for (int i = 0; i < buffers.length; i++) {
             buffers[i] = MemoryUtils.allocateAlignedByteBuffer(bufferSize, MemoryUtils.getPageSize());
         }
@@ -55,31 +61,75 @@ public class BenchmarkWorkerIoUring implements Runnable {
             Uring uring = Native.setupIoUring(128, 0, 0, 0, 0, 0);
             AsyncFile file = AsyncFile.open(path, executor, OpenOption.READ_ONLY, OpenOption.NOATIME).get();
             executor.close();
-            long maxBlocks = Native.getFileSize(file.getRawFd()) / blockSize;
-            CompletableFuture[] submissionsArray = new CompletableFuture[submissions];
+            maxBlocks = Native.getFileSize(file.getRawFd()) / blockSize;
+            CompletableFuture[] submissionsArray = new CompletableFuture[batchSubmit];
+            int ret;
+            int prepped = 0;
+            int inFlight = 0;
             do {
-                for (int i = 0; i < submissions; i++) {
-                    uring.getSubmissionQueue().enqueueSqe(
-                            Native.IORING_OP_READ,
-                            0,
-                            0,
-                            file.getRawFd(),
-                            MemoryUtils.getDirectBufferAddress(buffers[i]),
-                            bufferSize,
-                            getOffset(maxBlocks),
-                            0,
-                            0,
-                            0
-                    );
+                int toWait, toSubmit, thisReap, toPrep;
+                if (prepped == 0 && inFlight < depth) {
+                    toPrep = Math.min(depth - inFlight, batchSubmit);
+                    prepped = prepMoreIos(uring, file.getRawFd(), toPrep);
                 }
-                int ret = uring.getSubmissionQueue().submit(completions);
+                inFlight += prepped;
+
+                submitMore:
+                toSubmit = prepped;
+
+                submit:
+                if (toSubmit > 0 && (inFlight + toSubmit <= depth))
+                    toWait = 0;
+                else
+                    toWait = Math.min(inFlight + toSubmit, batchComplete);
+
+                ret = uring.getSubmissionQueue().submit(toWait);
                 calls++;
-                reaps += uring.getCompletionQueue().processEvents(c);
-                done += ret;
+
+                thisReap = 0;
+                do {
+                    int r;
+                    r = uring.getCompletionQueue().processEvents(c);
+                    inFlight -= r;
+                    thisReap += r;
+                } while (false && thisReap < toWait);
+                reaps += thisReap;
+
+                if (ret >= 0) {
+                    if (ret < toSubmit) {
+                        int diff = toSubmit - ret;
+                        done += ret;
+                        prepped -= diff;
+                        System.out.println("ret < toSubmit");
+                    }
+                    done += ret;
+                    prepped = 0;
+                    continue;
+                }
+
             } while (isRunning);
         } catch (Throwable ex) {
             ex.printStackTrace();
         }
+    }
+
+
+    private int prepMoreIos(Uring uring, int fd, int toPrep) {
+        for (int i = 0; i < toPrep; i++) {
+            uring.getSubmissionQueue().enqueueSqe(
+                    Native.IORING_OP_READ,
+                    0,
+                    0,
+                    fd,
+                    MemoryUtils.getDirectBufferAddress(buffers[i]),
+                    bufferSize,
+                    getOffset(maxBlocks),
+                    0,
+                    0,
+                    0
+            );
+        }
+        return toPrep;
     }
 
 
