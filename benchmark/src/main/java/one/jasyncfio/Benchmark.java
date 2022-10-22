@@ -1,7 +1,6 @@
 package one.jasyncfio;
 
 import picocli.CommandLine;
-
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,14 +40,15 @@ public class Benchmark implements Callable<Integer> {
     private int completions = 32;
 
 
-    private List<BenchmarkWorkerIoUringCompletableFuture> workers = new ArrayList<>();
+    private final List<BenchmarkWorkerIoUringCompletableFuture> workers = new ArrayList<>();
 
     private final double[] defaultPercentiles = {0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99, 0.995, 0.999};
 
     @Override
     public Integer call() throws Exception {
         for (int i = 0; i < threads; i++) {
-            BenchmarkWorkerIoUringCompletableFuture benchmarkWorkerIoUringCompletableFuture = new BenchmarkWorkerIoUringCompletableFuture(Paths.get(file), bufferSize, bufferSize, ioDepth, submissions, completions);
+            BenchmarkWorkerIoUringCompletableFuture benchmarkWorkerIoUringCompletableFuture =
+                    new BenchmarkWorkerIoUringCompletableFuture(Paths.get(file), bufferSize, bufferSize, ioDepth, submissions, completions);
             benchmarkWorkerIoUringCompletableFuture.start();
             workers.add(benchmarkWorkerIoUringCompletableFuture);
         }

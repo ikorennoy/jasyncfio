@@ -1,6 +1,5 @@
 package one.jasyncfio;
 
-
 import com.tdunning.math.stats.TDigest;
 import one.jasyncfio.collections.IntObjectMap;
 
@@ -16,8 +15,11 @@ class PollRing extends Ring {
              int attachWqRingFd,
              List<BufRingDescriptor> bufRingDescriptorList,
              IntObjectMap<Command<?>> commands,
-             ConcurrentMap<Command<?>, Long> commandStarts, TDigest commandExecutionDelays) {
-        super(entries, flags, sqThreadIdle, sqThreadCpu, cqSize, attachWqRingFd, bufRingDescriptorList, commands, commandStarts, commandExecutionDelays);
+             boolean monitoringEnabled,
+             ConcurrentMap<Command<?>, Long> commandStarts,
+             TDigest commandExecutionDelays
+    ) {
+        super(entries, flags, sqThreadIdle, sqThreadCpu, cqSize, attachWqRingFd, bufRingDescriptorList, commands, monitoringEnabled, commandStarts, commandExecutionDelays);
     }
 
     @Override

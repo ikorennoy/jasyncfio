@@ -22,8 +22,11 @@ class SleepableRing extends Ring {
                   long eventFdBuffer,
                   EventExecutor executor,
                   IntObjectMap<Command<?>> commands,
-                  ConcurrentMap<Command<?>, Long> commandStarts, TDigest commandExecutionDelays) {
-        super(entries, flags, sqThreadIdle, sqThreadCpu, cqSize, attachWqRingFd, bufRingDescriptorList, commands, commandStarts, commandExecutionDelays);
+                  boolean monitoringEnabled,
+                  ConcurrentMap<Command<?>, Long> commandStarts,
+                  TDigest commandExecutionDelays
+    ) {
+        super(entries, flags, sqThreadIdle, sqThreadCpu, cqSize, attachWqRingFd, bufRingDescriptorList, commands, monitoringEnabled, commandStarts, commandExecutionDelays);
         this.eventFd = eventFd;
         this.eventFdBuffer = eventFdBuffer;
         this.executor = executor;

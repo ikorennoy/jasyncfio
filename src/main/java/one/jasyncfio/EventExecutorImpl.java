@@ -57,6 +57,8 @@ class EventExecutorImpl extends EventExecutor {
     private final TDigest unparkDelays = TDigest.createDigest(100.0);
     private final TDigest commandExecutionDelays = TDigest.createDigest(100.0);
     private final long sleepTimeout;
+
+    private final boolean monitoringEnabled = false;
     private long startWork = -1;
 
     private final IntSupplier sequencer = new IntSupplier() {
@@ -100,7 +102,6 @@ class EventExecutorImpl extends EventExecutor {
             flags |= Native.IORING_SETUP_ATTACH_WQ;
         }
 
-
         this.sleepTimeout = TimeUnit.NANOSECONDS.convert(sleepTimeoutMs, TimeUnit.MILLISECONDS);
         sleepableRing = new SleepableRing(
                 entries,
@@ -114,6 +115,7 @@ class EventExecutorImpl extends EventExecutor {
                 eventFdBuffer,
                 this,
                 commands,
+                monitoringEnabled,
                 commandStarts,
                 commandExecutionDelays
         );
@@ -126,6 +128,7 @@ class EventExecutorImpl extends EventExecutor {
                 attachWqRingFd,
                 bufRingDescriptorList,
                 commands,
+                monitoringEnabled,
                 commandStarts,
                 commandExecutionDelays
         );
@@ -146,7 +149,9 @@ class EventExecutorImpl extends EventExecutor {
     private void wakeup(boolean inEventLoop) {
         int localState = state.get();
         if (!inEventLoop && (localState != AWAKE && state.compareAndSet(WAIT, AWAKE))) {
-            startUnparkNs = System.nanoTime();
+            if (monitoringEnabled) {
+                startUnparkNs = System.nanoTime();
+            }
             unpark();
         }
     }
@@ -165,7 +170,9 @@ class EventExecutorImpl extends EventExecutor {
 
     @Override
     public <T> T executeCommand(Command<T> command) {
-        commandStarts.put(command, System.nanoTime());
+        if (monitoringEnabled) {
+            commandStarts.put(command, System.nanoTime());
+        }
         T resultHolder = command.getOperationResult();
         execute(command);
         return resultHolder;
@@ -210,6 +217,7 @@ class EventExecutorImpl extends EventExecutor {
 
     private void run() {
         addEventFdRead();
+        resetSleepTimeout();
         while (true) {
             try {
                 state.set(WAIT);
@@ -223,11 +231,12 @@ class EventExecutorImpl extends EventExecutor {
                 handleLoopException(t);
             } finally {
                 state.set(AWAKE);
-
-                long startUnparkNsL = startUnparkNs;
-                if (startUnparkNsL != prevStartUnpark) {
-                    unparkDelays.add(System.nanoTime() - startUnparkNsL);
-                    prevStartUnpark = startUnparkNsL;
+                if (monitoringEnabled) {
+                    long startUnparkNsL = startUnparkNs;
+                    if (startUnparkNsL != prevStartUnpark) {
+                        unparkDelays.add(System.nanoTime() - startUnparkNsL);
+                        prevStartUnpark = startUnparkNsL;
+                    }
                 }
             }
             drain();
@@ -265,24 +274,28 @@ class EventExecutorImpl extends EventExecutor {
 
     @Override
     public CompletableFuture<double[]> getCommandExecutionLatencies(double[] percentiles) {
-        return getCompletableFuture(percentiles, commandExecutionDelays);
+        return getLatencies(percentiles, commandExecutionDelays);
     }
 
     @Override
     public CompletableFuture<double[]> getWakeupLatencies(double[] percentiles) {
-        return getCompletableFuture(percentiles, unparkDelays);
+        return getLatencies(percentiles, unparkDelays);
     }
 
-    private CompletableFuture<double[]> getCompletableFuture(double[] percentiles, TDigest digest) {
-        CompletableFuture<double[]> f = new CompletableFuture<>();
-        execute(() -> {
-            double[] res = new double[percentiles.length];
-            for (int i = 0; i < percentiles.length; i++) {
-                res[i] = digest.quantile(percentiles[i]);
-            }
-            f.complete(res);
-        });
-        return f;
+    private CompletableFuture<double[]> getLatencies(double[] percentiles, TDigest digest) {
+        if (monitoringEnabled) {
+            CompletableFuture<double[]> f = new CompletableFuture<>();
+            execute(() -> {
+                double[] res = new double[percentiles.length];
+                for (int i = 0; i < percentiles.length; i++) {
+                    res[i] = digest.quantile(percentiles[i]);
+                }
+                f.complete(res);
+            });
+            return f;
+        } else {
+            return CompletableFuture.completedFuture(new double[0]);
+        }
     }
 
     private boolean canSleep() {
@@ -327,14 +340,16 @@ class EventExecutorImpl extends EventExecutor {
         boolean moreWork = true;
         do {
             try {
-                int processed = processAllCompletedTasks();
                 boolean run = runAllTasks();
+                if (run) {
+                    submitIo();
+                }
+                int processed = processAllCompletedTasks();
                 moreWork = processed != 0 || run;
             } catch (Throwable r) {
                 handleLoopException(r);
             }
         } while (moreWork);
-        submitIo();
     }
 
     private boolean runAllTasks() {
