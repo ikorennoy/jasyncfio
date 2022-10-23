@@ -69,41 +69,41 @@ public class Benchmark implements Callable<Integer> {
     @CommandLine.Option(names = {"-S", "--sync-io"}, description = "Use sync I/O (FileChannel), default false", paramLabel = "<boolean>")
     private boolean syncIo = false;
 
+    @CommandLine.Option(names = {"-A", "--async-lib-interface"}, description = "Use async library interface, default true", paramLabel = "<boolean>")
+    private boolean asyncInterface = true;
+
     // todo not supported
 //    @CommandLine.Option(names = {"-X", "--register-ring"}, description = "Use registered ring, default true", paramLabel = "<boolean>")
 //    private boolean registeredRing = true;
 
 
-
-    private final List<BenchmarkWorkerIoUringCompletableFuture> workers = new ArrayList<>();
+    private final List<BenchmarkWorker> workers = new ArrayList<>();
 
     private final double[] defaultPercentiles = {0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99, 0.995, 0.999};
 
     @Override
     public Integer call() throws Exception {
         for (int i = 0; i < threads; i++) {
-            BenchmarkWorkerIoUringCompletableFuture benchmarkWorkerIoUringCompletableFuture =
-                    new BenchmarkWorkerIoUringCompletableFuture(Paths.get(file), blockSize, blockSize, ioDepth, batchSubmit, batchComplete);
-            benchmarkWorkerIoUringCompletableFuture.start();
-            workers.add(benchmarkWorkerIoUringCompletableFuture);
+            BenchmarkWorker worker = getWorker(
+                    file,
+                    ioDepth,
+                    batchSubmit,
+                    batchComplete,
+                    blockSize,
+                    polledIo,
+                    fixedBuffers,
+                    oDirect,
+                    noOp,
+                    trackLatencies,
+                    randomIo,
+                    syncIo,
+                    asyncInterface
+            );
+            worker.start();
+            workers.add(worker);
         }
 
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            for (int i = 0; i < workers.size(); i++) {
-                StringBuilder builder = new StringBuilder();
-                double[] wakeupLatencies = workers.get(i).executor.getWakeupLatencies(defaultPercentiles).join();
-                builder.append("Loop wakeup delays\n");
-                for (int j = 0; j < wakeupLatencies.length; j++) {
-                    builder.append(defaultPercentiles[j]).append("=").append((long) (wakeupLatencies[j] / 1000)).append(" us\n");
-                }
-                builder.append("Command exec delays\n");
-                double[] delayLatencies = workers.get(i).executor.getCommandExecutionLatencies(defaultPercentiles).join();
-                for (int j = 0; j < delayLatencies.length; j++) {
-                    builder.append(defaultPercentiles[j]).append("=").append((long) (delayLatencies[j] / 1000)).append(" us\n");
-                }
-                System.out.println(builder);
-            }
-        }));
+
         long reap = 0;
         long calls = 0;
         long done = 0;
@@ -141,6 +141,38 @@ public class Benchmark implements Callable<Integer> {
             calls = thisCall;
             reap = thisReap;
         } while (true);
+    }
+
+    public BenchmarkWorker getWorker(String file,
+                                     int ioDepth,
+                                     int batchSubmit,
+                                     int batchComplete,
+                                     int blockSize,
+                                     boolean polledIo,
+                                     boolean fixedBuffers,
+                                     boolean oDirect,
+                                     boolean noOp,
+                                     boolean trackLatencies,
+                                     boolean randomIo,
+                                     boolean syncIo,
+                                     boolean asyncInterface) {
+        if (asyncInterface) {
+            return new IoUringCompletableFuture(
+                    Paths.get(file),
+                    blockSize,
+                    ioDepth,
+                    batchSubmit,
+                    batchComplete,
+                    polledIo,
+                    fixedBuffers,
+                    oDirect,
+                    noOp,
+                    trackLatencies,
+                    randomIo
+            );
+        } else {
+            return null;
+        }
     }
 
     public static void main(String[] args) {

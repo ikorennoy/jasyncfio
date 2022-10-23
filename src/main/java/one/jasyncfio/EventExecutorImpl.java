@@ -46,6 +46,7 @@ class EventExecutorImpl extends EventExecutor {
     private final ConcurrentMap<Command<?>, Long> commandStarts = new ConcurrentHashMap<>();
     private final Ring sleepableRing;
     private final Ring pollRing;
+    private final boolean ioPollEnabled;
     private final AtomicInteger state = new AtomicInteger(AWAKE);
     private final long eventFdBuffer = MemoryUtils.allocateMemory(8);
     private final int eventFd = Native.getEventFd();
@@ -81,10 +82,10 @@ class EventExecutorImpl extends EventExecutor {
                       boolean ioRingSetupAttachWq,
                       int attachWqRingFd,
                       List<BufRingDescriptor> bufRingDescriptorList,
-                      long sleepTimeoutMs
-    ) {
+                      long sleepTimeoutMs,
+                      boolean ioPollEnabled) {
         this.commands = new IntObjectHashMap<>(entries);
-
+        this.ioPollEnabled = ioPollEnabled;
         int flags = 0;
         if (ioRingSetupSqPoll) {
             flags |= Native.IORING_SETUP_SQPOLL;
