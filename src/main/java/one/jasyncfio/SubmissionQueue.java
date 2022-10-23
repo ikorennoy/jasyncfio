@@ -93,7 +93,7 @@ class SubmissionQueue {
         if (!isIoPoll()) {
             return submit > 0 ? submit(submit, submit, Native.IORING_ENTER_GETEVENTS) : 0;
         } else {
-            return submit(submit, submit, Native.IORING_ENTER_GETEVENTS);
+            return submit(submit, 1, Native.IORING_ENTER_GETEVENTS);
         }
     }
 

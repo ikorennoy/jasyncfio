@@ -59,7 +59,7 @@ class EventExecutorImpl extends EventExecutor {
     private final TDigest commandExecutionDelays = TDigest.createDigest(100.0);
     private final long sleepTimeout;
 
-    private final boolean monitoringEnabled = false;
+    private final boolean monitoringEnabled;
     private long startWork = -1;
 
     private final IntSupplier sequencer = new IntSupplier() {
@@ -83,9 +83,12 @@ class EventExecutorImpl extends EventExecutor {
                       int attachWqRingFd,
                       List<BufRingDescriptor> bufRingDescriptorList,
                       long sleepTimeoutMs,
-                      boolean ioPollEnabled) {
+                      boolean ioPollEnabled,
+                      boolean monitoring) {
         this.commands = new IntObjectHashMap<>(entries);
         this.ioPollEnabled = ioPollEnabled;
+        this.monitoringEnabled = monitoring;
+
         int flags = 0;
         if (ioRingSetupSqPoll) {
             flags |= Native.IORING_SETUP_SQPOLL;
@@ -104,6 +107,7 @@ class EventExecutorImpl extends EventExecutor {
         }
 
         this.sleepTimeout = TimeUnit.NANOSECONDS.convert(sleepTimeoutMs, TimeUnit.MILLISECONDS);
+
         sleepableRing = new SleepableRing(
                 entries,
                 flags,
@@ -113,8 +117,6 @@ class EventExecutorImpl extends EventExecutor {
                 attachWqRingFd,
                 bufRingDescriptorList,
                 eventFd,
-                eventFdBuffer,
-                this,
                 commands,
                 monitoringEnabled,
                 commandStarts,
@@ -284,19 +286,18 @@ class EventExecutorImpl extends EventExecutor {
     }
 
     private CompletableFuture<double[]> getLatencies(double[] percentiles, TDigest digest) {
-        if (monitoringEnabled) {
-            CompletableFuture<double[]> f = new CompletableFuture<>();
-            execute(() -> {
-                double[] res = new double[percentiles.length];
-                for (int i = 0; i < percentiles.length; i++) {
-                    res[i] = digest.quantile(percentiles[i]);
-                }
-                f.complete(res);
-            });
-            return f;
-        } else {
-            return CompletableFuture.completedFuture(new double[0]);
+        if (!monitoringEnabled) {
+            throw new IllegalStateException("monitoring is not enabled");
         }
+        CompletableFuture<double[]> f = new CompletableFuture<>();
+        execute(() -> {
+            double[] res = new double[percentiles.length];
+            for (int i = 0; i < percentiles.length; i++) {
+                res[i] = digest.quantile(percentiles[i]);
+            }
+            f.complete(res);
+        });
+        return f;
     }
 
     private boolean canSleep() {

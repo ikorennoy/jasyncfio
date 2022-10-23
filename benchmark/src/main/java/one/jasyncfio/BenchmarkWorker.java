@@ -1,5 +1,6 @@
 package one.jasyncfio;
 
+import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
 public abstract class BenchmarkWorker implements Runnable {
@@ -28,4 +29,6 @@ public abstract class BenchmarkWorker implements Runnable {
     public long getRandomOffset(long maxBlocks) {
         return (Math.abs(ThreadLocalRandom.current().nextLong()) % (maxBlocks - 1)) * blockSize;
     }
+
+    public abstract Map<String, double[]> getLatencies(double[] percentiles);
 }

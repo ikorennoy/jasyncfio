@@ -42,7 +42,7 @@ public abstract class BenchmarkIoUringWorker extends BenchmarkWorker {
         EventExecutor.Builder ioUringBuilder = EventExecutor.builder();
 
         if (pooledIo) {
-            ioUringBuilder.setupIoPoll();
+            ioUringBuilder.ioRingSetupIoPoll();
         }
         if (fixedBuffers) {
             ioUringBuilder.addBufRing(depth, blockSize, (short) 0);
@@ -54,7 +54,7 @@ public abstract class BenchmarkIoUringWorker extends BenchmarkWorker {
             }
         }
         if (trackLatencies) {
-            // todo support
+            ioUringBuilder.monitoring();
         }
         this.executor = ioUringBuilder.build();
 

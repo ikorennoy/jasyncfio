@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentMap;
 
 class PollRing extends Ring {
+
     PollRing(int entries,
              int flags,
              int sqThreadIdle,
@@ -17,9 +18,20 @@ class PollRing extends Ring {
              IntObjectMap<Command<?>> commands,
              boolean monitoringEnabled,
              ConcurrentMap<Command<?>, Long> commandStarts,
-             TDigest commandExecutionDelays
-    ) {
-        super(entries, flags, sqThreadIdle, sqThreadCpu, cqSize, attachWqRingFd, bufRingDescriptorList, commands, monitoringEnabled, commandStarts, commandExecutionDelays);
+             TDigest commandExecutionDelays) {
+
+        super(entries,
+                flags,
+                sqThreadIdle,
+                sqThreadCpu,
+                cqSize,
+                attachWqRingFd,
+                bufRingDescriptorList,
+                commands,
+                monitoringEnabled,
+                commandStarts,
+                commandExecutionDelays
+        );
     }
 
     @Override

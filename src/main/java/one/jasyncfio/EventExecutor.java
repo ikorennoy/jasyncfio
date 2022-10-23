@@ -39,6 +39,7 @@ public abstract class EventExecutor implements AutoCloseable {
 
         private final List<BufRingDescriptor> bufRingDescriptors = new ArrayList<>();
         private boolean ioPoll;
+        private boolean monitoring = false;
 
         private Builder() {
         }
@@ -155,8 +156,16 @@ public abstract class EventExecutor implements AutoCloseable {
          * The file system (if any) and block device must support polling in order for this to work.
          * Busy-waiting provides lower latency, but may consume more CPU resources than interrupt driven I/O.
          */
-        public Builder setupIoPoll() {
+        public Builder ioRingSetupIoPoll() {
             this.ioPoll = true;
+            return this;
+        }
+
+        /**
+         * Enable latencies monitoring.
+         */
+        public Builder monitoring() {
+            this.monitoring = true;
             return this;
         }
 
@@ -183,7 +192,8 @@ public abstract class EventExecutor implements AutoCloseable {
                     attachWqRingFd,
                     bufRingDescriptors,
                     sleepTimeoutMs,
-                    ioPoll
+                    ioPoll,
+                    monitoring
             );
             pollEventExecutor.start();
             return pollEventExecutor;

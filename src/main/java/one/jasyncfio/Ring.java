@@ -34,8 +34,8 @@ abstract class Ring {
          IntObjectMap<Command<?>> commands,
          boolean monitoringEnabled,
          ConcurrentMap<Command<?>, Long> commandStarts,
-         TDigest commandExecutionDelays
-    ) {
+         TDigest commandExecutionDelays) {
+
         this.commands = commands;
         this.commandStarts = commandStarts;
         this.commandExecutionDelays = commandExecutionDelays;

@@ -8,8 +8,6 @@ import java.util.concurrent.ConcurrentMap;
 
 class SleepableRing extends Ring {
     private final int eventFd;
-    private final long eventFdBuffer;
-    private final EventExecutor executor;
 
     SleepableRing(int entries,
                   int flags,
@@ -19,17 +17,23 @@ class SleepableRing extends Ring {
                   int attachWqRingFd,
                   List<BufRingDescriptor> bufRingDescriptorList,
                   int eventFd,
-                  long eventFdBuffer,
-                  EventExecutor executor,
                   IntObjectMap<Command<?>> commands,
                   boolean monitoringEnabled,
                   ConcurrentMap<Command<?>, Long> commandStarts,
-                  TDigest commandExecutionDelays
-    ) {
-        super(entries, flags, sqThreadIdle, sqThreadCpu, cqSize, attachWqRingFd, bufRingDescriptorList, commands, monitoringEnabled, commandStarts, commandExecutionDelays);
+                  TDigest commandExecutionDelays) {
+        super(entries,
+                flags,
+                sqThreadIdle,
+                sqThreadCpu,
+                cqSize,
+                attachWqRingFd,
+                bufRingDescriptorList,
+                commands,
+                monitoringEnabled,
+                commandStarts,
+                commandExecutionDelays
+        );
         this.eventFd = eventFd;
-        this.eventFdBuffer = eventFdBuffer;
-        this.executor = executor;
 
     }
 

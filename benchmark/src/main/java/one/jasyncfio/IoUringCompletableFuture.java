@@ -2,7 +2,9 @@ package one.jasyncfio;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 public class IoUringCompletableFuture extends BenchmarkIoUringWorker {
@@ -46,7 +48,8 @@ public class IoUringCompletableFuture extends BenchmarkIoUringWorker {
                     thisReap = 0;
                     do {
                         int r = 0;
-                        for (CompletableFuture<BufRingResult> future : submissions) {
+                        for (int i = 0; i < submissions.size(); i++) {
+                            CompletableFuture<BufRingResult> future = submissions.get(i);
                             if (future.isDone()) {
                                 try (BufRingResult res = future.get()) {
                                     if (res.getReadBytes() != blockSize) {
@@ -136,4 +139,16 @@ public class IoUringCompletableFuture extends BenchmarkIoUringWorker {
         return toSubmit;
     }
 
+    @Override
+    public Map<String, double[]> getLatencies(double[] percentiles) {
+        double[] wakeupLatencies = executor.getWakeupLatencies(percentiles).join();
+        double[] commandExecutionLatencies = executor.getCommandExecutionLatencies(percentiles).join();
+
+        Map<String, double[]> result = new HashMap<>();
+
+        result.put("Wakeup Latencies", wakeupLatencies);
+        result.put("Command Execution Latencies", commandExecutionLatencies);
+
+        return result;
+    }
 }

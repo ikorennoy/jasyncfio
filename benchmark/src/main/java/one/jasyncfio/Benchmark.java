@@ -5,6 +5,7 @@ import picocli.CommandLine;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 @CommandLine.Command(mixinStandardHelpOptions = true, version = "Benchmark 1.0")
@@ -101,6 +102,25 @@ public class Benchmark implements Callable<Integer> {
             );
             worker.start();
             workers.add(worker);
+        }
+
+        if (trackLatencies) {
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                for (BenchmarkWorker worker : workers) {
+                    Map<String, double[]> latencies = worker.getLatencies(defaultPercentiles);
+
+                    StringBuilder latenciesStr = new StringBuilder();
+                    for (Map.Entry<String, double[]> entry: latencies.entrySet()) {
+                        latenciesStr.append(entry.getKey()).append(": \n");
+                        double[] latenciesNs = entry.getValue();
+                        for (int i = 0; i < latenciesNs.length; i++) {
+                            latenciesStr.append(defaultPercentiles[i]).append("=").append(((long) latenciesNs[i] / 1000)).append(" us\n");
+                        }
+                    }
+                    System.out.println(latenciesStr);
+
+                }
+            }));
         }
 
 
