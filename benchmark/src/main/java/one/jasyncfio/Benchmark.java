@@ -124,20 +124,21 @@ public class Benchmark implements Callable<Integer> {
         }
 
 
-        long reap = 0;
-        long calls = 0;
-        long done = 0;
-
+        long reap = 0, calls = 0, done = 0;
+        long maxIops = -1;
         do {
-            long thisDone = 0;
-            long thisReap = 0;
-            long thisCall = 0;
-            long rpc = 0;
-            long ipc = 0;
-            long iops = 0;
-            long bw = 0;
+            long thisDone = 0, thisReap = 0, thisCall = 0;
+            long rpc, ipc, iops, bw;
 
             Thread.sleep(1000);
+            runTime--;
+            if (runTime == 0) {
+                for (BenchmarkWorker w: workers) {
+                    w.stop();
+                }
+                System.out.println("Maximum IOPS=" + maxIops);
+                break;
+            }
 
             for (int i = 0; i < threads; i++) {
                 thisDone += workers.get(i).done;
@@ -154,6 +155,7 @@ public class Benchmark implements Callable<Integer> {
             }
             iops = thisDone - done;
             bw = iops / (1048576 / blockSize);
+            maxIops = Math.max(maxIops, iops);
             System.out.print("IOPS=" + iops + ", ");
             System.out.print("BW=" + bw + "MiB/s, ");
             System.out.println("IOS/call=" + rpc + "/" + ipc);
@@ -161,6 +163,8 @@ public class Benchmark implements Callable<Integer> {
             calls = thisCall;
             reap = thisReap;
         } while (true);
+
+        return 0;
     }
 
     public BenchmarkWorker getWorker(String file,
