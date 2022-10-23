@@ -1,6 +1,7 @@
 package one.jasyncfio;
 
 import picocli.CommandLine;
+
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,8 +16,33 @@ public class Benchmark implements Callable<Integer> {
     @CommandLine.Option(names = {"-d", "--depth"}, description = "IO Depth, default 128", paramLabel = "<int>")
     private int ioDepth = 128;
 
-    @CommandLine.Option(names = {"-b", "--buffer"}, description = "Buffer size, default 4096", paramLabel = "<int>")
-    private int bufferSize = 4096;
+    @CommandLine.Option(
+            names = {"-s", "--submit"},
+            description = "Batch submit, default 32",
+            paramLabel = "<int>"
+    )
+    private int batchSubmit = 32;
+
+    @CommandLine.Option(
+            names = {"-c", "--complete"},
+            description = "Batch complete, default 32",
+            paramLabel = "<int>"
+    )
+    private int batchComplete = 32;
+
+    @CommandLine.Option(names = {"-b", "--block"}, description = "Block size, default 4096", paramLabel = "<int>")
+    private int blockSize = 4096;
+
+    @CommandLine.Option(names = {"-p", "--polled"}, description = "Polled I/O, default false", paramLabel = "<boolean>")
+    private boolean polledIo = false;
+
+    @CommandLine.Option(names = {"-B", "--fixed-buffers"}, description = "Fixed buffers, default true", paramLabel = "<boolean>")
+    private boolean fixedBuffers = true;
+
+    // todo not supported
+//    @CommandLine.Option(names = {"-F", "--register-files"}, description = "Register files, default true", paramLabel = "<boolean>")
+//    private boolean registerFiles = true;
+
 
     @CommandLine.Option(
             names = {"-w", "--workers"},
@@ -25,19 +51,28 @@ public class Benchmark implements Callable<Integer> {
     )
     private int threads = 1;
 
-    @CommandLine.Option(
-            names = {"-s", "--submit"},
-            description = "Batch submit, default 32",
-            paramLabel = "<int>"
-    )
-    private int submissions = 32;
+    @CommandLine.Option(names = {"-O", "--direct-io"}, description = "Use O_DIRECT, default true", paramLabel = "<boolean>")
+    private boolean oDirect = true;
 
-    @CommandLine.Option(
-            names = {"-c", "--complete"},
-            description = "Batch complete, default 32",
-            paramLabel = "<int>"
-    )
-    private int completions = 32;
+    @CommandLine.Option(names = {"-N", "--no-op"}, description = "Perform just no-op, default false", paramLabel = "<boolean>")
+    private boolean noOp = false;
+
+    @CommandLine.Option(names = {"-t", "--track-latencies"}, description = "Track latencies, default false", paramLabel = "<boolean>")
+    private boolean trackLatencies = false;
+
+    @CommandLine.Option(names = {"-r", "--run-time"}, description = "Run time in seconds, default unlimited", paramLabel = "<int>")
+    private int runTime = Integer.MAX_VALUE;
+
+    @CommandLine.Option(names = {"-R", "--random-io"}, description = "Use random I/O, default true", paramLabel = "<boolean>")
+    private boolean randomIo = true;
+
+    @CommandLine.Option(names = {"-S", "--sync-io"}, description = "Use sync I/O (FileChannel), default false", paramLabel = "<boolean>")
+    private boolean syncIo = false;
+
+    // todo not supported
+//    @CommandLine.Option(names = {"-X", "--register-ring"}, description = "Use registered ring, default true", paramLabel = "<boolean>")
+//    private boolean registeredRing = true;
+
 
 
     private final List<BenchmarkWorkerIoUringCompletableFuture> workers = new ArrayList<>();
@@ -48,7 +83,7 @@ public class Benchmark implements Callable<Integer> {
     public Integer call() throws Exception {
         for (int i = 0; i < threads; i++) {
             BenchmarkWorkerIoUringCompletableFuture benchmarkWorkerIoUringCompletableFuture =
-                    new BenchmarkWorkerIoUringCompletableFuture(Paths.get(file), bufferSize, bufferSize, ioDepth, submissions, completions);
+                    new BenchmarkWorkerIoUringCompletableFuture(Paths.get(file), blockSize, blockSize, ioDepth, batchSubmit, batchComplete);
             benchmarkWorkerIoUringCompletableFuture.start();
             workers.add(benchmarkWorkerIoUringCompletableFuture);
         }
@@ -98,7 +133,7 @@ public class Benchmark implements Callable<Integer> {
                 ipc = -1;
             }
             iops = thisDone - done;
-            bw = iops / (1048576 / bufferSize);
+            bw = iops / (1048576 / blockSize);
             System.out.print("IOPS=" + iops + ", ");
             System.out.print("BW=" + bw + "MiB/s, ");
             System.out.println("IOS/call=" + rpc + "/" + ipc);
