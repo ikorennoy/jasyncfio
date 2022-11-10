@@ -15,7 +15,7 @@ jobs:
         arch:
           - amd64
 #          - arm64
-    name: Release ${{ github.event.inputs.version }}v on ${{ matrix.arch }}
+    name: Release v${{ github.event.inputs.version }} on ${{ matrix.arch }}
     steps:
 
       - name: Git checkout
