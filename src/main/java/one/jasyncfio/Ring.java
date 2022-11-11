@@ -84,10 +84,10 @@ abstract class Ring {
     }
 
     void close() {
-        ring.close();
         if (bufRings != null) {
             bufRings.values().forEach(IoUringBufRing::close);
         }
+        ring.close();
     }
 
     abstract void park();
