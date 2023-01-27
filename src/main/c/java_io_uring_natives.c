@@ -218,7 +218,7 @@ void setup_iouring(JNIEnv *env, struct io_uring *ring, int entries, int flags, i
         ring->ring_fd = ring_fd;
     } else {
         close(ring_fd);
-        throwRuntimeExceptionErrorNo(env, "failed to create io_uring ring fd; ", ret);
+        throwRuntimeExceptionErrorNo(env, "Failed to create io_uring ring fd; ", ret);
     }
 }
 
@@ -227,7 +227,7 @@ static void java_io_uring_register(JNIEnv *env, jclass clazz, jint fd, jint opco
 
     result = sys_io_uring_register(fd, opcode, (void *) arg, nr_args);
     if (result < 0) {
-        throwRuntimeExceptionErrorNo(env, "failed to call sys_io_uring_register: ", errno);
+        throwRuntimeExceptionErrorNo(env, "Failed to call sys_io_uring_register: ", errno);
     }
 }
 
@@ -354,11 +354,11 @@ static jlong get_file_size(JNIEnv* env, jclass clazz, jint fd) {
     jlong result = -1;
 
     if (fstat(fd, &st) < 0) {
-        throwRuntimeExceptionErrorNo(env, "failed to call fstat; ", errno);
+        throwRuntimeExceptionErrorNo(env, "Failed to call fstat; ", errno);
     }
     if (S_ISBLK(st.st_mode)) {
         if (ioctl(fd, BLKGETSIZE64, &bytes) != 0) {
-            throwRuntimeExceptionErrorNo(env, "failed to call ioctl; ", errno);
+            throwRuntimeExceptionErrorNo(env, "Failed to call ioctl; ", errno);
         }
         result = bytes;
     } else if (S_ISREG(st.st_mode)) {

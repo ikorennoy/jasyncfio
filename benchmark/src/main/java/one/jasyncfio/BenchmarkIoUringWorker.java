@@ -2,6 +2,8 @@ package one.jasyncfio;
 
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 
 public abstract class BenchmarkIoUringWorker extends BenchmarkWorker {
 
@@ -39,7 +41,8 @@ public abstract class BenchmarkIoUringWorker extends BenchmarkWorker {
         this.batchComplete = batchComplete;
         this.bufMask = depth - 1;
         this.fixedBuffers = fixedBuffers;
-        EventExecutor.Builder ioUringBuilder = EventExecutor.builder();
+        EventExecutor.Builder ioUringBuilder = EventExecutor.builder()
+                .entries(depth);
 
         if (pooledIo) {
             ioUringBuilder.ioRingSetupIoPoll();
@@ -64,9 +67,23 @@ public abstract class BenchmarkIoUringWorker extends BenchmarkWorker {
             this.file = AsyncFile.open(path, executor, OpenOption.READ_ONLY, OpenOption.NOATIME).join();
         }
         maxBlocks = Native.getFileSize(file.getRawFd()) / blockSize;
+
     }
 
     public int getNextBuffer() {
         return bufTail++ & bufMask;
+    }
+
+    @Override
+    public Map<String, double[]> getLatencies(double[] percentiles) {
+        double[] wakeupLatencies = executor.getWakeupLatencies(percentiles).join();
+        double[] commandExecutionLatencies = executor.getCommandExecutionLatencies(percentiles).join();
+
+        Map<String, double[]> result = new HashMap<>();
+
+        result.put("Wakeup Latencies", wakeupLatencies);
+        result.put("Command Execution Latencies", commandExecutionLatencies);
+
+        return result;
     }
 }

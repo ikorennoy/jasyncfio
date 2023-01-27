@@ -2,6 +2,7 @@ package one.jasyncfio;
 
 import picocli.CommandLine;
 
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -70,9 +71,6 @@ public class Benchmark implements Callable<Integer> {
     @CommandLine.Option(names = {"-S", "--sync-io"}, description = "Use sync I/O (FileChannel), default false", paramLabel = "<boolean>")
     private boolean syncIo = false;
 
-    @CommandLine.Option(names = {"-A", "--async-lib-interface"}, description = "Use async library interface, default true", paramLabel = "<boolean>")
-    private boolean asyncInterface = true;
-
     // todo not supported
 //    @CommandLine.Option(names = {"-X", "--register-ring"}, description = "Use registered ring, default true", paramLabel = "<boolean>")
 //    private boolean registeredRing = true;
@@ -97,8 +95,7 @@ public class Benchmark implements Callable<Integer> {
                     noOp,
                     trackLatencies,
                     randomIo,
-                    syncIo,
-                    asyncInterface
+                    syncIo
             );
             worker.start();
             workers.add(worker);
@@ -118,7 +115,6 @@ public class Benchmark implements Callable<Integer> {
                         }
                     }
                     System.out.println(latenciesStr);
-
                 }
             }));
         }
@@ -178,25 +174,21 @@ public class Benchmark implements Callable<Integer> {
                                      boolean noOp,
                                      boolean trackLatencies,
                                      boolean randomIo,
-                                     boolean syncIo,
-                                     boolean asyncInterface) {
-        if (asyncInterface) {
-            return new IoUringCompletableFuture(
-                    Paths.get(file),
-                    blockSize,
-                    ioDepth,
-                    batchSubmit,
-                    batchComplete,
-                    polledIo,
-                    fixedBuffers,
-                    oDirect,
-                    noOp,
-                    trackLatencies,
-                    randomIo
-            );
-        } else {
-            return null;
-        }
+                                     boolean syncIo) {
+        Path path = Paths.get(file);
+        return new IoUringCompletableFuture(
+                path,
+                blockSize,
+                ioDepth,
+                batchSubmit,
+                batchComplete,
+                polledIo,
+                fixedBuffers,
+                oDirect,
+                noOp,
+                trackLatencies,
+                randomIo
+        );
     }
 
     public static void main(String[] args) {

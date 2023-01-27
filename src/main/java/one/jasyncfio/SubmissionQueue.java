@@ -85,7 +85,8 @@ class SubmissionQueue {
 
 
     public int submit(int minComplete) {
-        return submit(tail - head, minComplete, IORING_ENTER_GETEVENTS);
+        int flags = minComplete > 0 ? IORING_ENTER_GETEVENTS : 0;
+        return submit(tail - head, minComplete, flags);
     }
 
     public int submit() {
