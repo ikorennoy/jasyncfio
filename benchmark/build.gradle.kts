@@ -20,6 +20,6 @@ tasks.jar {
 
 dependencies {
     implementation(rootProject)
-    implementation("info.picocli:picocli:4.6.3")
-    implementation("com.tdunning:t-digest:3.3")
+    implementation("info.picocli:picocli:${deps.picocli}")
+    implementation("com.tdunning:t-digest:${deps.t_digest}")
 }
