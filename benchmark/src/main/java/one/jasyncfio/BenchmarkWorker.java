@@ -1,5 +1,6 @@
 package one.jasyncfio;
 
+import com.tdunning.math.stats.TDigest;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -30,5 +31,5 @@ public abstract class BenchmarkWorker implements Runnable {
         return (Math.abs(ThreadLocalRandom.current().nextLong()) % (maxBlocks - 1)) * blockSize;
     }
 
-    public abstract Map<String, double[]> getLatencies(double[] percentiles);
+    public abstract Map<String, TDigest> getLatencies();
 }

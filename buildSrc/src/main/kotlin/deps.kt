@@ -9,4 +9,6 @@ object deps {
     const val object_pool_disruptor = "1.2.15"
     const val junit_jupiter = "5.9.0"
     const val jmh_core = "1.35"
+    const val picocli = "4.6.3"
+    const val t_digest = "3.3"
 }

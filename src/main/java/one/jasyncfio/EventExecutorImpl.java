@@ -276,26 +276,24 @@ class EventExecutorImpl extends EventExecutor {
     }
 
     @Override
-    public CompletableFuture<double[]> getCommandExecutionLatencies(double[] percentiles) {
-        return getLatencies(percentiles, commandExecutionDelays);
+    public CompletableFuture<TDigest> getCommandExecutionLatencies() {
+        return getLatencies(commandExecutionDelays);
     }
 
     @Override
-    public CompletableFuture<double[]> getWakeupLatencies(double[] percentiles) {
-        return getLatencies(percentiles, unparkDelays);
+    public CompletableFuture<TDigest> getWakeupLatencies() {
+        return getLatencies(unparkDelays);
     }
 
-    private CompletableFuture<double[]> getLatencies(double[] percentiles, TDigest digest) {
+    private CompletableFuture<TDigest> getLatencies(TDigest digest) {
         if (!monitoringEnabled) {
             throw new IllegalStateException("monitoring is not enabled");
         }
-        CompletableFuture<double[]> f = new CompletableFuture<>();
+        CompletableFuture<TDigest> f = new CompletableFuture<>();
         execute(() -> {
-            double[] res = new double[percentiles.length];
-            for (int i = 0; i < percentiles.length; i++) {
-                res[i] = digest.quantile(percentiles[i]);
-            }
-            f.complete(res);
+            TDigest res = TDigest.createDigest(100.0);
+            res.add(digest);
+            f.complete(digest);
         });
         return f;
     }

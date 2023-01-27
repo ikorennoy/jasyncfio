@@ -108,7 +108,6 @@ public class IoUringCompletableFuture extends BenchmarkIoUringWorker {
                         thisReap += r;
                     } while (false); // todo support io_poll
 
-
                     reaps += thisReap;
                     done += submitted;
 
@@ -137,18 +136,5 @@ public class IoUringCompletableFuture extends BenchmarkIoUringWorker {
             futures.add(file.readFixedBuffer(getRandomOffset(maxBlocks), (short) 0));
         }
         return toSubmit;
-    }
-
-    @Override
-    public Map<String, double[]> getLatencies(double[] percentiles) {
-        double[] wakeupLatencies = executor.getWakeupLatencies(percentiles).join();
-        double[] commandExecutionLatencies = executor.getCommandExecutionLatencies(percentiles).join();
-
-        Map<String, double[]> result = new HashMap<>();
-
-        result.put("Wakeup Latencies", wakeupLatencies);
-        result.put("Command Execution Latencies", commandExecutionLatencies);
-
-        return result;
     }
 }

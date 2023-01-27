@@ -1,9 +1,12 @@
 package one.jasyncfio;
 
+import com.tdunning.math.stats.TDigest;
 import picocli.CommandLine;
 
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -70,9 +73,6 @@ public class Benchmark implements Callable<Integer> {
     @CommandLine.Option(names = {"-S", "--sync-io"}, description = "Use sync I/O (FileChannel), default false", paramLabel = "<boolean>")
     private boolean syncIo = false;
 
-    @CommandLine.Option(names = {"-A", "--async-lib-interface"}, description = "Use async library interface, default true", paramLabel = "<boolean>")
-    private boolean asyncInterface = true;
-
     // todo not supported
 //    @CommandLine.Option(names = {"-X", "--register-ring"}, description = "Use registered ring, default true", paramLabel = "<boolean>")
 //    private boolean registeredRing = true;
@@ -97,30 +97,14 @@ public class Benchmark implements Callable<Integer> {
                     noOp,
                     trackLatencies,
                     randomIo,
-                    syncIo,
-                    asyncInterface
+                    syncIo
             );
             worker.start();
             workers.add(worker);
         }
 
         if (trackLatencies) {
-            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-                for (BenchmarkWorker worker : workers) {
-                    Map<String, double[]> latencies = worker.getLatencies(defaultPercentiles);
-
-                    StringBuilder latenciesStr = new StringBuilder();
-                    for (Map.Entry<String, double[]> entry: latencies.entrySet()) {
-                        latenciesStr.append(entry.getKey()).append(": \n");
-                        double[] latenciesNs = entry.getValue();
-                        for (int i = 0; i < latenciesNs.length; i++) {
-                            latenciesStr.append(defaultPercentiles[i]).append("=").append(((long) latenciesNs[i] / 1000)).append(" us\n");
-                        }
-                    }
-                    System.out.println(latenciesStr);
-
-                }
-            }));
+            Runtime.getRuntime().addShutdownHook(new Thread(this::printLatencies));
         }
 
 
@@ -133,7 +117,7 @@ public class Benchmark implements Callable<Integer> {
             Thread.sleep(1000);
             runTime--;
             if (runTime == 0) {
-                for (BenchmarkWorker w: workers) {
+                for (BenchmarkWorker w : workers) {
                     w.stop();
                 }
                 System.out.println("Maximum IOPS=" + maxIops);
@@ -178,25 +162,62 @@ public class Benchmark implements Callable<Integer> {
                                      boolean noOp,
                                      boolean trackLatencies,
                                      boolean randomIo,
-                                     boolean syncIo,
-                                     boolean asyncInterface) {
-        if (asyncInterface) {
-            return new IoUringCompletableFuture(
-                    Paths.get(file),
-                    blockSize,
-                    ioDepth,
-                    batchSubmit,
-                    batchComplete,
-                    polledIo,
-                    fixedBuffers,
-                    oDirect,
-                    noOp,
-                    trackLatencies,
-                    randomIo
-            );
+                                     boolean syncIo) {
+        Path path = Paths.get(file);
+        return new IoUringCompletableFuture(
+                path,
+                blockSize,
+                ioDepth,
+                batchSubmit,
+                batchComplete,
+                polledIo,
+                fixedBuffers,
+                oDirect,
+                noOp,
+                trackLatencies,
+                randomIo
+        );
+    }
+
+    private void printLatencies() {
+        final Map<String, TDigest> result;
+        if (workers.size() > 1) {
+            Map<String, TDigest> merged = new HashMap<>();
+            for (BenchmarkWorker worker : workers) {
+                Map<String, TDigest> latencies = worker.getLatencies();
+                for (Map.Entry<String, TDigest> entry : latencies.entrySet()) {
+                    merged.merge(entry.getKey(), entry.getValue(), (oldV, newV) -> {
+                        newV.add(oldV);
+                        return newV;
+                    });
+                }
+            }
+            result = merged;
         } else {
-            return null;
+            result = workers.stream().findFirst().get().getLatencies();
         }
+        System.out.println(prepareLatenciesString(result));
+    }
+
+
+    private String prepareLatenciesString(Map<String, TDigest> latencies) {
+        StringBuilder latenciesStr = new StringBuilder();
+        for (Map.Entry<String, TDigest> entry : latencies.entrySet()) {
+            latenciesStr.append(entry.getKey()).append(": \n");
+            double[] latenciesNs = getLatencies(defaultPercentiles, entry.getValue());
+            for (int i = 0; i < latenciesNs.length; i++) {
+                latenciesStr.append(defaultPercentiles[i]).append("=").append(((long) latenciesNs[i] / 1000)).append(" us\n");
+            }
+        }
+        return latenciesStr.toString();
+    }
+
+    private double[] getLatencies(double[] percentiles, TDigest digest) {
+        double[] res = new double[percentiles.length];
+        for (int i = 0; i < percentiles.length; i++) {
+            res[i] = digest.quantile(percentiles[i]);
+        }
+        return res;
     }
 
     public static void main(String[] args) {
