@@ -94,7 +94,7 @@ class SubmissionQueue {
         if (!isIoPoll()) {
             return submit > 0 ? submit(submit, submit, Native.IORING_ENTER_GETEVENTS) : 0;
         } else {
-            return submit(submit, 1, Native.IORING_ENTER_GETEVENTS);
+            return submit > 0 ? submit(submit, 1, Native.IORING_ENTER_GETEVENTS) : 0;
         }
     }
 
@@ -114,7 +114,7 @@ class SubmissionQueue {
         if (submit) {
             int submitted = submit();
             if (submitted == 0) {
-                throw new RuntimeException("submission ring is full");
+                throw new RuntimeException("Submission ring is full");
             }
         }
         long sqe = submissionArrayQueueAddress + (tail++ & ringMask) * SQE_SIZE;
