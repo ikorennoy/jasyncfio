@@ -104,25 +104,7 @@ public class Benchmark implements Callable<Integer> {
         }
 
         if (trackLatencies) {
-            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-                final Map<String, TDigest> result;
-                if (workers.size() > 1) {
-                    Map<String, TDigest> merged = new HashMap<>();
-                    for (BenchmarkWorker worker : workers) {
-                        Map<String, TDigest> latencies = worker.getLatencies();
-                        for (Map.Entry<String, TDigest> entry : latencies.entrySet()) {
-                            merged.merge(entry.getKey(), entry.getValue(), (oldV, newV) -> {
-                                newV.add(oldV);
-                                return newV;
-                            });
-                        }
-                    }
-                    result = merged;
-                } else {
-                    result = workers.stream().findFirst().get().getLatencies();
-                }
-                System.out.println(prepareLatenciesString(result));
-            }));
+            Runtime.getRuntime().addShutdownHook(new Thread(this::printLatencies));
         }
 
 
@@ -196,6 +178,27 @@ public class Benchmark implements Callable<Integer> {
                 randomIo
         );
     }
+
+    private void printLatencies() {
+        final Map<String, TDigest> result;
+        if (workers.size() > 1) {
+            Map<String, TDigest> merged = new HashMap<>();
+            for (BenchmarkWorker worker : workers) {
+                Map<String, TDigest> latencies = worker.getLatencies();
+                for (Map.Entry<String, TDigest> entry : latencies.entrySet()) {
+                    merged.merge(entry.getKey(), entry.getValue(), (oldV, newV) -> {
+                        newV.add(oldV);
+                        return newV;
+                    });
+                }
+            }
+            result = merged;
+        } else {
+            result = workers.stream().findFirst().get().getLatencies();
+        }
+        System.out.println(prepareLatenciesString(result));
+    }
+
 
     private String prepareLatenciesString(Map<String, TDigest> latencies) {
         StringBuilder latenciesStr = new StringBuilder();
