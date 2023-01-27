@@ -1,5 +1,6 @@
 package one.jasyncfio;
 
+import com.tdunning.math.stats.TDigest;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -74,12 +75,11 @@ public abstract class BenchmarkIoUringWorker extends BenchmarkWorker {
         return bufTail++ & bufMask;
     }
 
-    @Override
-    public Map<String, double[]> getLatencies(double[] percentiles) {
-        double[] wakeupLatencies = executor.getWakeupLatencies(percentiles).join();
-        double[] commandExecutionLatencies = executor.getCommandExecutionLatencies(percentiles).join();
+    public Map<String, TDigest> getLatencies() {
+        TDigest wakeupLatencies = executor.getWakeupLatencies().join();
+        TDigest commandExecutionLatencies = executor.getCommandExecutionLatencies().join();
 
-        Map<String, double[]> result = new HashMap<>();
+        Map<String, TDigest> result = new HashMap<>();
 
         result.put("Wakeup Latencies", wakeupLatencies);
         result.put("Command Execution Latencies", commandExecutionLatencies);

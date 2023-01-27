@@ -1,5 +1,6 @@
 package one.jasyncfio;
 
+import com.tdunning.math.stats.TDigest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -20,9 +21,9 @@ public abstract class EventExecutor implements AutoCloseable {
 
     abstract int getBufferLength(PollableStatus pollableStatus, short bufRingId);
 
-    public abstract CompletableFuture<double[]> getWakeupLatencies(double[] percentiles);
+    public abstract CompletableFuture<TDigest> getWakeupLatencies();
 
-    public abstract CompletableFuture<double[]> getCommandExecutionLatencies(double[] percentiles);
+    public abstract CompletableFuture<TDigest> getCommandExecutionLatencies();
 
     public static class Builder {
         private int entries = 4096;
