@@ -21,9 +21,10 @@ public class IoUringCompletableFuture extends BenchmarkIoUringWorker {
             boolean directIo,
             boolean noOp,
             boolean trackLatencies,
-            boolean randomIo
+            boolean randomIo,
+            int id
     ) {
-        super(path, blockSize, depth, batchSubmit, batchComplete, pooledIo, fixedBuffers, directIo, noOp, trackLatencies, randomIo);
+        super(path, blockSize, depth, batchSubmit, batchComplete, pooledIo, fixedBuffers, directIo, noOp, trackLatencies, randomIo, id);
     }
 
     @Override

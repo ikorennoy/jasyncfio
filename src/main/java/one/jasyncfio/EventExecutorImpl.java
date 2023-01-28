@@ -53,9 +53,6 @@ class EventExecutorImpl extends EventExecutor {
     final IntObjectMap<Command<?>> commands;
     private final Thread t;
 
-    private volatile long startUnparkNs;
-    private long prevStartUnpark = startUnparkNs;
-    private final TDigest unparkDelays = TDigest.createDigest(100.0);
     private final TDigest commandExecutionDelays = TDigest.createDigest(100.0);
     private final long sleepTimeout;
 
@@ -152,9 +149,6 @@ class EventExecutorImpl extends EventExecutor {
     private void wakeup(boolean inEventLoop) {
         int localState = state.get();
         if (!inEventLoop && (localState != AWAKE && state.compareAndSet(WAIT, AWAKE))) {
-            if (monitoringEnabled) {
-                startUnparkNs = System.nanoTime();
-            }
             unpark();
         }
     }
@@ -234,13 +228,6 @@ class EventExecutorImpl extends EventExecutor {
                 handleLoopException(t);
             } finally {
                 state.set(AWAKE);
-                if (monitoringEnabled) {
-                    long startUnparkNsL = startUnparkNs;
-                    if (startUnparkNsL != prevStartUnpark) {
-                        unparkDelays.add(System.nanoTime() - startUnparkNsL);
-                        prevStartUnpark = startUnparkNsL;
-                    }
-                }
             }
             drain();
             if (state.get() == STOP) {
@@ -276,24 +263,22 @@ class EventExecutorImpl extends EventExecutor {
     }
 
     @Override
-    public CompletableFuture<TDigest> getCommandExecutionLatencies() {
-        return getLatencies(commandExecutionDelays);
+    public CompletableFuture<double[]> getCommandExecutionLatencies(double[] percentiles) {
+        return getLatencies(percentiles, commandExecutionDelays);
     }
 
-    @Override
-    public CompletableFuture<TDigest> getWakeupLatencies() {
-        return getLatencies(unparkDelays);
-    }
 
-    private CompletableFuture<TDigest> getLatencies(TDigest digest) {
+    private CompletableFuture<double[]> getLatencies(double[] percentiles, TDigest digest) {
         if (!monitoringEnabled) {
             throw new IllegalStateException("monitoring is not enabled");
         }
-        CompletableFuture<TDigest> f = new CompletableFuture<>();
+        CompletableFuture<double[]> f = new CompletableFuture<>();
         execute(() -> {
-            TDigest res = TDigest.createDigest(100.0);
-            res.add(digest);
-            f.complete(digest);
+            double[] res = new double[percentiles.length];
+            for (int i = 0; i < percentiles.length; i++) {
+                res[i] = digest.quantile(percentiles[i]);
+            }
+            f.complete(res);
         });
         return f;
     }

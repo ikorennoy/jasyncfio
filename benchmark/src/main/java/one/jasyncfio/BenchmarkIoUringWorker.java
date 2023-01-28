@@ -33,9 +33,10 @@ public abstract class BenchmarkIoUringWorker extends BenchmarkWorker {
             boolean directIo,
             boolean noOp,
             boolean trackLatencies,
-            boolean randomIo
+            boolean randomIo,
+            int id
     ) {
-        super(blockSize);
+        super(blockSize, id);
         this.path = path;
         this.depth = depth;
         this.batchSubmit = batchSubmit;
@@ -75,15 +76,8 @@ public abstract class BenchmarkIoUringWorker extends BenchmarkWorker {
         return bufTail++ & bufMask;
     }
 
-    public Map<String, TDigest> getLatencies() {
-        TDigest wakeupLatencies = executor.getWakeupLatencies().join();
-        TDigest commandExecutionLatencies = executor.getCommandExecutionLatencies().join();
-
-        Map<String, TDigest> result = new HashMap<>();
-
-        result.put("Wakeup Latencies", wakeupLatencies);
-        result.put("Command Execution Latencies", commandExecutionLatencies);
-
-        return result;
+    @Override
+    public double[] getLatencies(double[] percentiles) {
+        return executor.getCommandExecutionLatencies(percentiles).join();
     }
 }

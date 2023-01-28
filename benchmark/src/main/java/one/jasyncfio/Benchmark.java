@@ -1,14 +1,10 @@
 package one.jasyncfio;
 
-import com.tdunning.math.stats.TDigest;
 import picocli.CommandLine;
-
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Callable;
 
 @CommandLine.Command(mixinStandardHelpOptions = true, version = "Benchmark 1.0")
@@ -97,7 +93,8 @@ public class Benchmark implements Callable<Integer> {
                     noOp,
                     trackLatencies,
                     randomIo,
-                    syncIo
+                    syncIo,
+                    i
             );
             worker.start();
             workers.add(worker);
@@ -162,7 +159,8 @@ public class Benchmark implements Callable<Integer> {
                                      boolean noOp,
                                      boolean trackLatencies,
                                      boolean randomIo,
-                                     boolean syncIo) {
+                                     boolean syncIo,
+                                     int id) {
         Path path = Paths.get(file);
         return new IoUringCompletableFuture(
                 path,
@@ -175,50 +173,30 @@ public class Benchmark implements Callable<Integer> {
                 oDirect,
                 noOp,
                 trackLatencies,
-                randomIo
+                randomIo,
+                id
         );
     }
 
     private void printLatencies() {
-        final Map<String, TDigest> result;
-        if (workers.size() > 1) {
-            Map<String, TDigest> merged = new HashMap<>();
-            for (BenchmarkWorker worker : workers) {
-                Map<String, TDigest> latencies = worker.getLatencies();
-                for (Map.Entry<String, TDigest> entry : latencies.entrySet()) {
-                    merged.merge(entry.getKey(), entry.getValue(), (oldV, newV) -> {
-                        newV.add(oldV);
-                        return newV;
-                    });
+        for (BenchmarkWorker worker : workers) {
+            double[] latencies = worker.getLatencies(defaultPercentiles);
+            System.out.printf("%s: Latency percentiles: \n", worker.getId());
+            System.out.println("    percentiles (usec): ");
+            StringBuilder b = new StringBuilder();
+            b.append("     | ");
+            for (int i = 0; i < latencies.length; i++) {
+                b.append(String.format("%7.4fth=[%5d], ", defaultPercentiles[i] * 100, ((long) latencies[i] / 1000)));
+                if ((i + 1) % 3 == 0) {
+                    System.out.println(b);
+                    b = new StringBuilder();
+                    b.append("     | ");
                 }
             }
-            result = merged;
-        } else {
-            result = workers.stream().findFirst().get().getLatencies();
+            System.out.println();
         }
-        System.out.println(prepareLatenciesString(result));
     }
 
-
-    private String prepareLatenciesString(Map<String, TDigest> latencies) {
-        StringBuilder latenciesStr = new StringBuilder();
-        for (Map.Entry<String, TDigest> entry : latencies.entrySet()) {
-            latenciesStr.append(entry.getKey()).append(": \n");
-            double[] latenciesNs = getLatencies(defaultPercentiles, entry.getValue());
-            for (int i = 0; i < latenciesNs.length; i++) {
-                latenciesStr.append(defaultPercentiles[i]).append("=").append(((long) latenciesNs[i] / 1000)).append(" us\n");
-            }
-        }
-        return latenciesStr.toString();
-    }
-
-    private double[] getLatencies(double[] percentiles, TDigest digest) {
-        double[] res = new double[percentiles.length];
-        for (int i = 0; i < percentiles.length; i++) {
-            res[i] = digest.quantile(percentiles[i]);
-        }
-        return res;
-    }
 
     public static void main(String[] args) {
         System.exit(new CommandLine(new Benchmark()).execute(args));
