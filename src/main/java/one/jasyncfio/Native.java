@@ -93,6 +93,8 @@ class Native {
 
     public static native long ioUringBufRegSize();
 
+    public static native long getCpuTimer();
+
     /**
      * took from netty io uring project
      */

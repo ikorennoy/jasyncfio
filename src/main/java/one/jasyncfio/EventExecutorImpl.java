@@ -168,7 +168,7 @@ class EventExecutorImpl extends EventExecutor {
     @Override
     public <T> T executeCommand(Command<T> command) {
         if (monitoringEnabled) {
-            commandsStarts.put(command, System.nanoTime());
+            commandsStarts.put(command, Native.getCpuTimer());
         }
         T resultHolder = command.getOperationResult();
         execute(command);

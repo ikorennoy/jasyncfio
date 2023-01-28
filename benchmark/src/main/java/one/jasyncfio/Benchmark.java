@@ -187,15 +187,20 @@ public class Benchmark implements Callable<Integer> {
             StringBuilder b = new StringBuilder();
             b.append("     | ");
             for (int i = 0; i < latencies.length; i++) {
-                b.append(String.format("%7.4fth=[%5d], ", defaultPercentiles[i] * 100, ((long) latencies[i] / 1000)));
+                b.append(String.format("%7.4fth=[%5d], ", defaultPercentiles[i] * 100, (cyclesToNs(latencies[i]) / 1000)));
                 if ((i + 1) % 3 == 0) {
                     System.out.println(b);
                     b = new StringBuilder();
                     b.append("     | ");
                 }
             }
-            System.out.println(b);
+            System.out.println(b.delete(b.length() - 2, b.length()));
         }
+    }
+
+    private long cyclesToNs(double cycles) {
+        double v = cycles * 1000000000L;
+        return (long) v / 2894848000L;
     }
 
 

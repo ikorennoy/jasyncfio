@@ -30,7 +30,6 @@ public class IoUringCompletableFuture extends BenchmarkIoUringWorker {
     @Override
     public void run() {
         try {
-
             if (fixedBuffers) {
                 List<CompletableFuture<BufRingResult>> submissions = new ArrayList<>(depth);
                 List<CompletableFuture<BufRingResult>> submissionsToRemove = new ArrayList<>(depth);
@@ -91,23 +90,21 @@ public class IoUringCompletableFuture extends BenchmarkIoUringWorker {
                     calls++;
 
                     thisReap = 0;
-                    do {
-                        int r = 0;
-                        for (CompletableFuture<Integer> future : submissions) {
-                            if (future.isDone()) {
-                                Integer res = future.get();
-                                if (res != blockSize) {
-                                    System.out.println("unexpected res=" + res);
-                                }
-                                submissionsToRemove.add(future);
-                                r++;
+                    int r = 0;
+                    for (CompletableFuture<Integer> future : submissions) {
+                        if (future.isDone()) {
+                            Integer res = future.get();
+                            if (res != blockSize) {
+                                System.out.println("unexpected res=" + res);
                             }
+                            submissionsToRemove.add(future);
+                            r++;
                         }
-                        submissions.removeAll(submissionsToRemove);
-                        submissionsToRemove.clear();
-                        inFlight -= r;
-                        thisReap += r;
-                    } while (false); // todo support io_poll
+                    }
+                    submissions.removeAll(submissionsToRemove);
+                    submissionsToRemove.clear();
+                    inFlight -= r;
+                    thisReap += r;
 
                     reaps += thisReap;
                     done += submitted;

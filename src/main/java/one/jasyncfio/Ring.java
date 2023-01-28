@@ -79,7 +79,7 @@ abstract class Ring {
             }
         }
         if (monitoringEnabled) {
-            commandExecutionDelays.add(System.nanoTime() - commandStarts.remove(command));
+            commandExecutionDelays.add(Native.getCpuTimer() - commandStarts.remove(command));
         }
     }
 
