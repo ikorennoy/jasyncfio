@@ -1,6 +1,7 @@
 package one.jasyncfio;
 
 import picocli.CommandLine;
+
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -76,7 +77,7 @@ public class Benchmark implements Callable<Integer> {
 
     private final List<BenchmarkWorker> workers = new ArrayList<>();
 
-    private final double[] defaultPercentiles = {0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99, 0.995, 0.999};
+    private final double[] defaultPercentiles = {0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99, 0.995, 0.999, 0.9995, 0.9999};
 
     @Override
     public Integer call() throws Exception {
@@ -193,7 +194,7 @@ public class Benchmark implements Callable<Integer> {
                     b.append("     | ");
                 }
             }
-            System.out.println();
+            System.out.println(b);
         }
     }
 
