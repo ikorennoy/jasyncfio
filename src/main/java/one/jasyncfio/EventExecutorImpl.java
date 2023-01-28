@@ -43,7 +43,7 @@ class EventExecutorImpl extends EventExecutor {
         }
     };
     private final Queue<Runnable> tasks = new MpscChunkedArrayQueue<>(65536);
-    private final ConcurrentMap<Command<?>, Long> commandStarts = new ConcurrentHashMap<>();
+    private final ConcurrentMap<Command<?>, Long> commandsStarts = new ConcurrentHashMap<>();
     private final Ring sleepableRing;
     private final Ring pollRing;
     private final boolean ioPollEnabled;
@@ -119,7 +119,7 @@ class EventExecutorImpl extends EventExecutor {
                 eventFd,
                 commands,
                 monitoringEnabled,
-                commandStarts,
+                commandsStarts,
                 commandExecutionDelays
         );
         pollRing = new PollRing(
@@ -132,7 +132,7 @@ class EventExecutorImpl extends EventExecutor {
                 bufRingDescriptorList,
                 commands,
                 monitoringEnabled,
-                commandStarts,
+                commandsStarts,
                 commandExecutionDelays
         );
 
@@ -174,7 +174,7 @@ class EventExecutorImpl extends EventExecutor {
     @Override
     public <T> T executeCommand(Command<T> command) {
         if (monitoringEnabled) {
-            commandStarts.put(command, System.nanoTime());
+            commandsStarts.put(command, System.nanoTime());
         }
         T resultHolder = command.getOperationResult();
         execute(command);
