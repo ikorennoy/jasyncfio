@@ -1,6 +1,5 @@
 package one.jasyncfio;
 
-import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
 public abstract class BenchmarkWorker implements Runnable {

@@ -163,20 +163,31 @@ public class Benchmark implements Callable<Integer> {
                                      boolean syncIo,
                                      int id) {
         Path path = Paths.get(file);
-        return new IoUringCompletableFuture(
-                path,
-                blockSize,
-                ioDepth,
-                batchSubmit,
-                batchComplete,
-                polledIo,
-                fixedBuffers,
-                oDirect,
-                noOp,
-                trackLatencies,
-                randomIo,
-                id
-        );
+        if (syncIo) {
+            return new SyncRead(
+                    path,
+                    blockSize,
+                    ioDepth,
+                    trackLatencies,
+                    id
+
+            );
+        } else {
+            return new IoUringCompletableFuture(
+                    path,
+                    blockSize,
+                    ioDepth,
+                    batchSubmit,
+                    batchComplete,
+                    polledIo,
+                    fixedBuffers,
+                    oDirect,
+                    noOp,
+                    trackLatencies,
+                    randomIo,
+                    id
+            );
+        }
     }
 
     private void printLatencies() {

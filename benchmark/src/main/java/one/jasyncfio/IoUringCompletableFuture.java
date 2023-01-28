@@ -95,7 +95,7 @@ public class IoUringCompletableFuture extends BenchmarkIoUringWorker {
                         if (future.isDone()) {
                             Integer res = future.get();
                             if (res != blockSize) {
-                                System.out.println("unexpected res=" + res);
+                                System.out.println("Unexpected res=" + res);
                             }
                             submissionsToRemove.add(future);
                             r++;
