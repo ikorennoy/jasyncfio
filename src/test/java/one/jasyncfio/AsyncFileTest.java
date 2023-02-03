@@ -30,7 +30,7 @@ public class AsyncFileTest {
 
     @BeforeEach
     public void before() {
-        executor =  EventExecutor.initDefault();
+        executor = EventExecutor.initDefault();
     }
 
     @AfterEach
@@ -170,10 +170,14 @@ public class AsyncFileTest {
             buffers[i] = ByteBuffer.allocateDirect(10);
         }
 
-        buffers[0].put((byte)1); buffers[0].flip();
-        buffers[1].put((byte)2); buffers[1].flip();
-        buffers[2].put((byte)3); buffers[2].flip();
-        buffers[3].put((byte)4); buffers[3].flip();
+        buffers[0].put((byte) 1);
+        buffers[0].flip();
+        buffers[1].put((byte) 2);
+        buffers[1].flip();
+        buffers[2].put((byte) 3);
+        buffers[2].flip();
+        buffers[3].put((byte) 4);
+        buffers[3].flip();
 
         CommonFileTests.Pair<Path, AbstractFile> pair = prepareFile(OpenOption.READ_WRITE);
 

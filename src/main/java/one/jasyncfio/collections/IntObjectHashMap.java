@@ -26,10 +26,14 @@ import java.util.*;
  */
 public class IntObjectHashMap<V> implements IntObjectMap<V> {
 
-    /** Default initial capacity. Used if not specified in the constructor */
+    /**
+     * Default initial capacity. Used if not specified in the constructor
+     */
     public static final int DEFAULT_CAPACITY = 8;
 
-    /** Default load factor. Used if not specified in the constructor */
+    /**
+     * Default load factor. Used if not specified in the constructor
+     */
     public static final float DEFAULT_LOAD_FACTOR = 0.5f;
 
     /**
@@ -38,10 +42,14 @@ public class IntObjectHashMap<V> implements IntObjectMap<V> {
      */
     private static final Object NULL_VALUE = new Object();
 
-    /** The maximum number of elements allowed without allocating more space. */
+    /**
+     * The maximum number of elements allowed without allocating more space.
+     */
     private int maxSize;
 
-    /** The load factor for the map. Used to calculate {@link #maxSize}. */
+    /**
+     * The load factor for the map. Used to calculate {@link #maxSize}.
+     */
     private final float loadFactor;
 
     private int[] keys;
@@ -81,7 +89,7 @@ public class IntObjectHashMap<V> implements IntObjectMap<V> {
 
         // Allocate the arrays.
         keys = new int[capacity];
-        @SuppressWarnings({ "unchecked", "SuspiciousArrayCast" })
+        @SuppressWarnings({"unchecked", "SuspiciousArrayCast"})
         V[] temp = (V[]) new Object[capacity];
         values = temp;
 
@@ -377,7 +385,7 @@ public class IntObjectHashMap<V> implements IntObjectMap<V> {
         size++;
 
         if (size > maxSize) {
-            if(keys.length == Integer.MAX_VALUE) {
+            if (keys.length == Integer.MAX_VALUE) {
                 throw new IllegalStateException("Max capacity reached at size=" + size);
             }
 
@@ -443,7 +451,7 @@ public class IntObjectHashMap<V> implements IntObjectMap<V> {
         V[] oldVals = values;
 
         keys = new int[newCapacity];
-        @SuppressWarnings({ "unchecked", "SuspiciousArrayCast" })
+        @SuppressWarnings({"unchecked", "SuspiciousArrayCast"})
         V[] temp = (V[]) new Object[newCapacity];
         values = temp;
 
@@ -549,7 +557,7 @@ public class IntObjectHashMap<V> implements IntObjectMap<V> {
         @Override
         public boolean retainAll(Collection<?> retainedKeys) {
             boolean changed = false;
-            for(Iterator<PrimitiveEntry<V>> iter = entries().iterator(); iter.hasNext(); ) {
+            for (Iterator<PrimitiveEntry<V>> iter = entries().iterator(); iter.hasNext(); ) {
                 PrimitiveEntry<V> entry = iter.next();
                 if (!retainedKeys.contains(entry.key())) {
                     changed = true;

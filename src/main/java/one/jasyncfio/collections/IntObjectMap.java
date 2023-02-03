@@ -58,7 +58,7 @@ public interface IntObjectMap<V> extends Map<Integer, V> {
     /**
      * Puts the given entry into the map.
      *
-     * @param key the key of the entry.
+     * @param key   the key of the entry.
      * @param value the value of the entry.
      * @return the previous value for this key or {@code null} if there was no previous mapping.
      */

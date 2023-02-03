@@ -24,15 +24,15 @@ class CompletionQueue {
     private final long ringFlags;
 
     CompletionQueue(long kHead,
-                           long kTail,
-                           long kRingMask,
-                           long kRingEntries,
-                           long kOverflow,
-                           long kCompletionArray,
-                           long kRingPointer,
-                           int ringSize,
-                           int ringFd,
-                           long ringFlags) {
+                    long kTail,
+                    long kRingMask,
+                    long kRingEntries,
+                    long kOverflow,
+                    long kCompletionArray,
+                    long kRingPointer,
+                    int ringSize,
+                    int ringFd,
+                    long ringFlags) {
         this.kHead = kHead;
         this.kTail = kTail;
         this.kRingMask = kRingMask;

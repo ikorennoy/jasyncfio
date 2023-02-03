@@ -2,9 +2,7 @@ package one.jasyncfio;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 public class IoUringCompletableFuture extends BenchmarkIoUringWorker {
