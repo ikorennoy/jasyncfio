@@ -211,6 +211,7 @@ dependencies {
     implementation("cn.danielw:fast-object-pool:${deps.object_pool}")
     implementation("com.conversantmedia:disruptor:${deps.object_pool_disruptor}")
     implementation("com.tdunning:t-digest:${deps.t_digest}")
+    implementation(project(":native"))
 }
 
 dependencies {
