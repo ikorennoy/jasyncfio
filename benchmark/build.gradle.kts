@@ -20,6 +20,7 @@ tasks.jar {
 
 dependencies {
     implementation(rootProject)
+    implementation(project(":native"))
     implementation("info.picocli:picocli:${deps.picocli}")
     implementation("com.tdunning:t-digest:${deps.t_digest}")
 }

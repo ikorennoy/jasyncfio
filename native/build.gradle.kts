@@ -17,6 +17,18 @@ dependencies {
     testImplementation("org.openjdk.jmh:jmh-core:${deps.jmh_core}")
 }
 
+library {
+    targetMachines.set(listOf(
+        machines.linux.x86_64,
+        machines.windows.x86_64,
+    ))
+}
+
+library.variants.configureEach {
+    sharedLibrary.compileTasks.configureEach {
+        compilerArgs.add("-D_GNU_SOURCE")
+    }
+}
 
 tasks.getByName<Test>("test") {
     useJUnitPlatform()
