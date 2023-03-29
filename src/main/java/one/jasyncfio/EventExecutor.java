@@ -60,7 +60,7 @@ public abstract class EventExecutor implements AutoCloseable {
             return i++;
         }
     };
-    private final Queue<Runnable> tasks = new MpscChunkedArrayQueue<>(65536);
+    private final Queue<Runnable> tasks = new MpscChunkedArrayQueue<>(4096, 65536);
     private final long eventFdBuffer = MemoryUtils.allocateMemory(8);
 
     final long sleepTimeout;
