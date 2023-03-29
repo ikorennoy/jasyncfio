@@ -70,7 +70,7 @@ class PollEventExecutorImpl extends EventExecutor {
     }
 
     @Override
-    int getBufferLength(PollableStatus pollableStatus, short bufRingId) {
+    protected int getBufferLength(PollableStatus pollableStatus, short bufRingId) {
         if (!pollRing.isBufRingInitialized() && !sleepableRing.isBufRingInitialized()) {
             throw new IllegalStateException("Buf ring is not initialized");
         }
@@ -84,7 +84,7 @@ class PollEventExecutorImpl extends EventExecutor {
     }
 
     @Override
-    <T> Ring ringFromCommand(Command<T> command) {
+    protected <T> Ring ringFromCommand(Command<T> command) {
         final Ring result;
         if (command.getOp() == Native.IORING_OP_READ || command.getOp() == Native.IORING_OP_WRITE) {
             if (PollableStatus.POLLABLE == command.getPollableStatus()) {
@@ -98,36 +98,7 @@ class PollEventExecutorImpl extends EventExecutor {
         return result;
     }
 
-    void run() {
-        addEventFdRead();
-        resetSleepTimeout();
-        while (true) {
-            try {
-                state.set(WAIT);
-                if (canSleep()) {
-                    if (sleepTimeout()) {
-                        submitTasksAndWait();
-                        resetSleepTimeout();
-                    }
-                }
-            } catch (Throwable t) {
-                handleLoopException(t);
-            } finally {
-                state.set(AWAKE);
-            }
-            drain();
-            if (state.get() == STOP) {
-                while (!canSleep()) {
-                    // make sure we proceed all tasks, submit all submissions and wait all completions
-                    drain();
-                }
-                closeRings();
-                break;
-            }
-        }
-    }
-
-    void submitIo() {
+    protected void submitIo() {
         if (sleepableRing.hasPending()) {
             sleepableRing.submitIo();
         }
@@ -136,36 +107,35 @@ class PollEventExecutorImpl extends EventExecutor {
         }
     }
 
-    void unpark() {
+    protected void unpark() {
         sleepableRing.unpark();
     }
 
     @Override
-    int processAllCompletedTasks() {
+    protected int processAllCompletedTasks() {
         int result = 0;
         result += sleepableRing.processCompletedTasks();
         result += pollRing.processCompletedTasks();
         return result;
     }
 
-    int sleepableRingFd() {
-        return sleepableRing.ring.getRingFd();
-    }
-
-    private boolean hasCompletions() {
-        return sleepableRing.hasCompletions() || pollRing.hasCompletions();
-    }
-
-    private void closeRings() {
+    @Override
+    protected void closeRings() {
         sleepableRing.close();
         pollRing.close();
     }
 
-    private void submitTasksAndWait() {
+    @Override
+    protected void submitTasksAndWait() {
         sleepableRing.park();
     }
 
-    private boolean canSleep() {
+    @Override
+    protected boolean canSleep() {
         return !hasTasks() && !hasCompletions() && !pollRing.hasInKernel();
+    }
+
+    private boolean hasCompletions() {
+        return sleepableRing.hasCompletions() || pollRing.hasCompletions();
     }
 }

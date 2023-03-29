@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 public class IoUringProbeTest {
-    private final PollEventExecutorImpl eventExecutor = (PollEventExecutorImpl) EventExecutor.initDefault();
+    private final EventExecutorImpl eventExecutor = (EventExecutorImpl) EventExecutor.initDefault();
     private final IoUringProbe uringProbeUtils = new IoUringProbe(eventExecutor.sleepableRingFd());
 
 
