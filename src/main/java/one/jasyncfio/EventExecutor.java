@@ -1,26 +1,240 @@
 package one.jasyncfio;
 
+import com.tdunning.math.stats.TDigest;
+import one.jasyncfio.collections.IntObjectHashMap;
+import one.jasyncfio.collections.IntObjectMap;
+import org.jctools.queues.MpscChunkedArrayQueue;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.IntSupplier;
 
 public abstract class EventExecutor implements AutoCloseable {
 
-    abstract <T> T executeCommand(Command<T> command);
+    static final int STOP = 2;
+    static final int AWAKE = 1;
+    static final int WAIT = 0;
 
-    abstract <T> long scheduleCommand(Command<T> command);
+    final TDigest commandExecutionDelays = TDigest.createDigest(100.0);
+    final AtomicInteger state = new AtomicInteger(AWAKE);
+    final int eventFd = Native.getEventFd();
+    final ConcurrentMap<Command<?>, Long> commandsStarts = new ConcurrentHashMap<>();
+
+    private final ResultProvider<Integer> eventFdReadResultProvider = new ResultProvider<Integer>() {
+        @Override
+        public void onSuccess(int result) {
+            addEventFdRead();
+        }
+
+        @Override
+        public void onSuccess(Object object) {
+
+        }
+
+        @Override
+        public void onError(Throwable ex) {
+
+        }
+
+        @Override
+        public Integer getInner() {
+            return null;
+        }
+
+        @Override
+        public void release() {
+
+        }
+    };
+    private final IntSupplier sequencer = new IntSupplier() {
+        private int i = 0;
+
+        @Override
+        public int getAsInt() {
+            return i++;
+        }
+    };
+    private final Queue<Runnable> tasks = new MpscChunkedArrayQueue<>(65536);
+    private final long eventFdBuffer = MemoryUtils.allocateMemory(8);
+
+    final long sleepTimeout;
+    final boolean monitoringEnabled;
+    private final Thread t;
+    final IntObjectMap<Command<?>> commands;
+
+    long startWork = -1;
+
+    protected EventExecutor(int entries, boolean monitoringEnabled, long sleepTimeout) {
+        this.monitoringEnabled = monitoringEnabled;
+        this.sleepTimeout = sleepTimeout;
+
+        this.commands = new IntObjectHashMap<>(entries);
+        this.t = new Thread(this::run, "EventExecutor");
+    }
+
+    abstract void unpark();
 
     abstract <T> Ring ringFromCommand(Command<T> command);
 
-    abstract void addEventFdRead();
-
-    abstract void start();
-
-    abstract int sleepableRingFd();
-
     abstract int getBufferLength(PollableStatus pollableStatus, short bufRingId);
 
-    public abstract CompletableFuture<double[]> getCommandExecutionLatencies(double[] percentiles);
+    abstract void run();
+
+    abstract int processAllCompletedTasks();
+
+    abstract void submitIo();
+
+    public <T> T executeCommand(Command<T> command) {
+        if (monitoringEnabled) {
+            commandsStarts.put(command, Native.getCpuTimer());
+        }
+        T resultHolder = command.getOperationResult();
+        execute(command);
+        return resultHolder;
+    }
+
+
+    public CompletableFuture<double[]> getCommandExecutionLatencies(double[] percentiles) {
+        return getLatencies(percentiles, commandExecutionDelays);
+    }
+
+    @Override
+    public void close() {
+        if (state.getAndSet(STOP) == WAIT) {
+            wakeup(inEventLoop());
+        }
+    }
+
+    void execute(Runnable task) {
+        boolean inEventLoop = inEventLoop();
+        if (inEventLoop) {
+            safeExec(task);
+        } else {
+            addTask(task);
+            wakeup(inEventLoop);
+        }
+    }
+
+    void wakeup(boolean inEventLoop) {
+        int localState = state.get();
+        if (!inEventLoop && (localState != AWAKE && state.compareAndSet(WAIT, AWAKE))) {
+            unpark();
+        }
+    }
+
+    boolean runAllTasks() {
+        Runnable task = tasks.poll();
+        if (task == null) {
+            return false;
+        }
+        while (true) {
+            safeExec(task);
+            task = tasks.poll();
+            if (task == null) {
+                return true;
+            }
+        }
+    }
+
+    void drain() {
+        boolean moreWork = true;
+        do {
+            try {
+                boolean run = runAllTasks();
+                if (run) {
+                    submitIo();
+                }
+                int processed = processAllCompletedTasks();
+                moreWork = processed != 0 || run;
+            } catch (Throwable r) {
+                handleLoopException(r);
+            }
+        } while (moreWork);
+    }
+
+    boolean hasTasks() {
+        return !tasks.isEmpty();
+    }
+
+    void resetSleepTimeout() {
+        startWork = System.nanoTime();
+    }
+
+    boolean sleepTimeout() {
+        return System.nanoTime() - startWork >= sleepTimeout;
+    }
+
+    void handleLoopException(Throwable t) {
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            t.printStackTrace();
+            e.printStackTrace();
+        }
+    }
+
+    boolean inEventLoop() {
+        return t == Thread.currentThread();
+    }
+
+    <T> long scheduleCommand(Command<T> command) {
+        int id = sequencer.getAsInt();
+        commands.put(id, command);
+        return id;
+    }
+
+    void addEventFdRead() {
+        executeCommand(Command.read(
+                eventFd,
+                0,
+                8,
+                eventFdBuffer,
+                PollableStatus.NON_POLLABLE,
+                this,
+                eventFdReadResultProvider
+        ));
+    }
+
+    void start() {
+        t.start();
+    }
+
+    private void addTask(Runnable task) {
+        if (state.get() != STOP) {
+            tasks.add(task);
+        } else {
+            throw new RejectedExecutionException("Event loop is stopped");
+        }
+    }
+
+    private static void safeExec(Runnable task) {
+        try {
+            task.run();
+        } catch (Throwable ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    private CompletableFuture<double[]> getLatencies(double[] percentiles, TDigest digest) {
+        if (!monitoringEnabled) {
+            throw new IllegalStateException("monitoring is not enabled");
+        }
+        CompletableFuture<double[]> f = new CompletableFuture<>();
+        execute(() -> {
+            double[] res = new double[percentiles.length];
+            for (int i = 0; i < percentiles.length; i++) {
+                res[i] = digest.quantile(percentiles[i]);
+            }
+            f.complete(res);
+        });
+        return f;
+    }
 
     public static class Builder {
         private int entries = 4096;
@@ -136,7 +350,6 @@ public abstract class EventExecutor implements AutoCloseable {
             return this;
         }
 
-
         /**
          * The time after which the EventLoop thread will be put to sleep. The higher the value, the higher
          * the CPU consumption, but the lower the latency, the lower the CPU consumption and the higher the latency.
@@ -167,7 +380,6 @@ public abstract class EventExecutor implements AutoCloseable {
             return this;
         }
 
-
         public EventExecutor build() {
             if (entries > 4096 || !isPowerOfTwo(entries)) {
                 throw new IllegalArgumentException("entries must be power of 2 and less than 4096");
@@ -178,7 +390,7 @@ public abstract class EventExecutor implements AutoCloseable {
             if (ioRingSetupSqAff && !ioRingSetupSqPoll) {
                 throw new IllegalArgumentException("IORING_SETUP_SQ_AFF is only meaningful when IORING_SETUP_SQPOLL is specified");
             }
-            EventExecutor pollEventExecutor = new EventExecutorImpl(entries,
+            EventExecutor pollEventExecutor = new PollEventExecutorImpl(entries,
                     ioRingSetupSqPoll,
                     sqThreadIdle,
                     ioRingSetupSqAff,
@@ -190,7 +402,6 @@ public abstract class EventExecutor implements AutoCloseable {
                     attachWqRingFd,
                     bufRingDescriptors,
                     sleepTimeoutMs,
-                    ioPoll,
                     monitoring
             );
             pollEventExecutor.start();
