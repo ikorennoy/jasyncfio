@@ -2,7 +2,7 @@ object deps {
 
     const val jmh_plugin = "0.6.4"
     const val shadow_plugin = "7.1.2"
-    const val nexus_publish = "1.1.0"
+    const val nexus_publish = "1.3.0"
 
     const val jctools = "4.0.1"
     const val object_pool = "2.2.1"
