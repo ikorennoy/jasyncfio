@@ -43,7 +43,7 @@ Since the library uses native code, it is necessary to specify the classifier. A
 <dependency>
     <groupId>one.jasyncfio</groupId>
     <artifactId>jasyncfio</artifactId>
-    <version>0.0.7</version>
+    <version>0.0.8</version>
     <classifier>linux-amd64</classifier>
 </dependency>
 ```
@@ -51,13 +51,13 @@ Since the library uses native code, it is necessary to specify the classifier. A
 ### Gradle Groovy DSL
 
 ```groovy
-implementation 'one.jasyncfio:jasyncfio:0.0.7:linux-amd64'
+implementation 'one.jasyncfio:jasyncfio:0.0.8:linux-amd64'
 ```
 
 
 ### Gradle Kotlin DSL
 
 ```kotlin
-implementation("one.jasyncfio:jasyncfio:0.0.7:linux-amd64")
+implementation("one.jasyncfio:jasyncfio:0.0.8:linux-amd64")
 ```
 
